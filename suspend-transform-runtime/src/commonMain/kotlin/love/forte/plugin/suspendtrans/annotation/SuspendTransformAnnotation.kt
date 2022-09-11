@@ -24,7 +24,7 @@ public expect annotation class Api4Js
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class Suspend2JvmBlocking
+public expect annotation class Suspend2JvmBlocking(val baseName: String = "", val suffix: String = "Blocking")
 
 /**
  * ```kotlin
@@ -47,7 +47,7 @@ public expect annotation class Suspend2JvmBlocking
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class Suspend2JvmAsync
+public expect annotation class Suspend2JvmAsync(val baseName: String = "", val suffix: String = "Async")
 
 
 @OptIn(ExperimentalMultiplatform::class)

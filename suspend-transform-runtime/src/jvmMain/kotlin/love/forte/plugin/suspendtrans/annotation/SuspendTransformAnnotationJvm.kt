@@ -14,7 +14,7 @@ public annotation class ExperimentalJvmApi
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-public actual annotation class Suspend2JvmBlocking
+public actual annotation class Suspend2JvmBlocking(actual val baseName: String, actual val suffix: String)
 
 /**
  * ```kotlin
@@ -35,4 +35,4 @@ public actual annotation class Suspend2JvmBlocking
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-public actual annotation class Suspend2JvmAsync
+public actual annotation class Suspend2JvmAsync(actual val baseName: String, actual val suffix: String)

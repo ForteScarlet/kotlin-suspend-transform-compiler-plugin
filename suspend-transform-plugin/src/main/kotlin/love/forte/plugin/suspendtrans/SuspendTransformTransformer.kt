@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -20,10 +21,14 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.resolve.annotations.argumentValue
+import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_DEFAULT_FQ_NAME
+import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import java.util.*
 import org.jetbrains.kotlin.ir.util.isInterface as isInterfaceIr
 
@@ -77,6 +82,11 @@ public class SuspendTransformTransformer(
         return descriptor.isGenerated()
     }
     
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    private fun IrFunction.findAnnotationDescriptor(fqName: FqName): AnnotationDescriptor? {
+        return descriptor.annotations.findAnnotation(fqName)
+    }
+    
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         resolveFunction(declaration)
         return super.visitFunctionNew(declaration)
@@ -94,7 +104,7 @@ public class SuspendTransformTransformer(
                     
                     if (declaration is IrSimpleFunction) {
                         if (declaration.isGenerated()) {
-                            return@transformDeclarationsFlat listOf()
+                            return@transformDeclarationsFlat listOf(declaration)
                         }
                         
                         // suspend, with annotation
@@ -103,11 +113,13 @@ public class SuspendTransformTransformer(
                         }
                     }
                 }.also {
-                    println("Generated size: ${it.size}")
-                    if (it.size > 1) {
-                        declaration.annotations +=
+                    if (it.size > 1 && !declaration.annotations.hasAnnotation(generatedAnnotationName)) {
+                        declaration.annotations += listOf(
                             pluginContext.createIrBuilder(declaration.symbol)
-                                .irAnnotationConstructor(generatedAnnotation)
+                                .irAnnotationConstructor(generatedAnnotation),
+                            pluginContext.createIrBuilder(declaration.symbol)
+                                .irAnnotationConstructor(pluginContext.referenceClass(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)!!)
+                        )
                     }
                 }
             }
@@ -117,8 +129,7 @@ public class SuspendTransformTransformer(
     }
     
     private fun IrPluginContext.generateJvmFunction(originFunction: IrFunction): List<IrDeclaration> {
-        fun checkExists(suffix: String): Boolean {
-            val functionName = "${originFunction.name}$suffix"
+        fun checkExists(functionName: String): Boolean {
             // if function exists, skip.
             val parent = originFunction.parentClassOrNull ?: originFunction.fileParent
             return parent.functionsSequence.any { f ->
@@ -140,19 +151,33 @@ public class SuspendTransformTransformer(
             }
         }
         
+        fun AnnotationDescriptor?.functionName(defaultSuffix: String): String {
+            if (this == null) return "${originFunction.name}$defaultSuffix"
+            
+            val baseName = argumentValue("baseName")?.value?.toString()
+            val suffix = argumentValue("suffix")?.value?.toString()
+            
+            return (baseName ?: originFunction.name.toString()) + (suffix ?: defaultSuffix)
+        }
+        
         return buildList {
-            if (originFunction.hasAnnotation(toJvmBlockingAnnotationName) && !checkExists("Blocking")) {
-                addAll(generateJvmBlockingFunction(originFunction))
+            val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
+            val blockingFunctionName = blockingAnnotation.functionName("Blocking")
+            if (blockingAnnotation != null && !checkExists(blockingFunctionName)) {
+                addAll(generateJvmBlockingFunction(originFunction, blockingFunctionName))
             }
-            if (originFunction.hasAnnotation(toJvmAsyncAnnotationName) && !checkExists("Async")) {
-                addAll(generateJvmAsyncFunction(originFunction))
+            
+            val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
+            val asyncFunctionName = asyncAnnotation.functionName("Async")
+            if (asyncAnnotation != null && !checkExists(asyncFunctionName)) {
+                addAll(generateJvmAsyncFunction(originFunction, asyncFunctionName))
             }
         }
     }
     
-    private fun IrPluginContext.generateJvmBlockingFunction(originFunction: IrFunction): List<IrDeclaration> {
+    private fun IrPluginContext.generateJvmBlockingFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
         val blockingFunction = originFunction.copyFunc({
-            name = Name.identifier("${originFunction.name}Blocking")
+            name = Name.identifier(functionName)
             returnType = originFunction.returnType
         }) bkf@{
             copyAttributes(originFunction as IrAttributeContainer)
@@ -160,11 +185,14 @@ public class SuspendTransformTransformer(
             
             annotations = originFunction.annotations.filterNotCompileAnnotations()
                 .plus(createIrBuilder(symbol).irAnnotationConstructor(generatedAnnotation))
+    
             
-            // @JvmDefault?
-            // if (parentClassOrFile.isInterface) {
-            //     this.annotations += createIrBuilder(symbol).irAnnotationConstructor(referenceJvmDefault())
-            // }
+            // @JvmDefault, interface
+            if (originFunction.parentClassOrNull?.isInterface == true) {
+                annotations = annotations + pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                    pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
+                )
+            }
             
             body = createIrBuilder(symbol).irBlockBody {
                 val suspendLambda = createSuspendLambdaWithCoroutineScope(
@@ -188,9 +216,9 @@ public class SuspendTransformTransformer(
         return listOf(blockingFunction)
     }
     
-    private fun IrPluginContext.generateJvmAsyncFunction(originFunction: IrFunction): List<IrDeclaration> {
+    private fun IrPluginContext.generateJvmAsyncFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
         val asyncFunction = originFunction.copyFunc({
-            name = Name.identifier("${originFunction.name}Async")
+            name = Name.identifier(functionName)
             returnType = completableFutureClass.typeWith(originFunction.returnType)
         }) af@{
             copyAttributes(originFunction as IrAttributeContainer)
@@ -198,6 +226,13 @@ public class SuspendTransformTransformer(
             
             annotations = originFunction.annotations.filterNotCompileAnnotations()
                 .plus(createIrBuilder(symbol).irAnnotationConstructor(generatedAnnotation))
+    
+            // @JvmDefault, interface
+            if (originFunction.parentClassOrNull?.isInterface == true) {
+                annotations = annotations + pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                    pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
+                )
+            }
             
             body = createIrBuilder(symbol).irBlockBody {
                 val suspendLambda = createSuspendLambdaWithCoroutineScope(
@@ -250,7 +285,7 @@ private inline fun IrFunction.copyFunc(
         endOffset = originFunction.endOffset
         origin = IrDeclarationOrigin.DEFINED
         returnType = originalFunction.returnType
-        modality = parentClassOrFile.computeModality()
+        modality = parentClassOrFile.computeModality(originFunction)
         visibility = if (parentClassOrFile.isInterface) DescriptorVisibilities.PUBLIC
         else originFunction.visibility
         
@@ -265,7 +300,6 @@ private inline fun IrFunction.copyFunc(
     copyFunction.extensionReceiverParameter = originFunction.extensionReceiverParameter?.copyTo(copyFunction)
     copyFunction.dispatchReceiverParameter = if (originFunction.isStatic) null
     else originFunction.dispatchReceiverParameter?.copyTo(copyFunction)
-    
     
     return copyFunction.apply(andThen)
 }
@@ -284,9 +318,11 @@ private fun IrType.isClassType(fqName: FqNameUnsafe, hasQuestionMark: Boolean? =
     return classifier.isClassWithFqName(fqName)
 }
 
-private fun IrDeclarationContainer.computeModality(): Modality {
+private fun IrDeclarationContainer.computeModality(originFunction: IrFunction): Modality {
     if (isInterface) return Modality.OPEN
+    
     return when {
+        originFunction.isFinal -> Modality.FINAL
         isOpen || isAbstract || isSealed -> Modality.OPEN
         else -> Modality.FINAL
     }
@@ -306,6 +342,18 @@ private val IrDeclarationContainer.isSealed: Boolean
 
 private val IrDeclarationContainer.isPrivate: Boolean
     get() = (this as? IrDeclarationWithVisibility)?.visibility?.delegate == Visibilities.Private
+
+private val IrFunction.isFinal: Boolean
+    get() = (this as? IrSimpleFunction)?.modality == Modality.FINAL
+
+private val IrFunction.isAbstract: Boolean
+    get() = (this as? IrSimpleFunction)?.modality == Modality.ABSTRACT
+
+private val IrFunction.isOpen: Boolean
+    get() = (this as? IrSimpleFunction)?.modality == Modality.OPEN
+
+private val IrFunction.isSealed: Boolean
+    get() = (this as? IrSimpleFunction)?.modality == Modality.SEALED
 
 
 /**

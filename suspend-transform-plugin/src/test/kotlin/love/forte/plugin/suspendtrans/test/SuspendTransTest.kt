@@ -12,19 +12,28 @@ import org.junit.jupiter.api.Test
  * @author ForteScarlet
  */
 class SuspendTransTest {
-    @Suppress("ConvertToStringTemplate")
     private val main = SourceFile.kotlin(
         "Main.kt", """
  import kotlinx.coroutines.runBlocking
-class JustTest {
+open class JustTest : ITest {
     // @JvmSynthetic
     @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
     @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
-    suspend fun getValue(): Long {
-        kotlinx.coroutines.delay(5)
-        return System.currentTimeMillis()
-    }
+    open suspend fun getValue(): Long = System.currentTimeMillis()
+
+    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
+    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
+    override suspend fun invoke(name: String, value: Int): Bar = Bar()
 }
+
+interface ITest {
+    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
+    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
+    suspend fun invoke(name: String, value: Int): Foo
+}
+
+open class Foo
+open class Bar : Foo()
 
 fun main() {
     val test = JustTest()
@@ -57,6 +66,11 @@ fun main() {
     
         println("======== JustTest java code ========")
         println(result.javaCode("JustTest"))
+        println("===========================")
+        
+    
+        println("======== JustTest java code ========")
+        println(result.javaCode("ITest"))
         println("===========================")
         
         // println("======== MainKt java code ========")
