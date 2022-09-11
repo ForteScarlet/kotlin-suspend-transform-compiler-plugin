@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
  *
  * @author ForteScarlet
  */
-class SuspendTransformIrGenerationExtension : IrGenerationExtension {
+public class SuspendTransformIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         // val typeAnyNullable = pluginContext.irBuiltIns.anyNType
         

@@ -2,19 +2,19 @@ package love.forte.plugin.suspendtrans.annotation
 
 @RequiresOptIn(message = "Api should be used by Java", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
-actual annotation class Api4J
+public actual annotation class Api4J
 
 
 @RequiresOptIn(message = "Experimental jvm api", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalJvmApi
+public annotation class ExperimentalJvmApi
 
 /**
  *
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-actual annotation class Suspend2JvmBlocking
+public actual annotation class Suspend2JvmBlocking
 
 /**
  * ```kotlin
@@ -35,4 +35,4 @@ actual annotation class Suspend2JvmBlocking
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-actual annotation class Suspend2JvmAsync
+public actual annotation class Suspend2JvmAsync

@@ -7,23 +7,19 @@ import kotlinx.coroutines.future.future
 import love.forte.plugin.suspendtrans.annotation.ExperimentalJvmApi
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 
 // private val
 
-@set:ExperimentalJvmApi
-var CoroutineContext4J: CoroutineContext = runCatching {
-    classLoader.loadClass("kotlinx.coroutines.Dispatchers")
-    Dispatchers.IO
-}.getOrElse { EmptyCoroutineContext }
+@ExperimentalJvmApi
+public var CoroutineContext4J: CoroutineContext = Dispatchers.IO
 
-@set:ExperimentalJvmApi
-var CoroutineScope4J: CoroutineScope = CoroutineScope(CoroutineContext4J)
+@ExperimentalJvmApi
+public var CoroutineScope4J: CoroutineScope = CoroutineScope(CoroutineContext4J)
 
-
+@ExperimentalJvmApi
 @Throws(InterruptedException::class)
-fun <T> runInBlocking(
+public fun <T> runInBlocking(
     context: CoroutineContext = CoroutineContext4J,
     block: suspend () -> T,
 ): T = runBlocking(context) { block() }
@@ -77,7 +73,8 @@ private val transformer: FutureTransformer =
     else SimpleTransformer
 
 
-fun <T> runInAsync(
+@ExperimentalJvmApi
+public fun <T> runInAsync(
     scope: CoroutineScope = CoroutineScope4J,
     block: suspend () -> T,
 ): CompletableFuture<T> {

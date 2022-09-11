@@ -27,6 +27,9 @@ dependencies {
 }
 
 buildConfig {
+    useKotlinOutput {
+        internalVisibility = true
+    }
     packageName(group.toString())
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"$group.$name\"")
 }
@@ -35,14 +38,12 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-tasks.test {
-    useJUnitPlatform()
+kotlin {
+    explicitApi()
 }
 
-tasks.compileTestKotlin {
-    kotlinOptions {
-    
-    }
+tasks.test {
+    useJUnitPlatform()
 }
 
 // publishing {

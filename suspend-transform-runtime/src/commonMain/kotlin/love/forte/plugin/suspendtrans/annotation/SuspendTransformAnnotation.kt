@@ -1,17 +1,21 @@
 package love.forte.plugin.suspendtrans.annotation
 
+@Retention(AnnotationRetention.BINARY)
+@Deprecated("Only used by auto-generate", level = DeprecationLevel.HIDDEN)
+public annotation class Generated
+
 @RequiresOptIn(message = "Api should be used by Java", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-expect annotation class Api4J
+public expect annotation class Api4J
 
 
 @RequiresOptIn(message = "Api should be used by JavaScript", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-expect annotation class Api4Js
+public expect annotation class Api4Js
 
 /**
  *
@@ -20,7 +24,7 @@ expect annotation class Api4Js
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-expect annotation class Suspend2JvmBlocking
+public expect annotation class Suspend2JvmBlocking
 
 /**
  * ```kotlin
@@ -43,11 +47,11 @@ expect annotation class Suspend2JvmBlocking
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-expect annotation class Suspend2JvmAsync
+public expect annotation class Suspend2JvmAsync
 
 
 @OptIn(ExperimentalMultiplatform::class)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-expect annotation class Suspend2JsPromise
+public expect annotation class Suspend2JsPromise

@@ -2,8 +2,12 @@ package love.forte.plugin.suspendtrans.annotation
 
 @RequiresOptIn(message = "Api should be used by JavaScript", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
-actual annotation class Api4Js
+public actual annotation class Api4Js
+
+@RequiresOptIn(message = "Experimental javascript api", level = RequiresOptIn.Level.WARNING)
+@Retention(AnnotationRetention.BINARY)
+public annotation class ExperimentalJsApi
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-actual annotation class Suspend2JsPromise
+public actual annotation class Suspend2JsPromise

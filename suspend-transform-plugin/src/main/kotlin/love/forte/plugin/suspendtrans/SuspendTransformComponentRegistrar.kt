@@ -7,12 +7,13 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @AutoService(ComponentRegistrar::class)
-class SuspendTransformComponentRegistrar(
+public class SuspendTransformComponentRegistrar(
     private val defaultEnabled: Boolean,
 ) : ComponentRegistrar {
     
-    @Suppress("unused") // Used by service loader
-    constructor() : this(
+    // Used by service loader
+    @Suppress("unused")
+    public constructor() : this(
         defaultEnabled = true,
     )
     

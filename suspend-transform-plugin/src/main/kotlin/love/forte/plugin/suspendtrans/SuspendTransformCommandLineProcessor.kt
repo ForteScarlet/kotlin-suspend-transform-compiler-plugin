@@ -10,14 +10,14 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
 
 @AutoService(CommandLineProcessor::class)
-class SuspendTransformCommandLineProcessor : CommandLineProcessor {
-    companion object {
+public class SuspendTransformCommandLineProcessor : CommandLineProcessor {
+    public companion object {
         private const val OPTION_ENABLED = "enabled"
         // private const val OPTION_JVM_BLOCKING_ANNOTATION: String = "jvmBlockingIncludeAnnotations"
         // private const val OPTION_JVM_ASYNC_ANNOTATION: String = "jvmAsyncIncludeAnnotations"
         // private const val OPTION_JS_PROMISE_ANNOTATION: String = "jsPromiseIncludeAnnotations"
         
-        val ARG_ENABLED = CompilerConfigurationKey<Boolean>(OPTION_ENABLED)
+        public val ARG_ENABLED: CompilerConfigurationKey<Boolean> = CompilerConfigurationKey<Boolean>(OPTION_ENABLED)
     }
     
     override val pluginId: String = BuildConfig.KOTLIN_PLUGIN_ID

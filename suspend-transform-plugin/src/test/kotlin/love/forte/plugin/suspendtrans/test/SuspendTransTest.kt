@@ -19,25 +19,26 @@ class SuspendTransTest {
 class JustTest {
     // @JvmSynthetic
     @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
+    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
     suspend fun getValue(): Long {
         kotlinx.coroutines.delay(5)
         return System.currentTimeMillis()
     }
-
-    fun getValueBlocking2(): Long = runBlocking { getValue() }
-
 }
 
 fun main() {
     val test = JustTest()
     println(runBlocking { test.getValue() })
-    println(test.getValueBlocking2())
     JustTest::class.java.declaredMethods.forEach {
         println(it)
-        if (it.name == "getValueBlocking") {
-            val invoke = it.invoke(test)
-            println("blocking value: " + invoke)
-        }
+        // if (it.name == "getValueBlocking") {
+        //     val invoke = it.invoke(test)
+        //     println("blocking value: " + invoke)
+        // }
+        // if (it.name == "getValueAsync") {
+        //     val invoke = it.invoke(test)
+        //     println("async value: " + invoke)
+        // }
      }
 }
 """
@@ -58,13 +59,13 @@ fun main() {
         println(result.javaCode("JustTest"))
         println("===========================")
         
-        println("======== MainKt java code ========")
-        println(result.javaCode("MainKt"))
-        println("===========================")
+        // println("======== MainKt java code ========")
+        // println(result.javaCode("MainKt"))
+        // println("===========================")
         
-        result.classLoader.loadClass("MainKt").declaredMethods.forEach {
-            println("MainKt method: $it")
-        }
+        // result.classLoader.loadClass("MainKt").declaredMethods.forEach {
+        //     println("MainKt method: $it")
+        // }
         
         val out = invokeMain(result, "MainKt").trim().split("""\r?\n+""".toRegex())
         println("======== invoke main result ========")

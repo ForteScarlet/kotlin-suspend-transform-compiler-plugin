@@ -3,6 +3,8 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
+    
     jvm {
         compilations.all {
             kotlinOptions {
@@ -18,50 +20,53 @@ kotlin {
         nodejs()
     }
     
-    configAllNativeTargets()
-    
-    val nativeTargetSourceNames = targets.flatMapTo(mutableSetOf()) { target ->
-        if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
-            val name = target.name
-            listOf("${name}Main", "${name}Test")
-        } else {
-            emptyList()
-        }
-    }
+    // Only Jvm and JS
+    // configAllNativeTargets()
+    // val nativeTargetSourceNames = targets.flatMapTo(mutableSetOf()) { target ->
+    //     if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
+    //         val name = target.name
+    //         listOf("${name}Main", "${name}Test")
+    //     } else {
+    //         emptyList()
+    //     }
+    // }
     
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
         
         getByName("jvmMain") {
             dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
                 compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
             }
         }
         
-        val nativeCommonMain = create("nativeCommonMain") {
-            dependsOn(commonMain)
-        }
-        val nativeCommonTest = create("nativeCommonTest") {
-            dependsOn(commonTest)
-        }
-    
-        matching { it.name in nativeTargetSourceNames }.all {
-            when {
-                name.endsWith("Main") -> {
-                    dependsOn(nativeCommonMain)
-                }
-                name.endsWith("Test") -> {
-                    dependsOn(nativeCommonTest)
-                }
-            }
-        }
+        // val nativeCommonMain = create("nativeCommonMain") {
+        //     dependsOn(commonMain)
+        // }
+        // val nativeCommonTest = create("nativeCommonTest") {
+        //     dependsOn(commonTest)
+        // }
+        
+        // matching { it.name in nativeTargetSourceNames }.all {
+        //     when {
+        //         name.endsWith("Main") -> {
+        //             dependsOn(nativeCommonMain)
+        //         }
+        //
+        //         name.endsWith("Test") -> {
+        //             dependsOn(nativeCommonTest)
+        //         }
+        //     }
+        // }
         
     }
     
