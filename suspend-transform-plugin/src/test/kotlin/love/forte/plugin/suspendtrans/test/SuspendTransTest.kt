@@ -67,6 +67,15 @@ open class JustTest { //  : ITest
         // result.classLoader.loadClass("MainKt").declaredMethods.forEach {
         //     println("MainKt method: $it")
         // }
+    
+        val justTest = result.classLoader.loadClass("JustTest")
+        val method = justTest.getMethod("value2Blocking")
+        val justTestInstance = justTest.getConstructor().newInstance()
+        println(method.invoke(justTestInstance))
+        
+        // val out = invokeMain(result, "MainKt").trim().split("""\r?\n+""".toRegex())
+        // println("======== invoke main result ========")
+        // out.forEach(::println)
     }
     
     // @Test
