@@ -1,5 +1,5 @@
 
-rootProject.name = "suspend-transform-kotlin-compile-plugin"
+rootProject.name = "suspend-transform-kotlin-compiler-plugin"
 
 include(":suspend-transform-runtime")
 include(":suspend-transform-plugin")
