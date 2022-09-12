@@ -6,7 +6,10 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -18,29 +21,34 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
+import org.jetbrains.kotlin.name.JvmNames.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_DEFAULT_FQ_NAME
-import org.jetbrains.kotlin.resolve.jvm.annotations.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import java.util.*
 import org.jetbrains.kotlin.ir.util.isInterface as isInterfaceIr
+
+private inline val IrPluginContext.isJvm: Boolean get() = platform?.isJvm() == true
+private inline val IrPluginContext.isJs: Boolean get() = platform?.isJs() == true
 
 /**
  *
  * @author ForteScarlet
  */
-public class SuspendTransformTransformer(
+class SuspendTransformTransformer(
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
     
+    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
     
     private val jvmRunBlockingFunctionOrNull =
         pluginContext.referenceFunctions(jvmRunInBlockingFunctionName).singleOrNull()
@@ -64,14 +72,8 @@ public class SuspendTransformTransformer(
     private val jsRunAsyncFunction
         get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction unsupported.")
     
-    private fun List<IrConstructorCall>.filterNotCompileAnnotations(): List<IrConstructorCall> =
-        filterNot {
-            it.type.isClassType(toJvmAsyncAnnotationName.toUnsafe())
-                    || it.type.isClassType(toJvmBlockingAnnotationName.toUnsafe())
-                    || it.type.isClassType(toJsPromiseAnnotationName.toUnsafe())
-        }
-    
-    private object Generated : CallableDescriptor.UserDataKey<Boolean>
+    private val jsPromiseClassOrNull = pluginContext.referenceClass(jsPromiseClassName)
+    private val jsPromiseClass get() = jsPromiseClassOrNull ?: error("jsPromiseClass unsupported.")
     
     private fun FunctionDescriptor.isGenerated(): Boolean {
         return this.annotations.hasAnnotation(generatedAnnotationName)
@@ -87,18 +89,36 @@ public class SuspendTransformTransformer(
         return descriptor.annotations.findAnnotation(fqName)
     }
     
-    override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        resolveFunction(declaration)
-        return super.visitFunctionNew(declaration)
+    // override fun visitFunctionNew(declaration: IrFunction): IrStatement {
+    //     resolveFunction(declaration)
+    //     return super.visitFunctionNew(declaration)
+    // }
+    
+    override fun visitClassNew(declaration: IrClass): IrStatement {
+        resolveClass(declaration)
+        return super.visitClassNew(declaration)
+    }
+    
+    override fun visitFileNew(declaration: IrFile): IrFile {
+        resolveFile(declaration)
+        return super.visitFileNew(declaration)
+    }
+    
+    private fun resolveClass(irClass: IrClass) {
+        resolveParentFunctions(irClass)
+    }
+    
+    private fun resolveFile(irFile: IrFile) {
+        resolveParentFunctions(irFile)
     }
     
     
-    private fun resolveFunction(
-        function: IrFunction,
-    ): IrFunction? {
-        val parent = function.parent
-        if (parent is IrClass) {
-            parent.transformDeclarationsFlat { declaration ->
+    private fun resolveParentFunctions(
+        parent: IrDeclarationParent,
+    ) {
+        // val parent = function.parent
+        if (parent is IrClass || parent is IrFile) {
+            (parent as IrDeclarationContainer).transformDeclarationsFlat { declaration ->
                 buildList {
                     add(declaration)
                     
@@ -108,163 +128,234 @@ public class SuspendTransformTransformer(
                         }
                         
                         // suspend, with annotation
-                        if (pluginContext.platform?.isJvm() == true && declaration.isSuspend) {
-                            addAll(pluginContext.generateJvmFunction(declaration))
+                        if (declaration.isSuspend) {
+                            when {
+                                pluginContext.isJvm -> {
+                                    addAll(generateJvmFunctions(declaration))
+                                }
+                                
+                                pluginContext.isJs -> {
+                                    addAll(generateJsFunctions(declaration))
+                                }
+                            }
                         }
                     }
                 }.also {
-                    if (it.size > 1 && !declaration.annotations.hasAnnotation(generatedAnnotationName)) {
-                        declaration.annotations += listOf(
-                            pluginContext.createIrBuilder(declaration.symbol)
-                                .irAnnotationConstructor(generatedAnnotation),
-                            pluginContext.createIrBuilder(declaration.symbol)
-                                .irAnnotationConstructor(pluginContext.referenceClass(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)!!)
-                        )
+                    if (it.size > 1 && !declaration.hasAnnotation(generatedAnnotationName)) {
+                        declaration.annotations = buildList {
+                            addAll(declaration.annotations)
+                            // @Generated
+                            add(
+                                pluginContext.createIrBuilder(declaration.symbol)
+                                    .irAnnotationConstructor(generatedAnnotation)
+                            )
+                            if (pluginContext.isJvm) {
+                                // @JvmSynthetic
+                                add(
+                                    pluginContext.createIrBuilder(declaration.symbol).irAnnotationConstructor(
+                                            pluginContext.referenceClass(
+                                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
+                                            )!!
+                                        )
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
         
-        return null
     }
     
-    private fun IrPluginContext.generateJvmFunction(originFunction: IrFunction): List<IrDeclaration> {
-        fun checkExists(functionName: String): Boolean {
-            // if function exists, skip.
-            val parent = originFunction.parentClassOrNull ?: originFunction.fileParent
-            return parent.functionsSequence.any { f ->
-                if (f.name.asString() != functionName) {
-                    return@any false
-                }
-                if (f.allParametersCount != originFunction.allParametersCount) {
-                    return@any false
-                }
-                val originFunctionParameters = originFunction.allParameters
-                f.allParameters.forEachIndexed { index, parameter ->
-                    val targetOriginFunctionParameter = originFunctionParameters[index]
-                    if (targetOriginFunctionParameter.type != parameter.type) {
-                        return@any false
-                    }
-                }
-                
-                true
+    private fun checkFunctionExists(function: IrFunction, functionName: String): Boolean {
+        val parent = function.parentClassOrNull ?: function.fileParent
+        return parent.functionsSequence.any { f ->
+            if (f.name.asString() != functionName) {
+                return@any false
             }
+            if (f.allParametersCount != function.allParametersCount) {
+                return@any false
+            }
+            val originFunctionParameters = function.allParameters
+            f.allParameters.forEachIndexed { index, parameter ->
+                val targetOriginFunctionParameter = originFunctionParameters[index]
+                if (targetOriginFunctionParameter.type != parameter.type) {
+                    return@any false
+                }
+            }
+            
+            true
+        }
+    }
+    
+    
+    private fun AnnotationDescriptor?.functionName(
+        baseNamePropertyName: String = "baseName",
+        suffixPropertyName: String = "suffix",
+        defaultBaseName: String, defaultSuffix: String,
+    ): String {
+        if (this == null) return "$defaultBaseName$defaultSuffix"
+        
+        val visitor = object : AbstractNullableAnnotationArgumentVoidDataVisitor<String>() {
+            override fun visitStringValue(value: String): String = value
         }
         
-        fun AnnotationDescriptor?.functionName(defaultSuffix: String): String {
-            if (this == null) return "${originFunction.name}$defaultSuffix"
-            
-            val baseName = argumentValue("baseName")?.value?.toString()
-            val suffix = argumentValue("suffix")?.value?.toString()
-            
-            return (baseName ?: originFunction.name.toString()) + (suffix ?: defaultSuffix)
-        }
+        val baseName = argumentValue(baseNamePropertyName)?.accept(visitor, null)
+        val suffix = argumentValue(suffixPropertyName)?.accept(visitor, null)
         
+        return (baseName ?: defaultBaseName) + (suffix ?: defaultSuffix)
+    }
+    
+    private fun generateJvmFunctions(originFunction: IrFunction): List<IrDeclaration> {
         return buildList {
             val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
-            val blockingFunctionName = blockingAnnotation.functionName("Blocking")
-            if (blockingAnnotation != null && !checkExists(blockingFunctionName)) {
+            val blockingFunctionName = blockingAnnotation.functionName(
+                defaultBaseName = originFunction.name.toString(), defaultSuffix = "Blocking"
+            )
+            if (originFunction.hasAnnotation(toJvmBlockingAnnotationName) && !checkFunctionExists(
+                    originFunction, blockingFunctionName
+                )
+            ) {
                 addAll(generateJvmBlockingFunction(originFunction, blockingFunctionName))
             }
             
             val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
-            val asyncFunctionName = asyncAnnotation.functionName("Async")
-            if (asyncAnnotation != null && !checkExists(asyncFunctionName)) {
+            val asyncFunctionName =
+                asyncAnnotation.functionName(defaultBaseName = originFunction.name.toString(), defaultSuffix = "Async")
+            if (originFunction.hasAnnotation(toJvmAsyncAnnotationName) && !checkFunctionExists(
+                    originFunction, asyncFunctionName
+                )
+            ) {
                 addAll(generateJvmAsyncFunction(originFunction, asyncFunctionName))
             }
         }
     }
     
-    private fun IrPluginContext.generateJvmBlockingFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
-        val blockingFunction = originFunction.copyFunc({
-            name = Name.identifier(functionName)
-            returnType = originFunction.returnType
-        }) bkf@{
-            copyAttributes(originFunction as IrAttributeContainer)
-            copyParameterDeclarationsFrom(originFunction)
-            
-            annotations = originFunction.annotations.filterNotCompileAnnotations()
-                .plus(createIrBuilder(symbol).irAnnotationConstructor(generatedAnnotation))
-    
-            
-            // @JvmDefault, interface
-            if (originFunction.parentClassOrNull?.isInterface == true) {
-                annotations = annotations + pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
-                    pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
-                )
-            }
-            
-            body = createIrBuilder(symbol).irBlockBody {
-                val suspendLambda = createSuspendLambdaWithCoroutineScope(
-                    parent = this@bkf,
-                    // suspend () -> R
-                    lambdaType = symbols.suspendFunctionN(0).typeWith(this@bkf.returnType),
-                    originFunction = originFunction
-                ).also { +it }
-                
-                +irReturn(irCall(jvmRunBlockingFunction).apply {
-                    // 0: CoroutineContext
-                    putValueArgument(1, irCall(suspendLambda.primaryConstructor!!).apply {
-                        for ((index, parameter) in this@bkf.paramsAndReceiversAsParamsList().withIndex()) {
-                            putValueArgument(index, irGet(parameter))
-                        }
-                    })
-                })
-            }
+    private fun generateJsFunctions(originFunction: IrFunction): List<IrDeclaration> {
+        val promiseAnnotation = originFunction.findAnnotationDescriptor(toJsPromiseAnnotationName)
+        val promiseFunctionName =
+            promiseAnnotation.functionName(defaultBaseName = originFunction.name.toString(), defaultSuffix = "Async")
+        
+        if (originFunction.hasAnnotation(toJsPromiseAnnotationName) && !checkFunctionExists(
+                originFunction, promiseFunctionName
+            )
+        ) {
+            return generateJsPromiseFunction(originFunction, promiseFunctionName)
         }
         
-        return listOf(blockingFunction)
+        return listOf()
     }
     
-    private fun IrPluginContext.generateJvmAsyncFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
-        val asyncFunction = originFunction.copyFunc({
-            name = Name.identifier(functionName)
-            returnType = completableFutureClass.typeWith(originFunction.returnType)
-        }) af@{
-            copyAttributes(originFunction as IrAttributeContainer)
-            copyParameterDeclarationsFrom(originFunction)
-            
-            annotations = originFunction.annotations.filterNotCompileAnnotations()
-                .plus(createIrBuilder(symbol).irAnnotationConstructor(generatedAnnotation))
-    
-            // @JvmDefault, interface
-            if (originFunction.parentClassOrNull?.isInterface == true) {
-                annotations = annotations + pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
-                    pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
-                )
-            }
-            
-            body = createIrBuilder(symbol).irBlockBody {
-                val suspendLambda = createSuspendLambdaWithCoroutineScope(
-                    parent = this@af,
-                    // suspend () -> R
-                    lambdaType = symbols.suspendFunctionN(0).typeWith(this@af.returnType),
-                    originFunction = originFunction
-                ).also { +it }
-                
-                +irReturn(irCall(jvmRunAsyncFunction).apply {
-                    // 0: CoroutineContext
-                    putValueArgument(1, irCall(suspendLambda.primaryConstructor!!).apply {
-                        for ((index, parameter) in this@af.paramsAndReceiversAsParamsList().withIndex()) {
-                            putValueArgument(index, irGet(parameter))
-                        }
-                    })
-                })
-            }
-            
-            
+    private fun generateJvmBlockingFunction(
+        originFunction: IrFunction,
+        functionName: String,
+    ): List<IrDeclaration> {
+        val function = copyFunctionForGenerate(
+            originFunction = originFunction,
+            context = pluginContext,
+            transformTargetFunctionCall = jvmRunBlockingFunction,
+            builder = {
+                name = Name.identifier(functionName)
+            },
+            plusAnnotations = {
+                // @JvmDefault for interface
+                if (originFunction.parentClassOrNull?.isInterface == true) {
+                    it.add(
+                        pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                            pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
+                        )
+                    )
+                }
+            },
+        )
+        val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
+        val asProperty = blockingAnnotation?.argumentValue("asProperty")
+            ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null) ?: false
+        
+        if (asProperty) {
+            return listOf(function.asProperty())
         }
         
-        return listOf(asyncFunction)
+        
+        return listOf(function)
     }
     
-    private fun IrPluginContext.generateJsPromiseFunction(originFunction: IrFunction): List<IrDeclaration> {
+    private fun generateJvmAsyncFunction(
+        originFunction: IrFunction,
+        functionName: String,
+    ): List<IrDeclaration> {
+        val function = copyFunctionForGenerate(originFunction = originFunction,
+            context = pluginContext,
+            transformTargetFunctionCall = jvmRunAsyncFunction,
+            builder = {
+                name = Name.identifier(functionName)
+                returnType = completableFutureClass.typeWith(originFunction.returnType)
+            },
+            plusAnnotations = {
+                // @JvmDefault for interface
+                if (originFunction.parentClassOrNull?.isInterface == true) {
+                    it.add(
+                        pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                            pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
+                        )
+                    )
+                }
+            })
         
-        TODO()
+        val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
+        val asProperty = asyncAnnotation?.argumentValue("asProperty")
+            ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null) ?: false
+        
+        if (asProperty) {
+            return listOf(function.asProperty())
+        }
+        
+        return listOf(function)
+    }
+    
+    private fun generateJsPromiseFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
+        val promiseFunction = copyFunctionForGenerate(originFunction = originFunction,
+            context = pluginContext,
+            transformTargetFunctionCall = jsRunAsyncFunction,
+            builder = {
+                name = Name.identifier(functionName)
+                returnType = jsPromiseClass.typeWith(originFunction.returnType)
+            },
+            plusAnnotations = {
+                // TODO @JsName?
+            })
+        
+        return listOf(promiseFunction)
     }
 }
 
-internal fun IrBuilderWithScope.irAnnotationConstructor(
+private fun IrSimpleFunction.asProperty(): IrProperty {
+    val baseFunction = this
+    val parentClassOrFile = baseFunction.parentClassOrNull ?: baseFunction.fileParent
+    val property = IrFactoryImpl.buildProperty {
+        updateFrom(baseFunction)
+        name = baseFunction.name
+        startOffset = baseFunction.startOffset
+        endOffset = baseFunction.endOffset
+        origin = IrDeclarationOrigin.DEFINED
+        returnType = originalFunction.returnType
+        modality = parentClassOrFile.computeModality(baseFunction)
+        visibility = if (parentClassOrFile.isInterface) DescriptorVisibilities.PUBLIC
+        else baseFunction.visibility
+        isExternal = false
+        isExpect = false
+        isVar = false
+        isConst = false
+    }.apply {
+        this.copyAttributes(baseFunction)
+        parent = parentClassOrFile
+        getter = baseFunction
+    }
+    
+    return property
+}
+
+private fun IrBuilderWithScope.irAnnotationConstructor(
     clazz: IrClassSymbol,
 ): IrConstructorCall {
     return run {
@@ -274,17 +365,29 @@ internal fun IrBuilderWithScope.irAnnotationConstructor(
     }
 }
 
-private inline fun IrFunction.copyFunc(
+private fun List<IrConstructorCall>.filterNotCompileAnnotations(): List<IrConstructorCall> = filterNot {
+    it.type.isClassType(toJvmAsyncAnnotationName.toUnsafe()) || it.type.isClassType(toJvmBlockingAnnotationName.toUnsafe()) || it.type.isClassType(
+        toJsPromiseAnnotationName.toUnsafe()
+    )
+}
+
+private val IrPluginContext.generatedAnnotation get() = referenceClass(generatedAnnotationName)!!
+
+
+private inline fun copyFunctionForGenerate(
+    originFunction: IrFunction,
+    context: IrPluginContext,
+    transformTargetFunctionCall: IrSimpleFunctionSymbol,
     builder: IrFunctionBuilder.() -> Unit = {},
-    andThen: IrSimpleFunction.() -> Unit = {},
-): IrFunction {
-    val originFunction = this
-    val parentClassOrFile = originFunction.parentClassOrNull ?: fileParent
+    plusAnnotations: IrSimpleFunction.(list: MutableList<IrConstructorCall>) -> Unit = {},
+): IrSimpleFunction {
+    // val originFunction = this
+    val parentClassOrFile = originFunction.parentClassOrNull ?: originFunction.fileParent
     val copyFunction = IrFactoryImpl.buildFun {
         startOffset = originFunction.startOffset
         endOffset = originFunction.endOffset
         origin = IrDeclarationOrigin.DEFINED
-        returnType = originalFunction.returnType
+        returnType = originFunction.returnType
         modality = parentClassOrFile.computeModality(originFunction)
         visibility = if (parentClassOrFile.isInterface) DescriptorVisibilities.PUBLIC
         else originFunction.visibility
@@ -301,7 +404,33 @@ private inline fun IrFunction.copyFunc(
     copyFunction.dispatchReceiverParameter = if (originFunction.isStatic) null
     else originFunction.dispatchReceiverParameter?.copyTo(copyFunction)
     
-    return copyFunction.apply(andThen)
+    copyFunction.copyAttributes(originFunction as IrAttributeContainer)
+    copyFunction.copyParameterDeclarationsFrom(originFunction)
+    
+    copyFunction.annotations = buildList {
+        addAll(originFunction.annotations.filterNotCompileAnnotations())
+        add(context.createIrBuilder(copyFunction.symbol).irAnnotationConstructor(context.generatedAnnotation))
+        copyFunction.plusAnnotations(this)
+    }
+    
+    copyFunction.body = context.createIrBuilder(copyFunction.symbol).irBlockBody {
+        val suspendLambda = context.createSuspendLambdaWithCoroutineScope(
+            parent = copyFunction,
+            // suspend () -> R
+            lambdaType = context.symbols.suspendFunctionN(0).typeWith(copyFunction.returnType),
+            originFunction = originFunction
+        ).also { +it }
+        
+        +irReturn(irCall(transformTargetFunctionCall).apply {
+            putValueArgument(1, irCall(suspendLambda.primaryConstructor!!).apply {
+                for ((index, parameter) in copyFunction.paramsAndReceiversAsParamsList().withIndex()) {
+                    putValueArgument(index, irGet(parameter))
+                }
+            })
+        })
+    }
+    
+    return copyFunction
 }
 
 
@@ -340,20 +469,11 @@ private val IrDeclarationContainer.isOpen: Boolean
 private val IrDeclarationContainer.isSealed: Boolean
     get() = (this as? IrClass)?.modality == Modality.SEALED
 
-private val IrDeclarationContainer.isPrivate: Boolean
-    get() = (this as? IrDeclarationWithVisibility)?.visibility?.delegate == Visibilities.Private
+// private val IrDeclarationContainer.isPrivate: Boolean
+//     get() = (this as? IrDeclarationWithVisibility)?.visibility?.delegate == Visibilities.Private
 
 private val IrFunction.isFinal: Boolean
     get() = (this as? IrSimpleFunction)?.modality == Modality.FINAL
-
-private val IrFunction.isAbstract: Boolean
-    get() = (this as? IrSimpleFunction)?.modality == Modality.ABSTRACT
-
-private val IrFunction.isOpen: Boolean
-    get() = (this as? IrSimpleFunction)?.modality == Modality.OPEN
-
-private val IrFunction.isSealed: Boolean
-    get() = (this as? IrSimpleFunction)?.modality == Modality.SEALED
 
 
 /**

@@ -2,61 +2,60 @@ package love.forte.plugin.suspendtrans
 
 import org.jetbrains.kotlin.name.FqName
 
-public const val GENERATED_ANNOTATION_NAME: String =
+inline val String.fqn: FqName get() = FqName(this)
+
+const val GENERATED_ANNOTATION_NAME: String =
     "love.forte.plugin.suspendtrans.annotation.Generated"
 
-public val generatedAnnotationName: FqName =
-    FqName(GENERATED_ANNOTATION_NAME)
+val generatedAnnotationName: FqName = GENERATED_ANNOTATION_NAME.fqn
 
 // region jvm blocking
-public const val TO_JVM_BLOCKING_ANNOTATION_NAME: String =
-    "love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking"
+const val TO_JVM_BLOCKING_ANNOTATION_NAME: String =
+    "love.forte.plugin.suspendtrans.annotation.JvmBlocking"
 
-public val toJvmBlockingAnnotationName: FqName =
-    FqName(TO_JVM_BLOCKING_ANNOTATION_NAME)
+val toJvmBlockingAnnotationName: FqName = TO_JVM_BLOCKING_ANNOTATION_NAME.fqn
 
 
-public const val JVM_RUN_IN_BLOCKING_FUNCTION_NAME: String =
+const val JVM_RUN_IN_BLOCKING_FUNCTION_NAME: String =
     "love.forte.plugin.suspendtrans.runInBlocking"
 
-public val jvmRunInBlockingFunctionName: FqName =
-    FqName(JVM_RUN_IN_BLOCKING_FUNCTION_NAME)
+val jvmRunInBlockingFunctionName: FqName = JVM_RUN_IN_BLOCKING_FUNCTION_NAME.fqn
 // endregion
 
 
 // region jvm async
-public const val TO_JVM_ASYNC_ANNOTATION_NAME: String =
-    "love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync"
+const val TO_JVM_ASYNC_ANNOTATION_NAME: String =
+    "love.forte.plugin.suspendtrans.annotation.JvmAsync"
 
-public val toJvmAsyncAnnotationName: FqName =
-    FqName(TO_JVM_ASYNC_ANNOTATION_NAME)
+val toJvmAsyncAnnotationName: FqName = TO_JVM_ASYNC_ANNOTATION_NAME.fqn
 
-public const val JVM_RUN_IN_ASYNC_FUNCTION_NAME: String =
+const val JVM_RUN_IN_ASYNC_FUNCTION_NAME: String =
     "love.forte.plugin.suspendtrans.runInAsync"
 
-public val jvmRunInAsyncFunctionName: FqName =
-    FqName(JVM_RUN_IN_ASYNC_FUNCTION_NAME)
+val jvmRunInAsyncFunctionName: FqName = JVM_RUN_IN_ASYNC_FUNCTION_NAME.fqn
 
-public const val COMPLETABLE_FUTURE_CLASS_NAME: String =
+const val COMPLETABLE_FUTURE_CLASS_NAME: String =
     "java.util.concurrent.CompletableFuture"
 
-public val completableFutureClassName: FqName =
-    FqName(COMPLETABLE_FUTURE_CLASS_NAME)
+val completableFutureClassName: FqName = COMPLETABLE_FUTURE_CLASS_NAME.fqn
 
 // endregion
 
 // region js promise
-public const val TO_JS_PROMISE_ANNOTATION_NAME: String =
-    "love.forte.plugin.suspendtrans.annotation.Suspend2JsPromise"
+const val TO_JS_PROMISE_ANNOTATION_NAME: String =
+    "love.forte.plugin.suspendtrans.annotation.JsPromise"
 
-public val toJsPromiseAnnotationName: FqName =
-    FqName(TO_JS_PROMISE_ANNOTATION_NAME)
+val toJsPromiseAnnotationName: FqName = TO_JS_PROMISE_ANNOTATION_NAME.fqn
 
-public const val JS_RUN_IN_ASYNC_FUNCTION_NAME: String =
+const val JS_RUN_IN_ASYNC_FUNCTION_NAME: String =
     "love.forte.plugin.suspendtrans.runInAsync"
 
-public val jsRunInAsyncFunctionName: FqName =
-    FqName(JS_RUN_IN_ASYNC_FUNCTION_NAME)
+val jsRunInAsyncFunctionName: FqName = JS_RUN_IN_ASYNC_FUNCTION_NAME.fqn
+
+const val JS_PROMISE_CLASS_NAME: String =
+    "kotlin.js.Promise"
+
+val jsPromiseClassName = JS_PROMISE_CLASS_NAME.fqn
 
 // endregion
 

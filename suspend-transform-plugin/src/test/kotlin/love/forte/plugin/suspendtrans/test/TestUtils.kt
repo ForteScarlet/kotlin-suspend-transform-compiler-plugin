@@ -42,7 +42,7 @@ fun compile(
         useIR = true
         compilerPlugins = listOf(plugin)
         inheritClassPath = true
-        workingDir = File("./build-test")
+        workingDir = File("build/em")
     }.compile()
 }
 
@@ -52,48 +52,6 @@ fun compile(
 ): KotlinCompilation.Result {
     return compile(listOf(sourceFile), plugin)
 }
-
-// fun assertFunction(javaCode: String, functionStatement: String, expectedFunction: String) {
-//   Assertions.assertEquals(expectedFunction, fetchMethodByPrefix(javaCode, functionStatement))
-// }
-//
-// fun fetchMethodByPrefix(classText: String, methodSignaturePrefix: String): String {
-//   val classLines = classText.split("\n")
-//   val methodSignaturePredicate: (String) -> Boolean = { line -> line.contains(methodSignaturePrefix) }
-//   val methodFirstLineIndex = classLines.indexOfFirst(methodSignaturePredicate)
-//
-//   check(methodFirstLineIndex != -1) {
-//     "Method with prefix '$methodSignaturePrefix' not found within class:\n$classText"
-//   }
-//
-//   val multiplePrefixMatches = classLines
-//     .indexOfFirst(methodFirstLineIndex + 1, methodSignaturePredicate)
-//     .let { index -> index != -1 }
-//
-//   check(!multiplePrefixMatches) {
-//     "Multiple methods with prefix '$methodSignaturePrefix' found within class:\n$classText"
-//   }
-//
-//   val indentationSize = classLines[methodFirstLineIndex].takeWhile { it == ' ' }.length
-//
-//   var curleyBraceCount = 1
-//   var currentLineIndex: Int = methodFirstLineIndex + 1
-//
-//   while (curleyBraceCount != 0 && currentLineIndex < classLines.lastIndex) {
-//     if (classLines[currentLineIndex].contains("{")) {
-//       curleyBraceCount++
-//     }
-//     if (classLines[currentLineIndex].contains("}")) {
-//       curleyBraceCount--
-//     }
-//     currentLineIndex++
-//   }
-//
-//   return classLines
-//     .subList(methodFirstLineIndex, currentLineIndex)
-//     .joinToString("\n") { it.substring(indentationSize) }
-// }
-
 
 fun invokeMain(result: KotlinCompilation.Result, className: String): String {
     val oldOut = System.out

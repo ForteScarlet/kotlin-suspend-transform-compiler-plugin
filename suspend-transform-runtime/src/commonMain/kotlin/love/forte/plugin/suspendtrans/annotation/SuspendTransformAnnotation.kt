@@ -19,12 +19,52 @@ public expect annotation class Api4Js
 
 /**
  *
+ * ```kotlin
+ * @JvmBlocking
+ * suspend fun foo(): T = ...
+ * ```
+ * transform to:
+ *
+ * ```kotlin
+ * @JvmSynthetic
+ * suspend fun foo(): T = ...
+ *
+ * @Api4J
+ * fun fooBlocking(): T = runInBlocking { foo() }
+ * ```
+ *
  */
 @OptIn(ExperimentalMultiplatform::class)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class Suspend2JvmBlocking(val baseName: String = "", val suffix: String = "Blocking")
+public expect annotation class JvmBlocking(
+    /**
+     * 生成函数的基础名称，如果为空则为当前函数名。
+     * 最终生成的函数名为 [baseName] + [suffix]。
+     */
+    val baseName: String = "",
+
+    /**
+     * [baseName] 名称基础上追加的名称后缀。
+     */
+    val suffix: String = "Blocking",
+
+    /**
+     * 是否转化为 property 的形式：
+     *
+     * ```kotlin
+     * suspend fun foo(): T = ...
+     *
+     * // Generated
+     * val fooBlocking: T get() = runInBlocking { foo() }
+     * ```
+     *
+     * 只有函数没有参数时有效。
+     *
+     */
+    val asProperty: Boolean = false
+)
 
 /**
  * ```kotlin
@@ -47,11 +87,28 @@ public expect annotation class Suspend2JvmBlocking(val baseName: String = "", va
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class Suspend2JvmAsync(val baseName: String = "", val suffix: String = "Async")
+public expect annotation class JvmAsync(
+    val baseName: String = "",
+    val suffix: String = "Async",
+    /**
+     * 是否转化为 property 的形式：
+     *
+     * ```kotlin
+     * suspend fun foo(): T = ...
+     *
+     * // Generated
+     * val fooAsync: Future<T> get() = runInAsync { foo() }
+     * ```
+     *
+     * 只有函数没有参数时有效。
+     *
+     */
+    actual val asProperty: Boolean = false
+)
 
 
 @OptIn(ExperimentalMultiplatform::class)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class Suspend2JsPromise
+public expect annotation class JsPromise

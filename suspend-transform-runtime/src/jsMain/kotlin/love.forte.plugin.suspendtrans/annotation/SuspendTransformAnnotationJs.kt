@@ -10,4 +10,4 @@ public annotation class ExperimentalJsApi
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-public actual annotation class Suspend2JsPromise
+public actual annotation class JsPromise

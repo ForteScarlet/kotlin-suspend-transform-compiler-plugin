@@ -1,3 +1,7 @@
+buildscript {
+    extra["kotlin_plugin_id"] = "love.forte.plugin.suspend-transform"
+}
+
 allprojects {
     group = "love.forte.plugin"
     version = "1.0-SNAPSHOT"

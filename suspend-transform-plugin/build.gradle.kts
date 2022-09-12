@@ -39,7 +39,7 @@ tasks.withType<KotlinCompile> {
 }
 
 kotlin {
-    explicitApi()
+    // explicitApi()
 }
 
 tasks.test {

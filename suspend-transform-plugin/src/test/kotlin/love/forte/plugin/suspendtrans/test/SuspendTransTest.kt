@@ -13,23 +13,37 @@ import org.junit.jupiter.api.Test
  */
 class SuspendTransTest {
     private val main = SourceFile.kotlin(
-        "Main.kt", """
+        "Main.kt",
+        """
  import kotlinx.coroutines.runBlocking
-open class JustTest : ITest {
-    // @JvmSynthetic
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
-    open suspend fun getValue(): Long = System.currentTimeMillis()
+ import love.forte.plugin.suspendtrans.annotation.JvmAsync
+ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
-    override suspend fun invoke(name: String, value: Int): Bar = Bar()
+annotation class Hello
+
+open class JustTest { //  : ITest
+    // @JvmSynthetic
+    @JvmBlocking
+    @JvmAsync
+    @Hello
+    open suspend fun value(): Long = System.currentTimeMillis()
+    
+    @JvmBlocking(asProperty = true)
+    @JvmAsync(asProperty = true)
+    suspend fun value2(): Long = System.currentTimeMillis()
+
+    // @JvmAsync
+    // @JvmBlocking
+    // override suspend fun invoke(name: String, value: Int): Bar = Bar()
 }
 
 interface ITest {
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmBlocking
-    @love.forte.plugin.suspendtrans.annotation.Suspend2JvmAsync
+    @JvmAsync
+    @JvmBlocking
     suspend fun invoke(name: String, value: Int): Foo
+    @JvmAsync(asProperty = true)
+    @JvmBlocking(asProperty = true)
+    suspend fun invoke2(name: String, value: Int): Foo
 }
 
 open class Foo
@@ -37,7 +51,7 @@ open class Bar : Foo()
 
 fun main() {
     val test = JustTest()
-    println(runBlocking { test.getValue() })
+    println(runBlocking { test.value() })
     JustTest::class.java.declaredMethods.forEach {
         println(it)
         // if (it.name == "getValueBlocking") {
@@ -61,14 +75,14 @@ fun main() {
         )
         
         Assertions.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
-    
+        
         println(result.outputDirectory)
-    
+        
         println("======== JustTest java code ========")
         println(result.javaCode("JustTest"))
         println("===========================")
         
-    
+        
         println("======== JustTest java code ========")
         println(result.javaCode("ITest"))
         println("===========================")
