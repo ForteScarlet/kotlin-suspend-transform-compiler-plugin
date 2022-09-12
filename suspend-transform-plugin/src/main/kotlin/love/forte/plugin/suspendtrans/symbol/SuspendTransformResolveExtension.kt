@@ -26,6 +26,7 @@ open class SuspendTransformResolveExtension : SyntheticResolveExtension {
         // }
         // TODO func?
         //FunctionDescriptor
+        
         return collector.flatMap { func ->
             val names = mutableListOf<String>()
             val annotations = func.annotations
