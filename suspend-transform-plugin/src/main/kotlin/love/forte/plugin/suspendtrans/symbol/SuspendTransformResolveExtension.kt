@@ -5,6 +5,7 @@ import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
 import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
 import love.forte.plugin.suspendtrans.utils.functionName
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
@@ -26,7 +27,15 @@ open class SuspendTransformResolveExtension : SyntheticResolveExtension {
         // }
         // TODO func?
         //FunctionDescriptor
+        val members = thisDescriptor.unsubstitutedMemberScope
+        val names = members.getFunctionNames()
+        val functions =
+            names.flatMap { members.getContributedFunctions(it, NoLookupLocation.FROM_BACKEND) }.toSet()
         
+        functions.forEach {
+            println("func: ${it.name}")
+        }
+    
         return collector.flatMap { func ->
             val names = mutableListOf<String>()
             val annotations = func.annotations
