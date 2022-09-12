@@ -17,12 +17,11 @@ public var CoroutineContext4J: CoroutineContext = Dispatchers.IO
 @ExperimentalJvmApi
 public var CoroutineScope4J: CoroutineScope = CoroutineScope(CoroutineContext4J)
 
+@Suppress("FunctionName")
 @ExperimentalJvmApi
+@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Throws(InterruptedException::class)
-public fun <T> runInBlocking(
-    context: CoroutineContext = CoroutineContext4J,
-    block: suspend () -> T,
-): T = runBlocking(context) { block() }
+public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(CoroutineContext4J) { block() }
 
 
 private val classLoader: ClassLoader
@@ -74,11 +73,12 @@ private val transformer: FutureTransformer =
 
 
 @ExperimentalJvmApi
-public fun <T> runInAsync(
-    scope: CoroutineScope = CoroutineScope4J,
+@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
+@Suppress("FunctionName")
+public fun <T> `$runInAsync$`(
     block: suspend () -> T,
 ): CompletableFuture<T> {
-    return transformer.trans(scope, block)
+    return transformer.trans(CoroutineScope4J, block)
 }
 
 

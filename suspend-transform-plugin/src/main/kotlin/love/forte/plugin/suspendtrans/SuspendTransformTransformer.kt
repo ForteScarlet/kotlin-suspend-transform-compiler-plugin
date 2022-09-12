@@ -406,7 +406,7 @@ private inline fun copyFunctionForGenerate(
         ).also { +it }
         
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(1, irCall(suspendLambda.primaryConstructor!!).apply {
+            putValueArgument(0, irCall(suspendLambda.primaryConstructor!!).apply {
                 for ((index, parameter) in copyFunction.paramsAndReceiversAsParamsList().withIndex()) {
                     putValueArgument(index, irGet(parameter))
                 }

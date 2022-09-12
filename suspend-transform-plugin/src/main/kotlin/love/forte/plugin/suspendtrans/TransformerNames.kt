@@ -17,7 +17,7 @@ val toJvmBlockingAnnotationName: FqName = TO_JVM_BLOCKING_ANNOTATION_NAME.fqn
 
 
 const val JVM_RUN_IN_BLOCKING_FUNCTION_NAME: String =
-    "love.forte.plugin.suspendtrans.runInBlocking"
+    "love.forte.plugin.suspendtrans.\$runInBlocking\$"
 
 val jvmRunInBlockingFunctionName: FqName = JVM_RUN_IN_BLOCKING_FUNCTION_NAME.fqn
 // endregion
@@ -30,7 +30,7 @@ const val TO_JVM_ASYNC_ANNOTATION_NAME: String =
 val toJvmAsyncAnnotationName: FqName = TO_JVM_ASYNC_ANNOTATION_NAME.fqn
 
 const val JVM_RUN_IN_ASYNC_FUNCTION_NAME: String =
-    "love.forte.plugin.suspendtrans.runInAsync"
+    "love.forte.plugin.suspendtrans.\$runInAsync\$"
 
 val jvmRunInAsyncFunctionName: FqName = JVM_RUN_IN_ASYNC_FUNCTION_NAME.fqn
 
@@ -48,7 +48,7 @@ const val TO_JS_PROMISE_ANNOTATION_NAME: String =
 val toJsPromiseAnnotationName: FqName = TO_JS_PROMISE_ANNOTATION_NAME.fqn
 
 const val JS_RUN_IN_ASYNC_FUNCTION_NAME: String =
-    "love.forte.plugin.suspendtrans.runInAsync"
+    "love.forte.plugin.suspendtrans.\$runInAsync\$"
 
 val jsRunInAsyncFunctionName: FqName = JS_RUN_IN_ASYNC_FUNCTION_NAME.fqn
 

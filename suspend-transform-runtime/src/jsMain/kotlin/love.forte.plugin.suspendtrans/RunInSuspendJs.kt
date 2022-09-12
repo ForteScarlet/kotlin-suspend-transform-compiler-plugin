@@ -14,8 +14,10 @@ public var CoroutineContext4Js: CoroutineContext = EmptyCoroutineContext
 public var CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4Js)
 
 
+@Suppress("FunctionName")
+@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @ExperimentalJsApi
-public fun <T> runInAsync(
+public fun <T> `$runInAsync$`(
     scope: CoroutineScope = CoroutineScope4Js,
     block: suspend () -> T,
 ): Promise<T> {
