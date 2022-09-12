@@ -1,8 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="suspend-transform-runtime-jvm-0.0.1">
     <output-path>$PROJECT_DIR$/suspend-transform-runtime/build/libs</output-path>
-    <root id="archive" name="suspend-transform-runtime-jvm-0.0.1.jar">
-      <element id="module-output" name="suspend-transform-kotlin-compiler-plugin.suspend-transform-runtime.jvmMain" />
-    </root>
+    <root id="archive" name="suspend-transform-runtime-jvm-0.0.1.jar" />
   </artifact>
 </component>

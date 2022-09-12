@@ -16,7 +16,6 @@
             <option value="$PROJECT_DIR$/suspend-transform-plugin" />
             <option value="$PROJECT_DIR$/suspend-transform-plugin-gradle" />
             <option value="$PROJECT_DIR$/suspend-transform-runtime" />
-            <option value="$PROJECT_DIR$/suspend-transform-test" />
           </set>
         </option>
       </GradleProjectSettings>

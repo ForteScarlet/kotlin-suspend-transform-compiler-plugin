@@ -25,17 +25,9 @@ open class JustTest { //  : ITest
     fun hello(): String = "Hello"
     suspend fun world(): String = "World"
 
-    @JvmBlocking(asProperty = true)
-    @JvmAsync(asProperty = true)
-    open suspend fun value(): Long = 114
-
-    @JvmBlocking(asProperty = true)
-    @JvmAsync
-    open suspend fun value2(): Long = 514
-
     @JvmBlocking
-    @JvmAsync(asProperty = true)
-    open suspend fun value3(): Long = 810
+    @JvmAsync
+    open suspend fun value(): Long = 114
 }
 """
     )
@@ -69,7 +61,7 @@ open class JustTest { //  : ITest
         // }
     
         val justTest = result.classLoader.loadClass("JustTest")
-        val method = justTest.getMethod("value2Blocking")
+        val method = justTest.getMethod("valueBlocking")
         val justTestInstance = justTest.getConstructor().newInstance()
         println(method.invoke(justTestInstance))
         

@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans
 
+import love.forte.plugin.suspendtrans.utils.functionName
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.descriptors.synthesizedName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -98,7 +99,7 @@ class SuspendTransformTransformer(
         function: IrFunction,
     ) {
         val parent = function.parent
-    
+        
         if (parent is IrClass || parent is IrFile) {
             var generated = false
             parent as IrDeclarationContainer
@@ -170,24 +171,6 @@ class SuspendTransformTransformer(
             
             true
         }
-    }
-    
-    
-    private fun AnnotationDescriptor?.functionName(
-        baseNamePropertyName: String = "baseName",
-        suffixPropertyName: String = "suffix",
-        defaultBaseName: String, defaultSuffix: String,
-    ): String {
-        if (this == null) return "$defaultBaseName$defaultSuffix"
-        
-        val visitor = object : AbstractNullableAnnotationArgumentVoidDataVisitor<String>() {
-            override fun visitStringValue(value: String): String = value
-        }
-        
-        val baseName = argumentValue(baseNamePropertyName)?.accept(visitor, null)
-        val suffix = argumentValue(suffixPropertyName)?.accept(visitor, null)
-        
-        return (baseName ?: defaultBaseName) + (suffix ?: defaultSuffix)
     }
     
     private fun generateJvmFunctions(originFunction: IrFunction): List<IrDeclaration> {
