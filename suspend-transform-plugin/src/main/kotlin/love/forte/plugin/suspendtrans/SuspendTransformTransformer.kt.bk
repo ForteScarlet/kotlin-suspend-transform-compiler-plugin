@@ -3,6 +3,7 @@ package love.forte.plugin.suspendtrans
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.descriptors.synthesizedName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -10,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -88,67 +90,87 @@ class SuspendTransformTransformer(
         return descriptor.annotations.findAnnotation(fqName)
     }
     
-    override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        resolveFunction(declaration)
-        return super.visitFunctionNew(declaration)
+    // override fun visitFunctionNew(declaration: IrFunction): IrStatement {
+    //     resolveFunction(declaration)
+    //     return super.visitFunctionNew(declaration)
+    // }
+    
+    override fun visitClassNew(declaration: IrClass): IrStatement {
+        resolveClass(declaration)
+        // declaration.transformChildren(this, null)
+        declaration.companionObject()?.also { companion ->
+            resolveClass(companion)
+        }
+        return declaration
+    }
+    
+    override fun visitFileNew(declaration: IrFile): IrFile {
+        resolveFile(declaration)
+        declaration.transformChildren(this, null)
+        return declaration
+    }
+    
+    private fun resolveClass(irClass: IrClass) {
+        resolveParentFunctions(irClass)
+    }
+    
+    private fun resolveFile(irFile: IrFile) {
+        resolveParentFunctions(irFile)
     }
     
     
-    private fun resolveFunction(
-        function: IrFunction,
+    private fun resolveParentFunctions(
+        parent: IrDeclarationParent,
     ) {
-        val parent = function.parent
-    
+        // val parent = function.parent
         if (parent is IrClass || parent is IrFile) {
-            var generated = false
-            parent as IrDeclarationContainer
-            if (function.isGenerated()) {
-                return
-            }
-            when {
-                pluginContext.isJvm -> {
-                    val generatedList = generateJvmFunctions(function)
-                    generatedList.forEach {
-                        it.parent = parent
-                        parent.declarations.add(it)
+            (parent as IrDeclarationContainer).transformDeclarationsFlat { declaration ->
+                buildList {
+                    add(declaration)
+                    
+                    if (declaration is IrSimpleFunction) {
+                        if (declaration.isGenerated()) {
+                            return@transformDeclarationsFlat listOf(declaration)
+                        }
+                        
+                        // suspend, with annotation
+                        if (declaration.isSuspend) {
+                            when {
+                                pluginContext.isJvm -> {
+                                    addAll(generateJvmFunctions(declaration))
+                                }
+                                
+                                pluginContext.isJs -> {
+                                    addAll(generateJsFunctions(declaration))
+                                }
+                            }
+                        }
                     }
-                    if (generatedList.isNotEmpty()) {
-                        generated = true
-                    }
-                }
-                
-                pluginContext.isJs -> {
-                    val generatedList = generateJsFunctions(function)
-                    generatedList.forEach {
-                        it.parent = parent
-                        parent.declarations.add(it)
-                    }
-                    if (generatedList.isNotEmpty()) {
-                        generated = true
-                    }
-                }
-            }
-            if (generated) {
-                function.annotations = buildList {
-                    addAll(function.annotations)
-                    // +@Generated
-                    add(
-                        pluginContext.createIrBuilder(function.symbol)
-                            .irAnnotationConstructor(generatedAnnotation)
-                    )
-                    if (pluginContext.isJvm) {
-                        // +@JvmSynthetic
-                        add(
-                            pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
-                                pluginContext.referenceClass(
-                                    JVM_SYNTHETIC_ANNOTATION_FQ_NAME
-                                )!!
+                }.also {
+                    if (it.size > 1 && !declaration.hasAnnotation(generatedAnnotationName)) {
+                        declaration.annotations = buildList {
+                            addAll(declaration.annotations)
+                            // @Generated
+                            add(
+                                pluginContext.createIrBuilder(declaration.symbol)
+                                    .irAnnotationConstructor(generatedAnnotation)
                             )
-                        )
+                            if (pluginContext.isJvm) {
+                                // @JvmSynthetic
+                                add(
+                                    pluginContext.createIrBuilder(declaration.symbol).irAnnotationConstructor(
+                                            pluginContext.referenceClass(
+                                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
+                                            )!!
+                                        )
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
+        
     }
     
     private fun checkFunctionExists(function: IrFunction, functionName: String): Boolean {

@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("suspend-transform.multiplatform-maven-publish")
 }
 
 kotlin {

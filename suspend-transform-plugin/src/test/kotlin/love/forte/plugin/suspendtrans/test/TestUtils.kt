@@ -24,6 +24,7 @@ import com.strobel.decompiler.Decompiler
 import com.strobel.decompiler.DecompilerSettings
 import com.strobel.decompiler.PlainTextOutput
 import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.KotlinJsCompilation
 import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import java.io.ByteArrayOutputStream
@@ -33,7 +34,7 @@ import java.io.StringWriter
 import java.lang.reflect.InvocationTargetException
 
 
-fun compile(
+fun compileJvm(
     sourceFiles: List<SourceFile>,
     plugin: ComponentRegistrar,
 ): KotlinCompilation.Result {
@@ -42,15 +43,35 @@ fun compile(
         useIR = true
         compilerPlugins = listOf(plugin)
         inheritClassPath = true
-        workingDir = File("build/em")
+        workingDir = File("build/em-jvm")
     }.compile()
 }
 
-fun compile(
+fun compileJvm(
     sourceFile: SourceFile,
     plugin: ComponentRegistrar,
 ): KotlinCompilation.Result {
-    return compile(listOf(sourceFile), plugin)
+    return compileJvm(listOf(sourceFile), plugin)
+}
+
+fun compileJs(
+    sourceFiles: List<SourceFile>,
+    plugin: ComponentRegistrar,
+): KotlinJsCompilation.Result {
+    return KotlinJsCompilation().apply {
+        
+        sources = sourceFiles
+        compilerPlugins = listOf(plugin)
+        inheritClassPath = true
+        workingDir = File("build/em-js")
+    }.compile()
+}
+
+fun compileJs(
+    sourceFile: SourceFile,
+    plugin: ComponentRegistrar,
+): KotlinJsCompilation.Result {
+    return compileJs(listOf(sourceFile), plugin)
 }
 
 fun invokeMain(result: KotlinCompilation.Result, className: String): String {
@@ -73,17 +94,6 @@ fun invokeMain(result: KotlinCompilation.Result, className: String): String {
     }
 }
 
-fun KotlinCompilation.Result.kotlinCode(className: String): String {
-    this.generatedFiles.forEach {
-        println(it)
-    }
-    DecompilerSettings().apply {
-        this.javaFormattingOptions
-    }
-    
-    
-    TODO()
-}
 
 fun KotlinCompilation.Result.javaCode(className: String): String {
     val decompilerSettings = DecompilerSettings.javaDefaults().apply {

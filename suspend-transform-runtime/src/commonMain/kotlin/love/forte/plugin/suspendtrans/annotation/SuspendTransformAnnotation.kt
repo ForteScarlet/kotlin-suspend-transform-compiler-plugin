@@ -111,4 +111,4 @@ public expect annotation class JvmAsync(
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class JsPromise
+public expect annotation class JsPromise()

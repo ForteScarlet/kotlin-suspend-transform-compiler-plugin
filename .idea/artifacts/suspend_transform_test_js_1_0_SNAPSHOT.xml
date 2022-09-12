@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="suspend-transform-test-js-1.0-SNAPSHOT">
+    <output-path>$PROJECT_DIR$/suspend-transform-test/build/libs</output-path>
+    <root id="archive" name="suspend-transform-test-js-1.0-SNAPSHOT.jar">
+      <element id="module-output" name="suspend-transform-kotlin-compiler-plugin.suspend-transform-test.jsMain" />
+    </root>
+  </artifact>
+</component>

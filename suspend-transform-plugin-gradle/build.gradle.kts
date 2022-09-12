@@ -2,6 +2,7 @@ plugins {
     id("java-gradle-plugin")
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
+    id("suspend-transform.gradle-publish")
 }
 
 dependencies {
@@ -9,8 +10,12 @@ dependencies {
 }
 
 buildConfig {
+    useKotlinOutput {
+        internalVisibility = true
+    }
+    withoutPackage()
     val project = project(":suspend-transform-plugin")
-    packageName(project.group.toString())
+    
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${project.group}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_NAME", "\"${project.name}\"")
@@ -21,10 +26,10 @@ gradlePlugin {
     plugins {
         create("suspendTransform") {
             id = rootProject.extra["kotlin_plugin_id"] as String
+            
             displayName = "Kotlin suspend function transformer"
             description = "Kotlin suspend function transformer"
-            // TODO
-            implementationClass = "com.bnorm.template.TemplateGradlePlugin"
+            implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
         }
     }
 }

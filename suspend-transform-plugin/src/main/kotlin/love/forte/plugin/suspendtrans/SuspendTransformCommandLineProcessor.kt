@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans
 
+import BuildConfig
 import com.google.auto.service.AutoService
-import love.forte.plugin.BuildConfig
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor

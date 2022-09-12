@@ -3,10 +3,11 @@ buildscript {
 }
 
 allprojects {
-    group = "love.forte.plugin"
-    version = "1.0-SNAPSHOT"
+    group = "love.forte.plugin.suspend-transform"
+    version = "0.0.1"
     
     repositories {
+        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }

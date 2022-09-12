@@ -5,7 +5,7 @@ plugins {
     kotlin("kapt")
     id("com.github.gmazzo.buildconfig")
     id("com.bnorm.power.kotlin-power-assert")
-    // id("kotlin-publish")
+    id("suspend-transform.jvm-maven-publish")
 }
 
 dependencies {
@@ -30,7 +30,7 @@ buildConfig {
     useKotlinOutput {
         internalVisibility = true
     }
-    packageName(group.toString())
+    withoutPackage()
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"$group.$name\"")
 }
 
