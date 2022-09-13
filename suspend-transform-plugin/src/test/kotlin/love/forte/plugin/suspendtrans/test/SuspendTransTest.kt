@@ -18,16 +18,20 @@ class SuspendTransTest {
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
-annotation class Hello
+// annotation class Hello
 
 open class JustTest { //  : ITest
 
+    // @Hello
     fun hello(): String = "Hello"
     suspend fun world(): String = "World"
-
+    //
     @JvmBlocking
     @JvmAsync
     open suspend fun value(): Long = 114
+
+    val name: String get() = "66"
+    val age: Int = 14
 }
 """
     )

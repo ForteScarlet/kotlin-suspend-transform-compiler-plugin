@@ -1,4 +1,4 @@
-package love.forte.plugin.suspendtrans
+package love.forte.plugin.suspendtrans.ir
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
  *
  * @author ForteScarlet
  */
-public class SuspendTransformIrGenerationExtension : IrGenerationExtension {
+class SuspendTransformIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         // val typeAnyNullable = pluginContext.irBuiltIns.anyNType
         

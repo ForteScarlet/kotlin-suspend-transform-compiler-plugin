@@ -1,23 +1,15 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.toJsPromiseAnnotationName
-import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
-import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
-import love.forte.plugin.suspendtrans.utils.functionName
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.js.isJs
-import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.resolve.descriptorUtil.platform
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 
 /**
  *
  * @author ForteScarlet
  */
-open class SuspendTransformResolveExtension : SyntheticResolveExtension {
-    
+open class SuspendTransformResolveExtension : SyntheticResolveExtension /*ExpressionCodegenExtension*/ {
     override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
         val collector = mutableListOf<FunctionDescriptor>()
         // val memberScope = thisDescriptor.getMemberScope(TypeSubstitution.EMPTY)
@@ -28,52 +20,57 @@ open class SuspendTransformResolveExtension : SyntheticResolveExtension {
         // TODO func?
         //FunctionDescriptor
         val members = thisDescriptor.unsubstitutedMemberScope
+        println("members: $members")
+        println("members.getClassifierNames: ${members.getClassifierNames()}")
+        println("members.getVariableNames: ${members.getVariableNames()}")
+        println("members.getFunctionNames: ${members.getFunctionNames()}")
         val names = members.getFunctionNames()
         val functions =
-            names.flatMap { members.getContributedFunctions(it, NoLookupLocation.FROM_BACKEND) }.toSet()
-        
+            names.flatMap { members.getContributedFunctions(it, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS) }.toSet()
+
         functions.forEach {
             println("func: ${it.name}")
         }
-    
-        return collector.flatMap { func ->
-            val names = mutableListOf<String>()
-            val annotations = func.annotations
-            if (func.platform?.isJvm() == true) {
-                // @JvmBlocking
-                val blockingAnnotation = annotations.findAnnotation(toJvmBlockingAnnotationName)
-                if (blockingAnnotation != null) {
-                    val blockingFunctionName = blockingAnnotation.functionName(
-                        defaultBaseName = func.name.identifier,
-                        defaultSuffix = "Blocking"
-                    )
-                    names.add(blockingFunctionName)
-                }
-                
-                
-                // @JvmAsync
-                val asyncAnnotation = annotations.findAnnotation(toJvmAsyncAnnotationName)
-                if (asyncAnnotation != null) {
-                    val asyncFunctionName =
-                        asyncAnnotation.functionName(defaultBaseName = func.name.identifier, defaultSuffix = "Async")
-                    names.add(asyncFunctionName)
-                }
-            }
-            
-            if (func.platform?.isJs() == true) {
-                // @JsPromise
-                val jsAnnotation = annotations.findAnnotation(toJsPromiseAnnotationName)
-                if (jsAnnotation != null) {
-                    val functionName =
-                        jsAnnotation.functionName(defaultBaseName = func.name.identifier, defaultSuffix = "Async")
-                    names.add(functionName)
-                }
-                
-            }
-            
-            println("Names: $names")
-            names
-        }.map { Name.identifier(it) }
+
+        return emptyList()
+        // return collector.flatMap { func ->
+        //     val names = mutableListOf<String>()
+        //     val annotations = func.annotations
+        //     if (func.platform?.isJvm() == true) {
+        //         // @JvmBlocking
+        //         val blockingAnnotation = annotations.findAnnotation(toJvmBlockingAnnotationName)
+        //         if (blockingAnnotation != null) {
+        //             val blockingFunctionName = blockingAnnotation.functionName(
+        //                 defaultBaseName = func.name.identifier,
+        //                 defaultSuffix = "Blocking"
+        //             )
+        //             names.add(blockingFunctionName)
+        //         }
+        //
+        //
+        //         // @JvmAsync
+        //         val asyncAnnotation = annotations.findAnnotation(toJvmAsyncAnnotationName)
+        //         if (asyncAnnotation != null) {
+        //             val asyncFunctionName =
+        //                 asyncAnnotation.functionName(defaultBaseName = func.name.identifier, defaultSuffix = "Async")
+        //             names.add(asyncFunctionName)
+        //         }
+        //     }
+        //
+        //     if (func.platform?.isJs() == true) {
+        //         // @JsPromise
+        //         val jsAnnotation = annotations.findAnnotation(toJsPromiseAnnotationName)
+        //         if (jsAnnotation != null) {
+        //             val functionName =
+        //                 jsAnnotation.functionName(defaultBaseName = func.name.identifier, defaultSuffix = "Async")
+        //             names.add(functionName)
+        //         }
+        //
+        //     }
+        //
+        //     println("Names: $names")
+        //     names
+        // }.map { Name.identifier(it) }
     }
     
 }

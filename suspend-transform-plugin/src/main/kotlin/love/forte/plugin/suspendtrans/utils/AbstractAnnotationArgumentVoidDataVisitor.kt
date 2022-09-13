@@ -1,4 +1,4 @@
-package love.forte.plugin.suspendtrans
+package love.forte.plugin.suspendtrans.utils
 
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationArgumentVisitor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
