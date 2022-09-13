@@ -6,6 +6,7 @@ import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
 import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -50,4 +51,53 @@ fun List<IrConstructorCall>.filterNotCompileAnnotations(): List<IrConstructorCal
     it.type.isClassType(toJvmAsyncAnnotationName.toUnsafe()) || it.type.isClassType(toJvmBlockingAnnotationName.toUnsafe()) || it.type.isClassType(
         toJsPromiseAnnotationName.toUnsafe()
     )
+}
+
+data class TransformAnnotationData(
+    val annotationDescriptor: AnnotationDescriptor,
+    val annotationBaseNamePropertyName: String = "baseName",
+    val annotationSuffixPropertyName: String = "suffix",
+    val annotationAsPropertyPropertyName: String = "asProperty",
+    val defaultBaseName: String,
+    val defaultSuffix: String,
+) {
+    val baseName: String? = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
+        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
+    val suffix: String? = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
+        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
+    val asProperty: Boolean? = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
+        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
+    val functionName: String = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
+}
+
+open class FunctionTransformAnnotations(
+    val jvmBlockingAnnotationData: TransformAnnotationData?,
+    val jvmAsyncAnnotationData: TransformAnnotationData?,
+    val jsAsyncAnnotationData: TransformAnnotationData?,
+) {
+    open val isEmpty: Boolean get() = jvmBlockingAnnotationData == null && jvmAsyncAnnotationData == null && jsAsyncAnnotationData == null
+    
+    object Empty : FunctionTransformAnnotations(null, null, null) {
+        override val isEmpty: Boolean
+            get() = true
+    }
+}
+
+fun Annotations.resolveToTransformAnnotations(functionBaseName: String): FunctionTransformAnnotations {
+    fun AnnotationDescriptor?.resolve(
+        defaultBaseName: String,
+        defaultSuffix: String,
+        annotationBaseNamePropertyName: String = "baseName",
+        annotationSuffixPropertyName: String = "suffix",
+        annotationAsPropertyPropertyName: String = "asProperty",
+    ): TransformAnnotationData? {
+        if (this == null) return null
+        return TransformAnnotationData(this, annotationBaseNamePropertyName, annotationSuffixPropertyName, annotationAsPropertyPropertyName, defaultBaseName, defaultSuffix)
+    }
+    val jvmBlocking = findAnnotation(toJvmBlockingAnnotationName).resolve(functionBaseName, "Blocking")
+    val jvmAsync = findAnnotation(toJvmAsyncAnnotationName).resolve(functionBaseName, "Async")
+    val jsAsync = findAnnotation(toJsPromiseAnnotationName).resolve(functionBaseName, "Async")
+    
+    if (jvmBlocking == null && jvmAsync == null && jsAsync == null) return FunctionTransformAnnotations.Empty
+    return FunctionTransformAnnotations(jvmBlocking, jvmAsync, jsAsync)
 }

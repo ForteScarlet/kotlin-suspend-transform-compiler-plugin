@@ -8,7 +8,7 @@ repositories {
     gradlePluginPortal()
 }
 
-val kotlinVersion = "1.7.20-RC"
+val kotlinVersion = "1.7.10"
 val dokkaPluginVersion = "1.7.10"
 
 dependencies {

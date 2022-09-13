@@ -1,3 +1,15 @@
+
+1. Publish to maven local:
+
+```shell
+gradle clean publishToMavenLocal
+```
+
+2. Edit the `setting.gradle.kts`:
+
+_Restore commented out test content._
+
+```kotlin
 pluginManagement {
     repositories {
         mavenLocal()
@@ -16,3 +28,6 @@ include(":suspend-transform-plugin")
 include(":suspend-transform-plugin-gradle")
 include(":suspend-transform-tests:suspend-transform-test-jvm")
 include(":suspend-transform-tests:suspend-transform-test-js")
+```
+
+3. Run. [suspend-transform-test-js/src/main/kotlin/Main](suspend-transform-test-js/src/main/kotlin/Main) or [`suspend-transform-test-jvm/src/main/kotlin/Main`](suspend-transform-test-jvm/src/main/kotlin/Main)

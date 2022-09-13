@@ -19,9 +19,7 @@ class SuspendTransformCommandLineProcessor : CommandLineProcessor {
         
         val ARG_ENABLED: CompilerConfigurationKey<Boolean> = CompilerConfigurationKey<Boolean>(OPTION_ENABLED)
     }
-    override val pluginId: String = BuildConfig.KOTLIN_PLUGIN_ID.also {
-        println("Plugin ID: $it")
-    }
+    override val pluginId: String = BuildConfig.KOTLIN_PLUGIN_ID
     
     override val pluginOptions: Collection<CliOption> = listOf(
         CliOption(

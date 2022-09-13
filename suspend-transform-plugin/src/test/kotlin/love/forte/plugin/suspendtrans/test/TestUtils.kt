@@ -59,7 +59,6 @@ fun compileJs(
     plugin: ComponentRegistrar,
 ): KotlinJsCompilation.Result {
     return KotlinJsCompilation().apply {
-        
         sources = sourceFiles
         compilerPlugins = listOf(plugin)
         inheritClassPath = true

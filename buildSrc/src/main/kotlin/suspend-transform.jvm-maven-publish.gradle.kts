@@ -22,7 +22,7 @@ val sonatypeContains = sonatypeUserInfoOrNull != null
 
     val jarJavadoc by tasks.registering(Jar::class) {
         archiveClassifier.set("javadoc")
-        from(tasks.findByName("dokkaHtml"))
+        // from(tasks.findByName("dokkaHtml"))
     }
     
     val jarSources by tasks.registering(Jar::class) {

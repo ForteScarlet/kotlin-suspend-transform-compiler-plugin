@@ -23,7 +23,7 @@ dependencies {
     testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
     
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
+    // testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 }
 
 buildConfig {

@@ -4,9 +4,11 @@ import love.forte.plugin.suspendtrans.*
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -18,10 +20,14 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
+import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.isInterface
+import org.jetbrains.kotlin.ir.util.parentClassOrNull
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.JvmNames.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.name.Name
@@ -68,13 +74,13 @@ class SuspendTransformTransformer(
     private val jsPromiseClassOrNull = pluginContext.referenceClass(jsPromiseClassName)
     private val jsPromiseClass get() = jsPromiseClassOrNull ?: error("jsPromiseClass unsupported.")
     
-    private fun FunctionDescriptor.isGenerated(): Boolean {
+    private fun FunctionDescriptor.hasGenerated(): Boolean {
         return this.annotations.hasAnnotation(generatedAnnotationName)
     }
     
     @OptIn(ObsoleteDescriptorBasedAPI::class)
-    private fun IrFunction.isGenerated(): Boolean {
-        return descriptor.isGenerated()
+    private fun IrFunction.hasGenerated(): Boolean {
+        return descriptor.hasGenerated()
     }
     
     @OptIn(ObsoleteDescriptorBasedAPI::class)
@@ -82,22 +88,99 @@ class SuspendTransformTransformer(
         return descriptor.annotations.findAnnotation(fqName)
     }
     
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        resolveFunction(declaration)
+        val descriptor = declaration.descriptor
+        val generatedOriginFunction = when {
+            descriptor.getUserData(ToJvmBlocking) != null -> resolveFunctionBody(
+                declaration,
+                descriptor.getUserData(ToJvmBlocking)!!.originFunction,
+                jvmRunBlockingFunction
+            )
+            
+            descriptor.getUserData(ToJvmAsync) != null -> resolveFunctionBody(
+                declaration,
+                descriptor.getUserData(ToJvmAsync)!!.originFunction,
+                jvmRunAsyncFunction
+            )
+            
+            descriptor.getUserData(ToJsAsync) != null -> resolveFunctionBody(
+                declaration,
+                descriptor.getUserData(ToJsAsync)!!.originFunction,
+                jsRunAsyncFunction
+            )
+            
+            else -> resolveFunction(declaration)
+        }
+        if (generatedOriginFunction != null) {
+            postProcessGeneratedFunction(generatedOriginFunction)
+        }
         return super.visitFunctionNew(declaration)
     }
     
+    private fun postProcessGeneratedFunction(function: IrFunction) {
+        function.annotations = buildList {
+            addAll(function.annotations)
+            
+            // +@Generated
+            if (!function.hasGenerated()) {
+                add(
+                    pluginContext.createIrBuilder(function.symbol)
+                        .irAnnotationConstructor(generatedAnnotation)
+                )
+            }
+            if (pluginContext.isJvm) {
+                // +@JvmSynthetic
+                if (!function.hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
+                    add(
+                        pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
+                            pluginContext.referenceClass(
+                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
+                            )!!
+                        )
+                    )
+                }
+            }
+        }
+    }
+    
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    private fun resolveFunctionBody(
+        function: IrFunction,
+        originFunctionDescriptor: SimpleFunctionDescriptor,
+        transformTargetFunctionCall: IrSimpleFunctionSymbol,
+    ): IrFunction? {
+        val parent = function.parent
+        if (parent is IrDeclarationContainer) {
+            val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
+                .filter { f -> f.descriptor == originFunctionDescriptor }
+            
+            require(originFunctions.size == 1)
+            
+            val originFunction = originFunctions.first()
+            
+            function.body = null
+            function.body = generateTransformBodyForFunction(
+                pluginContext,
+                function,
+                originFunction,
+                transformTargetFunctionCall
+            )
+            return originFunction
+        }
+        return null
+    }
     
     private fun resolveFunction(
         function: IrFunction,
-    ) {
+    ): IrFunction? {
         val parent = function.parent
         
         if (parent is IrClass || parent is IrFile) {
             var generated = false
             parent as IrDeclarationContainer
-            if (function.isGenerated()) {
-                return
+            if (function.hasGenerated()) {
+                return null
             }
             when {
                 pluginContext.isJvm -> {
@@ -122,27 +205,11 @@ class SuspendTransformTransformer(
                     }
                 }
             }
-            if (generated) {
-                function.annotations = buildList {
-                    addAll(function.annotations)
-                    // +@Generated
-                    add(
-                        pluginContext.createIrBuilder(function.symbol)
-                            .irAnnotationConstructor(generatedAnnotation)
-                    )
-                    if (pluginContext.isJvm) {
-                        // +@JvmSynthetic
-                        add(
-                            pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
-                                pluginContext.referenceClass(
-                                    JVM_SYNTHETIC_ANNOTATION_FQ_NAME
-                                )!!
-                            )
-                        )
-                    }
-                }
-            }
+            
+            return if (generated) function else null
         }
+        
+        return null
     }
     
     private fun checkFunctionExists(function: IrFunction, functionName: String): Boolean {
@@ -217,17 +284,16 @@ class SuspendTransformTransformer(
             builder = {
                 name = Name.identifier(functionName)
             },
-            plusAnnotations = {
-                // @JvmDefault for interface
-                if (originFunction.parentClassOrNull?.isInterface == true) {
-                    it.add(
-                        pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
-                            pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
-                        )
+        ) {
+            // @JvmDefault for interface
+            if (originFunction.parentClassOrNull?.isInterface == true) {
+                it.add(
+                    pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                        pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
                     )
-                }
-            },
-        )
+                )
+            }
+        }
         val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
         val asProperty = blockingAnnotation?.argumentValue("asProperty")
             ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null) ?: false
@@ -250,17 +316,17 @@ class SuspendTransformTransformer(
             builder = {
                 name = Name.identifier(functionName)
                 returnType = completableFutureClass.typeWith(originFunction.returnType)
-            },
-            plusAnnotations = {
-                // @JvmDefault for interface
-                if (originFunction.parentClassOrNull?.isInterface == true) {
-                    it.add(
-                        pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
-                            pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
-                        )
+            }
+        ) {
+            // @JvmDefault for interface
+            if (originFunction.parentClassOrNull?.isInterface == true) {
+                it.add(
+                    pluginContext.createIrBuilder(symbol).irAnnotationConstructor(
+                        pluginContext.referenceClass(JVM_DEFAULT_FQ_NAME)!!
                     )
-                }
-            })
+                )
+            }
+        }
         
         val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
         val asProperty = asyncAnnotation?.argumentValue("asProperty")
@@ -280,10 +346,10 @@ class SuspendTransformTransformer(
             builder = {
                 name = Name.identifier(functionName)
                 returnType = jsPromiseClass.typeWith(originFunction.returnType)
-            },
-            plusAnnotations = {
-                // TODO @JsName?
-            })
+            }
+        ) {
+            // TODO @JsName?
+        }
         
         return listOf(promiseFunction)
     }
@@ -329,23 +395,33 @@ private inline fun copyFunctionForGenerate(
         copyFunction.plusAnnotations(this)
     }
     
-    copyFunction.body = context.createIrBuilder(copyFunction.symbol).irBlockBody {
+    copyFunction.body = generateTransformBodyForFunction(
+        context, copyFunction, originFunction, transformTargetFunctionCall
+    )
+    
+    return copyFunction
+}
+
+private fun generateTransformBodyForFunction(
+    context: IrPluginContext,
+    function: IrFunction,
+    originFunction: IrFunction,
+    transformTargetFunctionCall: IrSimpleFunctionSymbol,
+): IrBody {
+    return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambda = context.createSuspendLambdaWithCoroutineScope(
-            parent = copyFunction,
+            parent = function,
             // suspend () -> R
-            lambdaType = context.symbols.suspendFunctionN(0).typeWith(copyFunction.returnType),
+            lambdaType = context.symbols.suspendFunctionN(0).typeWith(originFunction.returnType),
             originFunction = originFunction
         ).also { +it }
         
         +irReturn(irCall(transformTargetFunctionCall).apply {
             putValueArgument(0, irCall(suspendLambda.primaryConstructor!!).apply {
-                for ((index, parameter) in copyFunction.paramsAndReceiversAsParamsList().withIndex()) {
+                for ((index, parameter) in function.paramsAndReceiversAsParamsList().withIndex()) {
                     putValueArgument(index, irGet(parameter))
                 }
             })
         })
     }
-    
-    return copyFunction
 }
-

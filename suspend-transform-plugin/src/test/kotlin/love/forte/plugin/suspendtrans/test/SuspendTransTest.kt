@@ -4,8 +4,8 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import org.junit.jupiter.api.Test
+import java.util.concurrent.Future
 import kotlin.test.assertEquals
-
 
 /**
  *
@@ -15,24 +15,31 @@ class SuspendTransTest {
     private val main = SourceFile.kotlin(
         "Main.kt",
         """
+import kotlinx.coroutines.runBlocking
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
 // annotation class Hello
 
-open class JustTest { //  : ITest
-
-    // @Hello
-    fun hello(): String = "Hello"
-    suspend fun world(): String = "World"
-    //
+class JustTest { //  : ITest
     @JvmBlocking
     @JvmAsync
-    open suspend fun value(): Long = 114
+    suspend fun value(): Bar {
+        value("abc")
+        return Bar()
+    }
 
-    val name: String get() = "66"
-    val age: Int = 14
+    @JvmBlocking
+    @JvmAsync
+    suspend fun value(value: String): Foo = Foo()
+
+    // @JvmBlocking
+    // @JvmAsync
+    // suspend fun value0(v: Long): Long = v
 }
+
+class Foo
+class Bar
 """
     )
     
@@ -65,10 +72,17 @@ open class JustTest { //  : ITest
         // }
     
         val justTest = result.classLoader.loadClass("JustTest")
-        val method = justTest.getMethod("valueBlocking")
+        println("justTest = $justTest")
+        val method = justTest.getMethod("valueAsync")
+        println("method = $method")
         val justTestInstance = justTest.getConstructor().newInstance()
-        println(method.invoke(justTestInstance))
-        
+        println("justTestInstance = $justTestInstance")
+        val invokeResult = method.invoke(justTestInstance)
+        println("invokeResult: " + invokeResult)
+        println("invokeResult.type: " + invokeResult::class)
+        invokeResult as Future<*>
+        println("invokeResult.get()" + invokeResult.get())
+        println("invokeResult.get().type" + invokeResult.get()::class)
         // val out = invokeMain(result, "MainKt").trim().split("""\r?\n+""".toRegex())
         // println("======== invoke main result ========")
         // out.forEach(::println)

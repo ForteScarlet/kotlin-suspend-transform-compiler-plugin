@@ -17,8 +17,8 @@ kotlin {
         }
     }
     js(IR) {
-        browser()
         nodejs()
+        binaries.executable()
     }
     
     // Only Jvm and JS

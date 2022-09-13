@@ -18,8 +18,7 @@ public var CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4J
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @ExperimentalJsApi
 public fun <T> `$runInAsync$`(
-    scope: CoroutineScope = CoroutineScope4Js,
     block: suspend () -> T,
 ): Promise<T> {
-    return scope.promise { block() }
+    return CoroutineScope4Js.promise { block() }
 }
