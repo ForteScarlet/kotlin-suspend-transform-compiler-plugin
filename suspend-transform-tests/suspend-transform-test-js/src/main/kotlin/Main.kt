@@ -18,4 +18,7 @@ suspend fun main() {
     println(foo)
     println(foo.getValue())
     
+    // val p: Promise<Int> = foo.getValueAsync()
+    
+    
 }
