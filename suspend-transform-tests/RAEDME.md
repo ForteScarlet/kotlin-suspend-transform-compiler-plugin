@@ -30,4 +30,4 @@ include(":suspend-transform-tests:suspend-transform-test-jvm")
 include(":suspend-transform-tests:suspend-transform-test-js")
 ```
 
-3. Run. [`suspend-transform-test-js/src/main/kotlin/Main`](suspend-transform-test-js/src/main/kotlin/Main.kt) or [`suspend-transform-test-jvm/src/main/kotlin/Main`](suspend-transform-test-jvm/src/main/kotlin/Main.kt)
+3. Run. [JS Test](suspend-transform-test-js/src/main/kotlin/Main.kt) or [JVM Test](suspend-transform-test-jvm/src/main/kotlin/Main.kt)
