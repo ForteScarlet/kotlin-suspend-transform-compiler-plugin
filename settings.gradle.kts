@@ -1,3 +1,6 @@
+rootProject.name = "kotlin-suspend-transform-compiler-plugin"
+
+
 pluginManagement {
     repositories {
         mavenLocal()
@@ -9,13 +12,14 @@ pluginManagement {
 //     }
 }
 
-rootProject.name = "suspend-transform-kotlin-compiler-plugin"
 
-include(":suspend-transform-runtime")
-include(":suspend-transform-plugin")
-include(":suspend-transform-plugin-embeddable")
-include(":suspend-transform-plugin-gradle")
-// include(":suspend-transform-tests:suspend-transform-test-jvm")
-// include(":suspend-transform-tests:suspend-transform-test-js")
+include(":compiler:suspend-transform-plugin")
+include(":compiler:suspend-transform-plugin-embeddable")
 
-include(":suspend-transform-plugin-ide:suspend-transform-plugin-idea")
+include(":runtime:suspend-transform-annotation")
+include(":runtime:suspend-transform-runtime")
+
+include(":plugins:suspend-transform-plugin-gradle")
+// include(":suspend-transform-plugin-sample")
+
+include(":plugins:ide:suspend-transform-plugin-idea")

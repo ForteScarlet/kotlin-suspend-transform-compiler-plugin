@@ -1,6 +1,8 @@
 plugins {
+    `java-library`
     kotlin("jvm")
-    //id("love.forte.plugin.suspend-transform")
+    id("love.forte.plugin.suspend-transform")
+    id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
 }
 
@@ -27,10 +29,8 @@ plugins {
 
 kotlin {
     dependencies {
-        implementation(kotlin("stdlib"))
-//        implementation(project(":suspend-transform-test-jvm-ktonly"))
-        implementation("love.forte.plugin.suspend-transform:suspend-transform-plugin-sample:0.0.1")
-//        implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.0.1")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+        api(kotlin("stdlib"))
+        api("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.0.1")
+        api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     }
 }

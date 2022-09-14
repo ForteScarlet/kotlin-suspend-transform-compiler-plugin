@@ -14,13 +14,19 @@ class JvmFoo {
         delay(5)
         return 6
     }
+    @JvmBlocking
+    @JvmAsync
+    suspend fun getValue2(): Int {
+        delay(5)
+        return 6
+    }
     
 }
 
 suspend fun main() {
     val foo = JvmFoo()
     foo.getValueBlocking()
-
+    
     println(foo.getValue())
     println(foo.getValueBlocking())
     println(foo.getValueAsync())

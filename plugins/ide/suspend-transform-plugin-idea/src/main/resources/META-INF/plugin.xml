@@ -1,0 +1,47 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>love.forte.suspend-transform</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>Kotlin Suspend Transform</name>
+
+    <!--<version>0.0.0.0</version>-->
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="ForteScarlet@163.com" url="https://github.com/ForteScarlet">ForteScarlet</vendor>
+
+    <idea-version since-build="211"/>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    The Kotlin suspend transform compiler plugin
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
+    <depends>com.intellij.modules.java</depends>
+
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <irGenerationExtension
+                implementation="love.forte.plugin.suspendtrans.ide.idea.IdeSuspendTransformIrGenerationExtension"/>
+        <syntheticResolveExtension
+                implementation="love.forte.plugin.suspendtrans.ide.idea.IdeSuspendTransformResolveExtension"/>
+    </extensions>
+
+
+    <extensions defaultExtensionNs="com.intellij">
+        <lang.psiAugmentProvider
+                implementation="love.forte.plugin.suspendtrans.ide.idea.SuspendTransformPsiAugmentProvider"/>
+
+
+    </extensions>
+</idea-plugin>
