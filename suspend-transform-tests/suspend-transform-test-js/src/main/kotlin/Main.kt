@@ -13,7 +13,6 @@ class JsFoo {
 }
 
 suspend fun main() {
-    
     val foo = JsFoo()
     println(foo)
     println(foo.getValue())

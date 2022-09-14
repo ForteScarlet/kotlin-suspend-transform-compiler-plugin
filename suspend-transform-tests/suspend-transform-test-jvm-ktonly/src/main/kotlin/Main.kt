@@ -19,6 +19,8 @@ class JvmFoo {
 
 suspend fun main() {
     val foo = JvmFoo()
+    foo.getValueBlocking()
+
     println(foo.getValue())
     println(foo.getValueBlocking())
     println(foo.getValueAsync())

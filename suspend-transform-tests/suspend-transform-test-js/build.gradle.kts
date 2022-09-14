@@ -24,7 +24,8 @@ kotlin {
 
 kotlin {
     dependencies {
-        implementation(project(":suspend-transform-runtime"))
+        implementation(kotlin("stdlib"))
+        implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.0.1")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     }
 }

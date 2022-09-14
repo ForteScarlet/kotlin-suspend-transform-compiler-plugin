@@ -78,7 +78,7 @@ fun invokeMain(result: KotlinCompilation.Result, className: String): String {
     try {
         val buffer = ByteArrayOutputStream()
         System.setOut(PrintStream(buffer, false, "UTF-8"))
-        
+
         try {
             val kClazz = result.classLoader.loadClass(className)
             val main = kClazz.declaredMethods.single { it.name == "main" && it.parameterCount == 0 }
@@ -86,7 +86,7 @@ fun invokeMain(result: KotlinCompilation.Result, className: String): String {
         } catch (e: InvocationTargetException) {
             throw e.targetException
         }
-        
+
         return buffer.toString("UTF-8")
     } finally {
         System.setOut(oldOut)
@@ -102,15 +102,15 @@ fun KotlinCompilation.Result.javaCode(className: String): String {
                 generatedFiles.forEach {
                     add(ArrayTypeLoader(it.readBytes()))
                 }
-                
+
                 // Loads any standard classes already on the classpath.
                 add(InputTypeLoader())
             }
             .toTypedArray()))
-        
+
         isUnicodeOutputEnabled = true
     }
-    
+
     return StringWriter().let { writer ->
         // ClassFileDecompilers.Full
         // ClassFileDecompilers.Decompiler.decompile(

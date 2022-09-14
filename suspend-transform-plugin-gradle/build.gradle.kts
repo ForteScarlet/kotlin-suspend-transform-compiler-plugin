@@ -14,7 +14,7 @@ buildConfig {
         internalVisibility = true
     }
     withoutPackage()
-    val project = project(":suspend-transform-plugin")
+    val project = project(":suspend-transform-plugin-embeddable")
     
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${project.group}\"")

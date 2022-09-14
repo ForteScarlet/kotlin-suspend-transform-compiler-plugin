@@ -8,17 +8,31 @@
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="azul-1.8" />
+        <option name="gradleJvm" value="corretto-11" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/suspend-transform-plugin" />
+            <option value="$PROJECT_DIR$/suspend-transform-plugin-embeddable" />
             <option value="$PROJECT_DIR$/suspend-transform-plugin-gradle" />
+            <option value="$PROJECT_DIR$/suspend-transform-plugin-ide" />
+            <option value="$PROJECT_DIR$/suspend-transform-plugin-ide/suspend-transform-plugin-idea" />
             <option value="$PROJECT_DIR$/suspend-transform-runtime" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/suspend-transform-tests" />
+        <option name="gradleHome" value="D:/code/gradle/gradle-6.8.2" />
+        <option name="modules">
+          <set>
             <option value="$PROJECT_DIR$/suspend-transform-tests" />
+            <option value="$PROJECT_DIR$/suspend-transform-tests/buildSrc" />
             <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-js" />
             <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-jvm" />
+            <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-jvm-ktonly" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -24,10 +24,7 @@ import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.util.isInterface
-import org.jetbrains.kotlin.ir.util.parentClassOrNull
-import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.JvmNames.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.name.Name
@@ -118,12 +115,15 @@ class SuspendTransformTransformer(
         return super.visitFunctionNew(declaration)
     }
     
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun postProcessGeneratedFunction(function: IrFunction) {
         function.annotations = buildList {
-            addAll(function.annotations)
-            
+            val currentAnnotations = function.annotations
+            fun hasAnnotation(name: FqName): Boolean = currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
+            addAll(currentAnnotations)
+
             // +@Generated
-            if (!function.hasGenerated()) {
+            if (!hasAnnotation(generatedAnnotationName)) {
                 add(
                     pluginContext.createIrBuilder(function.symbol)
                         .irAnnotationConstructor(generatedAnnotation)
@@ -131,7 +131,7 @@ class SuspendTransformTransformer(
             }
             if (pluginContext.isJvm) {
                 // +@JvmSynthetic
-                if (!function.hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
+                if (!hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
                     add(
                         pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
                             pluginContext.referenceClass(

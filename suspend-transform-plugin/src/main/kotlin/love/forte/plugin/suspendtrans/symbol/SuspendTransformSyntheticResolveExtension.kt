@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.symbol
 
+import love.forte.plugin.suspendtrans.PluginAvailability
 import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.resolveToTransformAnnotations
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -31,12 +32,14 @@ private enum class SyntheticType {
  *
  * @author ForteScarlet
  */
-open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension {
-    
+open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension, PluginAvailability {
     private var currentSyntheticData: CurrentSyntheticData? = null
-    
-    
+
     override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
+        if(!thisDescriptor.isPluginEnabled()) {
+            return super.getSyntheticFunctionNames(thisDescriptor)
+        }
+
         if (currentSyntheticData?.classDescriptor != thisDescriptor) {
             return emptyList()
         }
@@ -88,6 +91,10 @@ open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension
         fromSupertypes: List<SimpleFunctionDescriptor>,
         result: MutableCollection<SimpleFunctionDescriptor>,
     ) {
+        if(!thisDescriptor.isPluginEnabled()) {
+            return
+        }
+
         if (currentSyntheticData?.classDescriptor != thisDescriptor) {
             // reset it.
             currentSyntheticData = CurrentSyntheticData(thisDescriptor)
