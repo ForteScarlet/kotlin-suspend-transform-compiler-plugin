@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.JsAsyncUserData
-import love.forte.plugin.suspendtrans.ToJsAsync
+import love.forte.plugin.suspendtrans.JvmBlockingUserData
+import love.forte.plugin.suspendtrans.ToJvmBlocking
 import love.forte.plugin.suspendtrans.utils.copy
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
@@ -37,7 +37,7 @@ class SuspendTransformJvmBlockingFunctionDescriptorImpl(
             originalFunction.returnType,
             originalFunction.modality,
             originalFunction.visibility,
-            mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>(ToJsAsync to JsAsyncUserData(originalFunction))
+            mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>(ToJvmBlocking to JvmBlockingUserData(originalFunction))
         )
         this.isSuspend = false
         

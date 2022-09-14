@@ -4,8 +4,10 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import org.junit.jupiter.api.Test
-import java.util.concurrent.Future
+import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
+
+private const val RESULT = 111
 
 /**
  *
@@ -24,22 +26,12 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 class JustTest { //  : ITest
     @JvmBlocking
     @JvmAsync
-    suspend fun value(): Bar {
-        value("abc")
-        return Bar()
-    }
+    suspend fun value(): Int = value("$RESULT")
 
     @JvmBlocking
     @JvmAsync
-    suspend fun value(value: String): Foo = Foo()
-
-    // @JvmBlocking
-    // @JvmAsync
-    // suspend fun value0(v: Long): Long = v
+    suspend fun value(value: String): Int = value.toInt()
 }
-
-class Foo
-class Bar
 """
     )
     
@@ -70,19 +62,22 @@ class Bar
         // result.classLoader.loadClass("MainKt").declaredMethods.forEach {
         //     println("MainKt method: $it")
         // }
-    
+        
         val justTest = result.classLoader.loadClass("JustTest")
-        println("justTest = $justTest")
-        val method = justTest.getMethod("valueAsync")
-        println("method = $method")
         val justTestInstance = justTest.getConstructor().newInstance()
-        println("justTestInstance = $justTestInstance")
-        val invokeResult = method.invoke(justTestInstance)
-        println("invokeResult: " + invokeResult)
-        println("invokeResult.type: " + invokeResult::class)
-        invokeResult as Future<*>
-        println("invokeResult.get()" + invokeResult.get())
-        println("invokeResult.get().type" + invokeResult.get()::class)
+        
+        val blockingMethod = justTest.getMethod("valueBlocking")
+        val blockingInvokeResult = blockingMethod.invoke(justTestInstance)
+        
+        assert(blockingInvokeResult == RESULT) { "Blocking invoke result $blockingInvokeResult != $RESULT" }
+        
+        val asyncMethod = justTest.getMethod("valueAsync")
+        val asyncInvokeResult = asyncMethod.invoke(justTestInstance)
+        assert(asyncInvokeResult is CompletableFuture<*>) { "Async invoke result !is Future" }
+        
+        asyncInvokeResult as CompletableFuture<*>
+        val asyncFutureResult = asyncInvokeResult.get()
+        assert(asyncFutureResult == RESULT) { "Async future result $blockingInvokeResult != $RESULT" }
         // val out = invokeMain(result, "MainKt").trim().split("""\r?\n+""".toRegex())
         // println("======== invoke main result ========")
         // out.forEach(::println)
@@ -94,12 +89,12 @@ class Bar
             sourceFile = main,
             SuspendTransformComponentRegistrar(true)
         )
-    
+        
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
-    
+        
         println(result.messages)
         println(result.compiledClassAndResourceFiles)
-    
+        
     }
     
 }

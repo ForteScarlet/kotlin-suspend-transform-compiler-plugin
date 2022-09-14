@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.JvmBlockingUserData
-import love.forte.plugin.suspendtrans.ToJvmBlocking
+import love.forte.plugin.suspendtrans.JsAsyncUserData
+import love.forte.plugin.suspendtrans.ToJsAsync
 import love.forte.plugin.suspendtrans.jsPromiseClassName
 import love.forte.plugin.suspendtrans.utils.findClassDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor.UserDataKey
@@ -24,7 +24,7 @@ class SuspendTransformJsPromiseFunctionImpl(
     private val classDescriptor: ClassDescriptor,
     private val originalFunction: SimpleFunctionDescriptor,
     functionName: Name,
-    annotations: Annotations = Annotations.EMPTY
+    annotations: Annotations = Annotations.EMPTY,
 ) : SimpleFunctionDescriptorImpl(
     classDescriptor,
     null,
@@ -51,7 +51,7 @@ class SuspendTransformJsPromiseFunctionImpl(
             promiseType,
             originalFunction.modality,
             originalFunction.visibility,
-            mutableMapOf<UserDataKey<*>, Any>(ToJvmBlocking to JvmBlockingUserData(originalFunction))
+            mutableMapOf<UserDataKey<*>, Any>(ToJsAsync to JsAsyncUserData(originalFunction))
         )
         this.isSuspend = false
         
