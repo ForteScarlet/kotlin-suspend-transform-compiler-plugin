@@ -84,7 +84,7 @@ class SuspendTransformTransformer(
     private fun IrFunction.findAnnotationDescriptor(fqName: FqName): AnnotationDescriptor? {
         return descriptor.annotations.findAnnotation(fqName)
     }
-    
+
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         val descriptor = declaration.descriptor
@@ -106,8 +106,9 @@ class SuspendTransformTransformer(
                 descriptor.getUserData(ToJsAsync)!!.originFunction,
                 jsRunAsyncFunction
             )
-            
-            else -> resolveFunction(declaration)
+
+            else -> null
+            //else -> resolveFunction(declaration)
         }
         if (generatedOriginFunction != null) {
             postProcessGeneratedFunction(generatedOriginFunction)
@@ -122,13 +123,6 @@ class SuspendTransformTransformer(
             fun hasAnnotation(name: FqName): Boolean = currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            // +@Generated
-            if (!hasAnnotation(generatedAnnotationName)) {
-                add(
-                    pluginContext.createIrBuilder(function.symbol)
-                        .irAnnotationConstructor(generatedAnnotation)
-                )
-            }
             if (pluginContext.isJvm) {
                 // +@JvmSynthetic
                 if (!hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
@@ -154,7 +148,12 @@ class SuspendTransformTransformer(
         if (parent is IrDeclarationContainer) {
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
                 .filter { f -> f.descriptor == originFunctionDescriptor }
-            
+
+            println("=== function = ${function.descriptor}")
+            println("parent = ${(parent as? IrClass)?.descriptor}")
+            println("originFunctionDescriptor: $originFunctionDescriptor")
+            println("originFunctions: $originFunctions")
+
             require(originFunctions.size == 1)
             
             val originFunction = originFunctions.first()

@@ -2,10 +2,7 @@ package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.SuspendTransformUserData
 import love.forte.plugin.suspendtrans.utils.copy
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.name.Name
@@ -27,7 +24,7 @@ abstract class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUs
     null,
     annotations,
     functionName,
-    CallableMemberDescriptor.Kind.DECLARATION,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
     originFunction.source
 ) {
 
@@ -41,11 +38,20 @@ abstract class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUs
             originFunction.typeParameters.toList(),
             originFunction.valueParameters.map { it.copy(containingDeclaration = this) },
             returnType(originFunction.returnType),
-            originFunction.modality,
+            modality(originFunction),
             originFunction.visibility,
             mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>(userData)
         )
         this.isSuspend = false
 
     }
+
+    protected open fun modality(originFunction: SimpleFunctionDescriptor): Modality {
+        if (originFunction.modality == Modality.ABSTRACT) {
+            return Modality.OPEN
+        }
+
+        return originFunction.modality
+    }
+
 }

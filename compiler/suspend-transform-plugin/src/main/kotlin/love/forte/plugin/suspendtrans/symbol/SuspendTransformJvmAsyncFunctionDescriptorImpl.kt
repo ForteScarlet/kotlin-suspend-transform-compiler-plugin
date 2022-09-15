@@ -20,17 +20,16 @@ import org.jetbrains.kotlin.types.TypeProjectionImpl
  */
 class SuspendTransformJvmAsyncFunctionDescriptorImpl(
     private val classDescriptor: ClassDescriptor,
-    originalFunction: SimpleFunctionDescriptor,
+    originFunction: SimpleFunctionDescriptor,
     functionName: Name,
     annotations: Annotations = Annotations.EMPTY,
 ) : AbstractSuspendTransformFunctionDescriptor<JvmAsyncUserData>(
     classDescriptor,
-    originalFunction,
+    originFunction,
     functionName,
     annotations,
-    ToJvmAsync to JvmAsyncUserData(originalFunction)
+    ToJvmAsync to JvmAsyncUserData(originFunction)
 ) {
-
     override fun returnType(originReturnType: KotlinType?): KotlinType {
         val futureClass = requireNotNull(classDescriptor.module.findClassDescriptor(completableFutureClassName))
         return KotlinTypeFactory.simpleNotNullType(
@@ -39,5 +38,4 @@ class SuspendTransformJvmAsyncFunctionDescriptorImpl(
             originReturnType?.let { listOf(TypeProjectionImpl(it)) } ?: emptyList()
         )
     }
-
 }
