@@ -24,7 +24,7 @@ abstract class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUs
     null,
     annotations,
     functionName,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    CallableMemberDescriptor.Kind.DECLARATION,
     originFunction.source
 ) {
 

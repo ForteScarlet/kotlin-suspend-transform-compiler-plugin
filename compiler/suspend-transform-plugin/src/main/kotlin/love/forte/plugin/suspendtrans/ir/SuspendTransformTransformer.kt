@@ -43,43 +43,43 @@ private inline val IrPluginContext.isJs: Boolean get() = platform?.isJs() == tru
 class SuspendTransformTransformer(
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-    
+
     private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
-    
+
     private val jvmRunBlockingFunctionOrNull =
         pluginContext.referenceFunctions(jvmRunInBlockingFunctionName).singleOrNull()
-    
+
     private val jvmRunBlockingFunction
         get() = jvmRunBlockingFunctionOrNull ?: error("jvmRunBlockingFunction unsupported.")
-    
+
     private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunInAsyncFunctionName).singleOrNull()
-    
+
     private val jvmRunAsyncFunction
         get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction unsupported.")
-    
+
     private val completableFutureClassOrNull = pluginContext.referenceClass(completableFutureClassName)
-    
+
     private val completableFutureClass
         get() = completableFutureClassOrNull
             ?: throw NoSuchElementException("completableFutureClass: $completableFutureClassName")
-    
+
     private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunInAsyncFunctionName).singleOrNull()
-    
+
     private val jsRunAsyncFunction
         get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction unsupported.")
-    
+
     private val jsPromiseClassOrNull = pluginContext.referenceClass(jsPromiseClassName)
     private val jsPromiseClass get() = jsPromiseClassOrNull ?: error("jsPromiseClass unsupported.")
-    
+
     private fun FunctionDescriptor.hasGenerated(): Boolean {
         return this.annotations.hasAnnotation(generatedAnnotationName)
     }
-    
+
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrFunction.hasGenerated(): Boolean {
         return descriptor.hasGenerated()
     }
-    
+
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrFunction.findAnnotationDescriptor(fqName: FqName): AnnotationDescriptor? {
         return descriptor.annotations.findAnnotation(fqName)
@@ -94,13 +94,13 @@ class SuspendTransformTransformer(
                 descriptor.getUserData(ToJvmBlocking)!!.originFunction,
                 jvmRunBlockingFunction
             )
-            
+
             descriptor.getUserData(ToJvmAsync) != null -> resolveFunctionBody(
                 declaration,
                 descriptor.getUserData(ToJvmAsync)!!.originFunction,
                 jvmRunAsyncFunction
             )
-            
+
             descriptor.getUserData(ToJsAsync) != null -> resolveFunctionBody(
                 declaration,
                 descriptor.getUserData(ToJsAsync)!!.originFunction,
@@ -111,16 +111,29 @@ class SuspendTransformTransformer(
             //else -> resolveFunction(declaration)
         }
         if (generatedOriginFunction != null) {
-            postProcessGeneratedFunction(generatedOriginFunction)
+            postProcessGenerateOriginFunction(generatedOriginFunction)
+//            postProcessGeneratedSyntheticFunction(generatedOriginFunction, declaration)
         }
+
         return super.visitFunctionNew(declaration)
     }
-    
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
-    private fun postProcessGeneratedFunction(function: IrFunction) {
+
+//    private fun postProcessGeneratedSyntheticFunction(originFunction: IrFunction, function: IrFunction) {
+//        // add @Generated
+//        function.annotations = buildList {
+//            addAll(function.annotations)
+//            if (!hasAnnotation(generatedAnnotationName)) {
+//                add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(generatedAnnotation))
+//            }
+//
+//        }
+//    }
+
+    private fun postProcessGenerateOriginFunction(function: IrFunction) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
-            fun hasAnnotation(name: FqName): Boolean = currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
+            fun hasAnnotation(name: FqName): Boolean =
+                currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
             if (pluginContext.isJvm) {
@@ -137,7 +150,7 @@ class SuspendTransformTransformer(
             }
         }
     }
-    
+
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBody(
         function: IrFunction,
@@ -149,15 +162,10 @@ class SuspendTransformTransformer(
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
                 .filter { f -> f.descriptor == originFunctionDescriptor }
 
-            println("=== function = ${function.descriptor}")
-            println("parent = ${(parent as? IrClass)?.descriptor}")
-            println("originFunctionDescriptor: $originFunctionDescriptor")
-            println("originFunctions: $originFunctions")
-
             require(originFunctions.size == 1)
-            
+
             val originFunction = originFunctions.first()
-            
+
             function.body = null
             function.body = generateTransformBodyForFunction(
                 pluginContext,
@@ -169,12 +177,12 @@ class SuspendTransformTransformer(
         }
         return null
     }
-    
+
     private fun resolveFunction(
         function: IrFunction,
     ): IrFunction? {
         val parent = function.parent
-        
+
         if (parent is IrClass || parent is IrFile) {
             var generated = false
             parent as IrDeclarationContainer
@@ -192,7 +200,7 @@ class SuspendTransformTransformer(
                         generated = true
                     }
                 }
-                
+
                 pluginContext.isJs -> {
                     val generatedList = generateJsFunctions(function)
                     generatedList.forEach {
@@ -204,13 +212,13 @@ class SuspendTransformTransformer(
                     }
                 }
             }
-            
+
             return if (generated) function else null
         }
-        
+
         return null
     }
-    
+
     private fun checkFunctionExists(function: IrFunction, functionName: String): Boolean {
         val parent = function.parentClassOrNull ?: function.fileParent
         return parent.functionsSequence.any { f ->
@@ -227,11 +235,11 @@ class SuspendTransformTransformer(
                     return@any false
                 }
             }
-            
+
             true
         }
     }
-    
+
     private fun generateJvmFunctions(originFunction: IrFunction): List<IrDeclaration> {
         return buildList {
             val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
@@ -244,7 +252,7 @@ class SuspendTransformTransformer(
             ) {
                 addAll(generateJvmBlockingFunction(originFunction, blockingFunctionName))
             }
-            
+
             val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
             val asyncFunctionName =
                 asyncAnnotation.functionName(defaultBaseName = originFunction.name.toString(), defaultSuffix = "Async")
@@ -256,22 +264,22 @@ class SuspendTransformTransformer(
             }
         }
     }
-    
+
     private fun generateJsFunctions(originFunction: IrFunction): List<IrDeclaration> {
         val promiseAnnotation = originFunction.findAnnotationDescriptor(toJsPromiseAnnotationName)
         val promiseFunctionName =
             promiseAnnotation.functionName(defaultBaseName = originFunction.name.toString(), defaultSuffix = "Async")
-        
+
         if (originFunction.hasAnnotation(toJsPromiseAnnotationName) && !checkFunctionExists(
                 originFunction, promiseFunctionName
             )
         ) {
             return generateJsPromiseFunction(originFunction, promiseFunctionName)
         }
-        
+
         return listOf()
     }
-    
+
     private fun generateJvmBlockingFunction(
         originFunction: IrFunction,
         functionName: String,
@@ -296,15 +304,15 @@ class SuspendTransformTransformer(
         val blockingAnnotation = originFunction.findAnnotationDescriptor(toJvmBlockingAnnotationName)
         val asProperty = blockingAnnotation?.argumentValue("asProperty")
             ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null) ?: false
-        
+
         if (asProperty) {
             return listOf(function.asProperty())
         }
-        
-        
+
+
         return listOf(function)
     }
-    
+
     private fun generateJvmAsyncFunction(
         originFunction: IrFunction,
         functionName: String,
@@ -326,18 +334,18 @@ class SuspendTransformTransformer(
                 )
             }
         }
-        
+
         val asyncAnnotation = originFunction.findAnnotationDescriptor(toJvmAsyncAnnotationName)
         val asProperty = asyncAnnotation?.argumentValue("asProperty")
             ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null) ?: false
-        
+
         if (asProperty) {
             return listOf(function.asProperty())
         }
-        
+
         return listOf(function)
     }
-    
+
     private fun generateJsPromiseFunction(originFunction: IrFunction, functionName: String): List<IrDeclaration> {
         val promiseFunction = copyFunctionForGenerate(originFunction = originFunction,
             context = pluginContext,
@@ -349,7 +357,7 @@ class SuspendTransformTransformer(
         ) {
             // TODO @JsName?
         }
-        
+
         return listOf(promiseFunction)
     }
 }
@@ -372,32 +380,32 @@ private inline fun copyFunctionForGenerate(
         modality = parentClassOrFile.computeModality(originFunction)
         visibility = if (parentClassOrFile.isInterface) DescriptorVisibilities.PUBLIC
         else originFunction.visibility
-        
+
         isSuspend = false
         isExternal = false
         isExpect = false
-        
+
         builder()
     }
-    
+
     copyFunction.parent = originFunction.parent
     copyFunction.extensionReceiverParameter = originFunction.extensionReceiverParameter?.copyTo(copyFunction)
     copyFunction.dispatchReceiverParameter = if (originFunction.isStatic) null
     else originFunction.dispatchReceiverParameter?.copyTo(copyFunction)
-    
+
     copyFunction.copyAttributes(originFunction as IrAttributeContainer)
     copyFunction.copyParameterDeclarationsFrom(originFunction)
-    
+
     copyFunction.annotations = buildList {
         addAll(originFunction.annotations.filterNotCompileAnnotations())
         add(context.createIrBuilder(copyFunction.symbol).irAnnotationConstructor(context.generatedAnnotation))
         copyFunction.plusAnnotations(this)
     }
-    
+
     copyFunction.body = generateTransformBodyForFunction(
         context, copyFunction, originFunction, transformTargetFunctionCall
     )
-    
+
     return copyFunction
 }
 
@@ -414,7 +422,7 @@ private fun generateTransformBodyForFunction(
             lambdaType = context.symbols.suspendFunctionN(0).typeWith(originFunction.returnType),
             originFunction = originFunction
         ).also { +it }
-        
+
         +irReturn(irCall(transformTargetFunctionCall).apply {
             putValueArgument(0, irCall(suspendLambda.primaryConstructor!!).apply {
                 for ((index, parameter) in function.paramsAndReceiversAsParamsList().withIndex()) {

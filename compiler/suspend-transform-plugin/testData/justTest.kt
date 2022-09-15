@@ -7,21 +7,21 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 class JustTest : ITest  { //  : ITest
     @JvmBlocking
     @JvmAsync
-    suspend fun value0(): Int = value0("111")
+    suspend fun value(): Int = value("111")
 
     @JvmBlocking
     @JvmAsync
-    suspend fun value0(value: String): Int = value.toInt()
+    suspend fun value(value: String): Int = value.toInt()
 
     @JvmBlocking
     @JvmAsync
-    override suspend fun run0(name: String): Int = 1
+    override suspend fun run(name: String): Int = 1
 }
 
 interface ITest {
     @JvmBlocking
     @JvmAsync
-    suspend fun run0(name: String = "forte"): Int
+    suspend fun run(name: String): Int
 }
 
 fun main() {
