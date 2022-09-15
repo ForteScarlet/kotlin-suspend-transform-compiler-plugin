@@ -3,6 +3,7 @@ package love.forte.plugin.suspendtrans.test
 import com.bennyhuo.kotlin.compiletesting.extensions.source.SingleFileModuleInfoLoader
 import com.tschuchort.compiletesting.KotlinCompilation
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,6 +26,7 @@ class Test {
         val modules = sourceModuleInfos.map {
             KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar())).apply {
                 compilation.apply {
+                    workingDir = File("build/em-jvm")
                     useIR = true
                 }
             }
@@ -36,7 +38,7 @@ class Test {
         modules.forEach { module ->
             val result = module.compileResult!!
             assertEquals(result.exitCode, KotlinCompilation.ExitCode.OK)
-            println(" ==== JAVA CODE ====")
+            println(" ==== JAVA CODE : ${result.generatedFiles} ====")
             println(result.javaCode("JustTest"))
             println(" ===================")
         }

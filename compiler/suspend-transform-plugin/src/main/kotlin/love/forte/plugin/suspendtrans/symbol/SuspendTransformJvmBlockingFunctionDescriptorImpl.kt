@@ -2,44 +2,27 @@ package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.JvmBlockingUserData
 import love.forte.plugin.suspendtrans.ToJvmBlocking
-import love.forte.plugin.suspendtrans.utils.copy
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  *
  * @author ForteScarlet
  */
 class SuspendTransformJvmBlockingFunctionDescriptorImpl(
-    private val classDescriptor: ClassDescriptor,
-    private val originalFunction: SimpleFunctionDescriptor,
+    classDescriptor: ClassDescriptor,
+    originFunction: SimpleFunctionDescriptor,
     functionName: Name,
-) : SimpleFunctionDescriptorImpl(
+    annotations: Annotations = Annotations.EMPTY
+) : AbstractSuspendTransformFunctionDescriptor<JvmBlockingUserData>(
     classDescriptor,
-    null,
-    Annotations.EMPTY,
+    originFunction,
     functionName,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    originalFunction.source
+    annotations,
+    ToJvmBlocking to JvmBlockingUserData(originFunction),
 ) {
-    fun init() {
-        initialize(
-            originalFunction.extensionReceiverParameter?.copy(this),
-            classDescriptor.thisAsReceiverParameter,
-            originalFunction.contextReceiverParameters.map { it.copy(this) },
-            originalFunction.typeParameters.toList(),
-            originalFunction.valueParameters.map { it.copy(containingDeclaration = this) },
-            originalFunction.returnType,
-            originalFunction.modality,
-            originalFunction.visibility,
-            mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>(ToJvmBlocking to JvmBlockingUserData(originalFunction))
-        )
-        this.isSuspend = false
-        
-    }
+    override fun returnType(originReturnType: KotlinType?): KotlinType? = originReturnType
 }
