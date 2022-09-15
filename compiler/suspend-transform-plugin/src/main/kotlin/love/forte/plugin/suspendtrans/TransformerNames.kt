@@ -9,6 +9,11 @@ const val GENERATED_ANNOTATION_NAME: String =
 
 val generatedAnnotationName: FqName = GENERATED_ANNOTATION_NAME.fqn
 
+const val GENERATED_BY_ANNOTATION_NAME: String =
+    "love.forte.plugin.suspendtrans.annotation.GeneratedBy"
+
+val generatedByAnnotationName: FqName = GENERATED_BY_ANNOTATION_NAME.fqn
+
 //region JVM
 // region jvm blocking
 

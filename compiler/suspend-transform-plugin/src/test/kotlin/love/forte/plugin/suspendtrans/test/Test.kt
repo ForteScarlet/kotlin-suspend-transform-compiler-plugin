@@ -28,6 +28,9 @@ class Test {
                 compilation.apply {
                     workingDir = File("build/em-jvm")
                     useIR = true
+                    javaParameters = true
+                    jvmDefault = "all"
+                    jvmTarget = "11"
                 }
             }
         }

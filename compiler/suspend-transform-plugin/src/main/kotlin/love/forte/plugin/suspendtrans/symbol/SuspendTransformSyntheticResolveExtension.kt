@@ -6,22 +6,26 @@ import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.filterNotCompileAnnotations
 import love.forte.plugin.suspendtrans.utils.findClassDescriptor
 import love.forte.plugin.suspendtrans.utils.resolveToTransformAnnotations
+import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.isInterface
+import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.JvmNames
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.ConstantValue
+import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.platform
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeAttributes
+import org.jetbrains.kotlin.types.Variance
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -91,9 +95,7 @@ open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension
         if (!thisDescriptor.isPluginEnabled()) {
             return super.getSyntheticFunctionNames(thisDescriptor)
         }
-        return getCurrentSyntheticFunctionNames(thisDescriptor).also {
-            println("descriptor = $thisDescriptor, names = $it")
-        }
+        return getCurrentSyntheticFunctionNames(thisDescriptor)
 //        val currentSyntheticData = thisDescriptor.currentSyntheticData
 //
 //
@@ -221,26 +223,54 @@ private fun ClassDescriptor.copyAnnotations(originFunction: SimpleFunctionDescri
 
     val notCompileAnnotationsCopied = this.annotations.filterNotCompileAnnotations()
 
-    fun findAnnotation(name: FqName): AnnotationDescriptorImpl {
+    fun findAnnotation(
+        name: FqName,
+        valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
+    ): AnnotationDescriptorImpl {
         val descriptor = requireNotNull(originFunction.module.findClassDescriptor(name))
         val type = KotlinTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, emptyList())
-        return AnnotationDescriptorImpl(type, mutableMapOf(), descriptor.source)
+        return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
-
-    // add @Generated
-    val generatedDescriptor = requireNotNull(originFunction.module.findClassDescriptor(generatedAnnotationName))
-    val generatedAnnotationKotlinType =
-        KotlinTypeFactory.simpleNotNullType(TypeAttributes.Empty, generatedDescriptor, emptyList())
 
 
     return Annotations.create(
         buildList {
             addAll(notCompileAnnotationsCopied)
-            add(findAnnotation(generatedAnnotationName))
-            if (platform?.isJvm() == true && kind.isInterface) {
-                // add @JvmDefault in jvm..?
-                add(findAnnotation(JvmNames.JVM_DEFAULT_FQ_NAME))
-            }
+            // add @Generated(by = ...)
+            add(
+                findAnnotation(
+                    generatedAnnotationName,
+                    mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
+                )
+            )
+
+            // -Xjvm-default=all
+//            if (platform?.isJvm() == true && kind.isInterface) {
+//                // add @JvmDefault in jvm..?
+//                add(findAnnotation(JvmNames.JVM_DEFAULT_FQ_NAME))
+//            }
         }
     )
+}
+
+private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->
+    module.builtIns.getArrayType(
+        Variance.INVARIANT, module.builtIns.stringType
+    )
+})
+
+private val String.sv: StringValue get() = StringValue(this)
+private val Name.sv: StringValue get() = StringValue(asString())
+
+private fun SimpleFunctionDescriptor.toGeneratedByDescriptorInfo(): List<StringValue> {
+    val d = this
+    return buildList {
+        add(d.name.sv)
+        d.allParameters.forEach {
+            add(it.name.sv)
+            add(it.type.getJetTypeFqName(true).sv)
+        }
+        add(d.returnType?.getJetTypeFqName(true)?.sv ?: "?".sv)
+    }
+
 }
