@@ -22,12 +22,13 @@ class SuspendTransformJsPromiseFunctionImpl(
     private val classDescriptor: ClassDescriptor,
     originalFunction: SimpleFunctionDescriptor,
     functionName: String,
-    annotations: Annotations = Annotations.EMPTY,
+    annotationsWithPropertyAnnotations: Pair<Annotations, Annotations>,
 ) : AbstractSuspendTransformFunctionDescriptor<JsAsyncUserData>(
     classDescriptor,
     originalFunction,
     Name.identifier(functionName),
-    annotations,
+    annotationsWithPropertyAnnotations.first,
+    annotationsWithPropertyAnnotations.second,
     ToJsAsync to JsAsyncUserData(originalFunction)
 ) {
     override fun returnType(originReturnType: KotlinType?): KotlinType {

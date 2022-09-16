@@ -1,6 +1,7 @@
 package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.SuspendTransformUserData
+import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.copy
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -17,7 +18,8 @@ sealed class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUser
     private val classDescriptor: ClassDescriptor,
     private val originFunction: SimpleFunctionDescriptor,
     functionName: Name,
-    annotations: Annotations = Annotations.EMPTY,
+    annotations: Annotations,
+    internal val propertyAnnotations: Annotations,
     private val userData: Pair<CallableDescriptor.UserDataKey<D>, D>,
 ) : SimpleFunctionDescriptorImpl(
     classDescriptor,
@@ -48,7 +50,7 @@ sealed class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUser
 
     protected abstract fun transformToPropertyInternal(): AbstractSuspendTransformProperty<D>
 
-    fun transformToProperty(): AbstractSuspendTransformProperty<D> {
+    fun transformToProperty(annotationData: TransformAnnotationData): AbstractSuspendTransformProperty<D> {
         return transformToPropertyInternal().apply { init() }
     }
 

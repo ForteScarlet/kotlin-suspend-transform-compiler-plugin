@@ -1,3 +1,4 @@
+
 package love.forte.plugin.suspendtrans.annotation
 
 @RequiresOptIn(message = "Api should be used by Java", level = RequiresOptIn.Level.WARNING)

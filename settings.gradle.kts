@@ -7,9 +7,9 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-//     plugins {
-//         id("love.forte.plugin.suspend-transform") version "0.0.1"
-//     }
+     plugins {
+         id("love.forte.plugin.suspend-transform") version "0.0.1"
+     }
 }
 
 
@@ -20,6 +20,6 @@ include(":runtime:suspend-transform-annotation")
 include(":runtime:suspend-transform-runtime")
 
 include(":plugins:suspend-transform-plugin-gradle")
-// include(":suspend-transform-plugin-sample")
+include(":suspend-transform-plugin-sample")
 
 // include(":plugins:ide:suspend-transform-plugin-idea")

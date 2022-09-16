@@ -21,6 +21,7 @@
             <option value="$PROJECT_DIR$/runtime" />
             <option value="$PROJECT_DIR$/runtime/suspend-transform-annotation" />
             <option value="$PROJECT_DIR$/runtime/suspend-transform-runtime" />
+            <option value="$PROJECT_DIR$/suspend-transform-plugin-sample" />
           </set>
         </option>
       </GradleProjectSettings>

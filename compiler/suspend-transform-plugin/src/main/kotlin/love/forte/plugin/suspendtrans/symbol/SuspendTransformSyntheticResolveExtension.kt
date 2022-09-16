@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
@@ -95,7 +96,10 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             if (annotationData == null) return
 
             if (annotationData.asProperty == true) {
-                syntheticProperties.addSyntheticDescriptors(thisDescriptor, descriptors.transformToProperty())
+                syntheticProperties.addSyntheticDescriptors(
+                    thisDescriptor,
+                    descriptors.transformToProperty(annotationData)
+                )
             } else {
                 syntheticFunctions.addSyntheticDescriptors(thisDescriptor, descriptors)
             }
@@ -109,8 +113,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             if (resolvedAnnotations.isEmpty) {
                 return@forEach
             }
-
-
 
             generateSyntheticTransformFunction(
                 resolvedAnnotations.jvmBlockingAnnotationData,
@@ -149,26 +151,27 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         type: SyntheticType,
     ): AbstractSuspendTransformFunctionDescriptor<*>? {
         if (annotationData == null) return null
+        val asProperty = annotationData.asProperty == true
         return when {
             classDescriptor.platform.isJvm() && type == SyntheticType.JVM_BLOCKING -> SuspendTransformJvmBlockingFunctionDescriptorImpl(
                 classDescriptor,
                 originFunction,
                 annotationData.functionName,
-                classDescriptor.copyAnnotations(configuration, originFunction, type)
+                copyAnnotations(configuration, originFunction, type),
             )
 
             classDescriptor.platform.isJvm() && type == SyntheticType.JVM_ASYNC -> SuspendTransformJvmAsyncFunctionDescriptorImpl(
                 classDescriptor,
                 originFunction,
                 annotationData.functionName,
-                classDescriptor.copyAnnotations(configuration, originFunction, type)
+                copyAnnotations(configuration, originFunction, type),
             )
 
             classDescriptor.platform.isJs() && type == SyntheticType.JS_ASYNC -> SuspendTransformJsPromiseFunctionImpl(
                 classDescriptor,
                 originFunction,
                 annotationData.functionName,
-                classDescriptor.copyAnnotations(configuration, originFunction, type)
+                copyAnnotations(configuration, originFunction, type),
             )
 
             else -> null
@@ -199,9 +202,11 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
 
 }
 
-private fun ClassDescriptor.copyAnnotations(
-    configuration: SuspendTransformConfiguration, originFunction: SimpleFunctionDescriptor, syntheticType: SyntheticType
-): Annotations {
+private fun copyAnnotations(
+    configuration: SuspendTransformConfiguration,
+    originFunction: SimpleFunctionDescriptor,
+    syntheticType: SyntheticType
+): Pair<Annotations, Annotations> {
 
     fun findAnnotation(
         name: FqName, valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
@@ -211,7 +216,7 @@ private fun ClassDescriptor.copyAnnotations(
         return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
 
-    val (copy, excludes, includes) = when (syntheticType) {
+    val (copyFunction, excludes, includes) = when (syntheticType) {
         SyntheticType.JVM_BLOCKING -> {
             configuration.jvm.let {
                 CopyAnnotationsData(
@@ -243,10 +248,20 @@ private fun ClassDescriptor.copyAnnotations(
         }
     }
 
+    val annotationsList = mutableListOf<AnnotationDescriptor>()
+//    val propertyAnnotationsList = if (property) mutableListOf<AnnotationDescriptor>() else null
+//
+//    fun addAnnotation(annotationDescriptor: AnnotationDescriptor) {
+//        annotationsList.add(annotationDescriptor)
+//        annotationDescriptor
+////        if (propertyAnnotationsList != null) {
+////            annotationDescriptor.annotationClass?.annotations?.findAnnotation(ANNOTATION)
+////        }
+//    }
 
-    return Annotations.create(buildList {
-        if (copy) {
-            val notCompileAnnotationsCopied = this@copyAnnotations.annotations.filterNotCompileAnnotations().filterNot {
+    annotationsList.apply {
+        if (copyFunction) {
+            val notCompileAnnotationsCopied = originFunction.annotations.filterNotCompileAnnotations().filterNot {
                 val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
                 excludes.any { ex -> annotationFqNameUnsafe == ex.name.fqn.toUnsafe() }
             }
@@ -268,18 +283,13 @@ private fun ClassDescriptor.copyAnnotations(
             }
             findAnnotation(name)?.also(::add)
         }
+    }
 
-
-        // -Xjvm-default=all
-//            if (platform?.isJvm() == true && kind.isInterface) {
-//                // add @JvmDefault in jvm..?
-//                add(findAnnotation(JvmNames.JVM_DEFAULT_FQ_NAME))
-//            }
-    })
+    return Annotations.create(annotationsList) to Annotations.EMPTY
 }
 
 private data class CopyAnnotationsData(
-    val copy: Boolean,
+    val copyFunction: Boolean,
     val excludes: List<SuspendTransformConfiguration.ExcludeAnnotation>,
     val includes: List<SuspendTransformConfiguration.IncludeAnnotation>
 )

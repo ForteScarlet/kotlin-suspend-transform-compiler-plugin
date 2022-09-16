@@ -30,6 +30,6 @@ class SuspendTransformComponentRegistrar : ComponentRegistrar {
 private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
     val compilerConfiguration = this
     return SuspendTransformConfiguration().apply {
-        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ARG_ENABLED, true)
+        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)
     }
 }

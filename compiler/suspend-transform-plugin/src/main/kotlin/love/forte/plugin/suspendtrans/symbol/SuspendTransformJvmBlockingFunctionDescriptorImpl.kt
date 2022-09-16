@@ -16,12 +16,13 @@ class SuspendTransformJvmBlockingFunctionDescriptorImpl(
     private val classDescriptor: ClassDescriptor,
     originFunction: SimpleFunctionDescriptor,
     functionName: String,
-    annotations: Annotations = Annotations.EMPTY
-) : AbstractSuspendTransformFunctionDescriptor<JvmBlockingUserData>(
+    annotationsWithPropertyAnnotations: Pair<Annotations, Annotations>,
+    ) : AbstractSuspendTransformFunctionDescriptor<JvmBlockingUserData>(
     classDescriptor,
     originFunction,
     Name.identifier(functionName),
-    annotations,
+    annotationsWithPropertyAnnotations.first,
+    annotationsWithPropertyAnnotations.second,
     ToJvmBlocking to JvmBlockingUserData(originFunction),
 ) {
     override fun returnType(originReturnType: KotlinType?): KotlinType? = originReturnType

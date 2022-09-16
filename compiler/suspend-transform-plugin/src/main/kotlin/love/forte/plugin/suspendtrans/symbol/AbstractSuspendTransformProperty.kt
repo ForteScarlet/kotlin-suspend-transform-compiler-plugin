@@ -15,12 +15,12 @@ import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
 sealed class AbstractSuspendTransformProperty<D : SuspendTransformUserData>(
     private val sourceClass: ClassDescriptor,
     private val sourceFunction: SimpleFunctionDescriptor,
-    private val getterAnnotations: Annotations = Annotations.EMPTY,
+    private val getterAnnotations: Annotations = sourceFunction.annotations, // TODO?
     private val userDataKey: UserDataKey<D>
 ) : PropertyDescriptorImpl(
     sourceClass,
     null,
-    Annotations.EMPTY,
+    getterAnnotations,
     sourceFunction.modality,
     sourceFunction.visibility,
     false,

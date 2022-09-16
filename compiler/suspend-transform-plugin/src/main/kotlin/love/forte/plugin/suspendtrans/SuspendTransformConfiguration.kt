@@ -5,10 +5,24 @@ package love.forte.plugin.suspendtrans
  *
  * @author ForteScarlet
  */
-open class SuspendTransformConfiguration {
-    var enabled: Boolean = true
-    var jvm: Jvm = Jvm()
-    var js: Js = Js()
+open class SuspendTransformConfiguration(var enabled: Boolean = true, defaultJvm: Jvm = Jvm(), defaultJs: Js = Js()) {
+    var jvm: Jvm = defaultJvm
+        private set
+
+    var js: Js = defaultJs
+        private set
+
+    fun jvm(block: Jvm.() -> Unit) {
+        jvm.block()
+    }
+
+    fun js(block: Js.() -> Unit) {
+        js.block()
+    }
+
+    override fun toString(): String {
+        return "SuspendTransformConfiguration(enabled=$enabled, jvm=$jvm, js=$js)"
+    }
 
     /**
      * Jvm platform config
@@ -96,6 +110,12 @@ open class SuspendTransformConfiguration {
         var copyAnnotationsToSyntheticAsyncFunctionExcludes: List<ExcludeAnnotation> = listOf(
             ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
         )
+
+        override fun toString(): String {
+            return "Jvm(jvmBlockingMarkAnnotation=$jvmBlockingMarkAnnotation, jvmBlockingFunctionName='$jvmBlockingFunctionName', jvmAsyncMarkAnnotation=$jvmAsyncMarkAnnotation, jvmAsyncFunctionName='$jvmAsyncFunctionName', originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticBlockingFunctionIncludeAnnotations=$syntheticBlockingFunctionIncludeAnnotations, copyAnnotationsToSyntheticBlockingFunction=$copyAnnotationsToSyntheticBlockingFunction, copyAnnotationsToSyntheticBlockingFunctionExcludes=$copyAnnotationsToSyntheticBlockingFunctionExcludes, syntheticAsyncFunctionIncludeAnnotations=$syntheticAsyncFunctionIncludeAnnotations, copyAnnotationsToSyntheticAsyncFunction=$copyAnnotationsToSyntheticAsyncFunction, copyAnnotationsToSyntheticAsyncFunctionExcludes=$copyAnnotationsToSyntheticAsyncFunctionExcludes)"
+        }
+
+
     }
 
     /**
@@ -137,6 +157,7 @@ open class SuspendTransformConfiguration {
          */
         var copyAnnotationsToSyntheticAsyncFunction: Boolean = true
 
+
         /**
          * 如果 [copyAnnotationsToSyntheticAsyncFunction] 为 true，则配置在进行拷贝时需要被排除掉（不进行拷贝）的注解。
          *
@@ -144,6 +165,11 @@ open class SuspendTransformConfiguration {
         var copyAnnotationsToSyntheticAsyncFunctionExcludes: List<ExcludeAnnotation> = listOf(
             ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
         )
+
+        override fun toString(): String {
+            return "Js(jsPromiseFunctionName='$jsPromiseFunctionName', jsPromiseMarkAnnotation=$jsPromiseMarkAnnotation, originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticAsyncFunctionIncludeAnnotations=$syntheticAsyncFunctionIncludeAnnotations, copyAnnotationsToSyntheticAsyncFunction=$copyAnnotationsToSyntheticAsyncFunction, copyAnnotationsToSyntheticAsyncFunctionExcludes=$copyAnnotationsToSyntheticAsyncFunctionExcludes)"
+        }
+
     }
 
 
