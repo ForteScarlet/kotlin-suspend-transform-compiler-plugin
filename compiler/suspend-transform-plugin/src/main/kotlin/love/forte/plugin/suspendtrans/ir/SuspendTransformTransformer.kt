@@ -40,7 +40,7 @@ private inline val IrPluginContext.isJs: Boolean get() = platform?.isJs() == tru
  * @author ForteScarlet
  */
 class SuspendTransformTransformer(
-    private val configuration: SuspendTransformConfiguration,
+    configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
     //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
@@ -123,16 +123,6 @@ class SuspendTransformTransformer(
         return super.visitFunctionNew(declaration)
     }
 
-//    private fun postProcessGeneratedSyntheticFunction(originFunction: IrFunction, function: IrFunction) {
-//        // add @Generated
-//        function.annotations = buildList {
-//            addAll(function.annotations)
-//            if (!hasAnnotation(generatedAnnotationName)) {
-//                add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(generatedAnnotation))
-//            }
-//
-//        }
-//    }
 
     private fun postProcessGenerateOriginFunction(function: IrFunction) {
         function.annotations = buildList {
@@ -141,27 +131,20 @@ class SuspendTransformTransformer(
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            if (pluginContext.isJvm) {
-                jvmOriginIncludeAnnotations.forEach { include ->
-                    val name = include.name.fqn
-                    val annotationClass = pluginContext.referenceClass(name) ?: return@forEach
-                    if (!include.repeatable && hasAnnotation(name)) {
-                        return@forEach
-                    }
+            val includes = when {
+                pluginContext.isJvm -> jvmOriginIncludeAnnotations
+                pluginContext.isJs -> jsOriginIncludeAnnotations
+                else -> emptyList()
+            }
 
-                    add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(annotationClass))
+            includes.forEach { include ->
+                val name = include.name.fqn
+                val annotationClass = pluginContext.referenceClass(name) ?: return@forEach
+                if (!include.repeatable && hasAnnotation(name)) {
+                    return@forEach
                 }
 
-                // +@JvmSynthetic
-//                if (!hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
-//                    add(
-//                        pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
-//                            pluginContext.referenceClass(
-//                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
-//                            )!!
-//                        )
-//                    )
-//                }
+                add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(annotationClass))
             }
         }
     }

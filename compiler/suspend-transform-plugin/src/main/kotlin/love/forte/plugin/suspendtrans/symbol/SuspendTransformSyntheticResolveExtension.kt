@@ -63,7 +63,7 @@ private enum class SyntheticType {
  *
  * @author ForteScarlet
  */
-open class SuspendTransformSyntheticResolveExtension(val configuration: SuspendTransformConfiguration) :
+open class SuspendTransformSyntheticResolveExtension(open val configuration: SuspendTransformConfiguration) :
     SyntheticResolveExtension, PluginAvailability {
 
     private val syntheticFunctions = SyntheticDescriptor<SimpleFunctionDescriptor>()
