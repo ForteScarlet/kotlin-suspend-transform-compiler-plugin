@@ -15,7 +15,7 @@ class JustTest : ITest { //  : ITest
 
     @JvmBlocking
     @JvmAsync
-    override suspend fun run(name: String): Int = 1
+    override suspend fun run99(name: String): Int = 1
 
     @JvmBlocking(asProperty = true)
     @JvmAsync(asProperty = true)
@@ -25,7 +25,7 @@ class JustTest : ITest { //  : ITest
 interface ITest {
     @JvmBlocking
     @JvmAsync
-    suspend fun run(name: String): Int
+    suspend fun run99(name: String = "forte"): Int
 
     @JvmBlocking(asProperty = true)
     @JvmAsync(asProperty = true)

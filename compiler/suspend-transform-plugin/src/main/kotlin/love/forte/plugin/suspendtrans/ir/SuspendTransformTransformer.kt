@@ -427,6 +427,13 @@ private fun generateTransformBodyForFunction(
     originFunction: IrFunction,
     transformTargetFunctionCall: IrSimpleFunctionSymbol,
 ): IrBody {
+    // default params
+    val originValueParameters = originFunction.valueParameters
+    function.valueParameters.forEachIndexed { index, parameter ->
+        val originFunctionValueParameter = originValueParameters[index]
+        parameter.defaultValue = originFunctionValueParameter.defaultValue
+    }
+
     return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambda = context.createSuspendLambdaWithCoroutineScope(
             parent = function,

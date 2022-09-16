@@ -36,7 +36,7 @@ sealed class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUser
             classDescriptor.thisAsReceiverParameter,
             originFunction.contextReceiverParameters.map { it.copy(this) },
             originFunction.typeParameters.toList(),
-            originFunction.valueParameters.map { it.copy(containingDeclaration = this) },
+            originFunction.valueParameters.map { it.copy(this) },
             returnType(originFunction.returnType),
             modality(originFunction),
             originFunction.visibility,
