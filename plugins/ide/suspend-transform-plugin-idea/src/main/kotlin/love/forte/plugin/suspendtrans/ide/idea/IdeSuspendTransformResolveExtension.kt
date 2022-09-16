@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.ide.idea
 
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.symbol.SuspendTransformSyntheticResolveExtension
 
 
@@ -7,8 +8,8 @@ import love.forte.plugin.suspendtrans.symbol.SuspendTransformSyntheticResolveExt
  *
  * @author ForteScarlet
  */
-class IdeSuspendTransformResolveExtension : SuspendTransformSyntheticResolveExtension() {
+class IdeSuspendTransformResolveExtension : SuspendTransformSyntheticResolveExtension(SuspendTransformConfiguration()) {
     override fun com.intellij.psi.PsiElement.isPluginEnabled(): Boolean {
-        return SuspendTransformAvailability.isAvailable(this)
+        return configuration.enabled && SuspendTransformAvailability.isAvailable(this)
     }
 }

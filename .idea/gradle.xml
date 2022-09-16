@@ -17,8 +17,6 @@
             <option value="$PROJECT_DIR$/compiler/suspend-transform-plugin" />
             <option value="$PROJECT_DIR$/compiler/suspend-transform-plugin-embeddable" />
             <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/ide" />
-            <option value="$PROJECT_DIR$/plugins/ide/suspend-transform-plugin-idea" />
             <option value="$PROJECT_DIR$/plugins/suspend-transform-plugin-gradle" />
             <option value="$PROJECT_DIR$/runtime" />
             <option value="$PROJECT_DIR$/runtime/suspend-transform-annotation" />

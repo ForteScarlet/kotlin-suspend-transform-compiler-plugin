@@ -21,12 +21,12 @@ import org.jetbrains.kotlin.types.TypeProjectionImpl
 class SuspendTransformJsPromiseFunctionImpl(
     private val classDescriptor: ClassDescriptor,
     originalFunction: SimpleFunctionDescriptor,
-    functionName: Name,
+    functionName: String,
     annotations: Annotations = Annotations.EMPTY,
 ) : AbstractSuspendTransformFunctionDescriptor<JsAsyncUserData>(
     classDescriptor,
     originalFunction,
-    functionName,
+    Name.identifier(functionName),
     annotations,
     ToJsAsync to JsAsyncUserData(originalFunction)
 ) {

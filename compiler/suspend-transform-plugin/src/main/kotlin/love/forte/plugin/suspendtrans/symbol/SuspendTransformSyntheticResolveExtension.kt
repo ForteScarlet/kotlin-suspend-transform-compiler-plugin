@@ -1,13 +1,16 @@
 package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.PluginAvailability
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.generatedAnnotationName
-import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.filterNotCompileAnnotations
 import love.forte.plugin.suspendtrans.utils.findClassDescriptor
 import love.forte.plugin.suspendtrans.utils.resolveToTransformAnnotations
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -20,6 +23,8 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
+import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.platform
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
@@ -29,120 +34,46 @@ import org.jetbrains.kotlin.types.Variance
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
-private data class SyntheticData(
-    val classDescriptor: ClassDescriptor,
-    var inGenerating: Boolean = false,
-    val normalFunctions: MutableList<SimpleFunctionDescriptor> = mutableListOf(),
-    val syntheticFunctionData: MutableMap<String, MutableList<SyntheticFunctionData>> = mutableMapOf(),
-    val syntheticPropertyData: MutableMap<String, MutableList<SyntheticPropertyData>> = mutableMapOf(),
-)
 
-private data class SyntheticFunctionData(
-    val name: Name,
-    val originFunctionDescriptor: SimpleFunctionDescriptor,
-    val annotationData: TransformAnnotationData,
-    val type: SyntheticType,
-)
+private class SyntheticDescriptor<D : CallableMemberDescriptor> {
+    val descriptors = ConcurrentHashMap<ClassDescriptor, ConcurrentHashMap<String, ConcurrentLinkedQueue<D>>>()
+    fun getSyntheticDescriptors(classDescriptor: ClassDescriptor): ConcurrentHashMap<String, ConcurrentLinkedQueue<D>> =
+        descriptors.computeIfAbsent(classDescriptor) { ConcurrentHashMap() }
 
-private data class SyntheticPropertyData(
-    val name: Name,
-    val originFunctionDescriptor: SimpleFunctionDescriptor,
-    val annotationData: TransformAnnotationData,
-    val type: SyntheticType,
-)
+    fun takeSyntheticDescriptors(classDescriptor: ClassDescriptor, name: String): List<D> =
+        getSyntheticDescriptors(classDescriptor).remove(name)?.toList() ?: emptyList()
+
+    fun takeSyntheticDescriptors(classDescriptor: ClassDescriptor, name: Name): List<D> =
+        getSyntheticDescriptors(classDescriptor).remove(name.asString())?.toList() ?: emptyList()
+
+    fun getCurrentSyntheticDescriptorNames(classDescriptor: ClassDescriptor): List<Name> =
+        getSyntheticDescriptors(classDescriptor).keys.map(Name::identifier)
+
+    fun addSyntheticDescriptors(classDescriptor: ClassDescriptor, descriptor: D) {
+        getSyntheticDescriptors(classDescriptor).computeIfAbsent(descriptor.name.asString()) { ConcurrentLinkedQueue() }
+            .add(descriptor)
+    }
+}
 
 private enum class SyntheticType {
     JVM_BLOCKING, JVM_ASYNC, JS_ASYNC
 }
 
-
 /**
  *
  * @author ForteScarlet
  */
-open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension, PluginAvailability {
-    private val syntheticDataMap = ConcurrentHashMap<ClassDescriptor, SyntheticData>()
+open class SuspendTransformSyntheticResolveExtension(val configuration: SuspendTransformConfiguration) :
+    SyntheticResolveExtension, PluginAvailability {
 
-    private val ClassDescriptor.currentSyntheticData: SyntheticData
-        get() = syntheticDataMap.computeIfAbsent(this, ::SyntheticData)
-
-    // class<Name, functions>
-    private val syntheticFunctions =
-        ConcurrentHashMap<ClassDescriptor, ConcurrentHashMap<String, ConcurrentLinkedQueue<SimpleFunctionDescriptor>>>()
-
-    private val ClassDescriptor.syntheticFunctions: ConcurrentHashMap<String, ConcurrentLinkedQueue<SimpleFunctionDescriptor>>
-        get() = this@SuspendTransformSyntheticResolveExtension.syntheticFunctions.computeIfAbsent(this) { ConcurrentHashMap() }
-
-    private fun takeSyntheticFunctions(
-        classDescriptor: ClassDescriptor,
-        functionName: String
-    ): List<SimpleFunctionDescriptor> {
-        val functions = classDescriptor.syntheticFunctions.remove(functionName)
-
-        return functions?.toList() ?: emptyList()
-    }
-
-    private fun getCurrentSyntheticFunctionNames(classDescriptor: ClassDescriptor): List<Name> {
-        return classDescriptor.syntheticFunctions.keys.map(Name::identifier)
-    }
-
-    private fun addSyntheticFunctions(classDescriptor: ClassDescriptor, function: SimpleFunctionDescriptor) {
-        classDescriptor.syntheticFunctions.computeIfAbsent(function.name.identifier) { ConcurrentLinkedQueue() }
-            .add(function)
-    }
+    private val syntheticFunctions = SyntheticDescriptor<SimpleFunctionDescriptor>()
+    private val syntheticProperties = SyntheticDescriptor<PropertyDescriptor>()
 
     override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
         if (!thisDescriptor.isPluginEnabled()) {
             return super.getSyntheticFunctionNames(thisDescriptor)
         }
-        return getCurrentSyntheticFunctionNames(thisDescriptor)
-//        val currentSyntheticData = thisDescriptor.currentSyntheticData
-//
-//
-//        val names = mutableListOf<Name>()
-//        val syntheticFunctions = currentSyntheticData.syntheticFunctionData
-//
-//        // find all annotated
-//        currentSyntheticData.normalFunctions.forEach { originFunction ->
-//            val resolvedAnnotations =
-//                originFunction.annotations.resolveToTransformAnnotations(originFunction.name.identifier)
-//            if (resolvedAnnotations.isEmpty) {
-//                return@forEach
-//            }
-//
-//
-//            fun resolveByAnnotationData(annotationData: TransformAnnotationData?, type: SyntheticType) {
-//                if (annotationData != null) {
-//                    val functionName = annotationData.functionName
-//                    val functionNameName = Name.identifier(functionName)
-//                    names.add(functionNameName)
-//                    println("thisDescriptor.name = ${thisDescriptor.name} functionName = $functionName, originFunction = $originFunction, type = $type")
-//                    syntheticFunctions
-//                        .computeIfAbsent(functionName) { mutableListOf() }
-//                        .add(
-//                            SyntheticFunctionData(
-//                                functionNameName,
-//                                originFunction,
-//                                annotationData,
-//                                type
-//                            ).also {
-//                                println(it)
-//                            }
-//                        )
-//                }
-//            }
-//            if (thisDescriptor.platform?.isJvm() == true) {
-//                resolveByAnnotationData(resolvedAnnotations.jvmBlockingAnnotationData, SyntheticType.JVM_BLOCKING)
-//                resolveByAnnotationData(resolvedAnnotations.jvmAsyncAnnotationData, SyntheticType.JVM_ASYNC)
-//            }
-//            if (thisDescriptor.platform?.isJs() == true) {
-//                resolveByAnnotationData(resolvedAnnotations.jsAsyncAnnotationData, SyntheticType.JS_ASYNC)
-//            }
-//        }
-//
-//        currentSyntheticData.inGenerating = true
-//        currentSyntheticData.normalFunctions.clear()
-//        return names
+        return syntheticFunctions.getCurrentSyntheticDescriptorNames(thisDescriptor)
     }
 
     override fun generateSyntheticMethods(
@@ -157,52 +88,48 @@ open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension
         }
 
 
-//        val currentSyntheticData = thisDescriptor.currentSyntheticData
-//        if (!currentSyntheticData.inGenerating) {
-//            currentSyntheticData.normalFunctions.addAll(result)
-//            return super.generateSyntheticMethods(thisDescriptor, name, bindingContext, fromSupertypes, result)
-//        }
-
         // check and add synthetic functions.
         // find all annotated
         result.forEach { originFunction ->
             val resolvedAnnotations =
-                originFunction.annotations.resolveToTransformAnnotations(originFunction.name.identifier)
+                originFunction.annotations.resolveToTransformAnnotations(configuration, originFunction.name.identifier)
             if (resolvedAnnotations.isEmpty) {
                 return@forEach
             }
 
             if (thisDescriptor.platform?.isJvm() == true) {
                 resolvedAnnotations.jvmBlockingAnnotationData?.let { jvmBlocking ->
-                    addSyntheticFunctions(thisDescriptor, SuspendTransformJvmBlockingFunctionDescriptorImpl(
-                        thisDescriptor,
-                        originFunction,
-                        Name.identifier(jvmBlocking.functionName),
-                        thisDescriptor.copyAnnotations(originFunction)
-                    ).apply {
-                        init()
-                    })
+                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor,
+                        SuspendTransformJvmBlockingFunctionDescriptorImpl(
+                            thisDescriptor,
+                            originFunction,
+                            jvmBlocking.functionName,
+                            thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JVM_BLOCKING)
+                        ).apply {
+                            init()
+                        })
                 }
 
                 resolvedAnnotations.jvmAsyncAnnotationData?.let { jvmAsync ->
-                    addSyntheticFunctions(thisDescriptor, SuspendTransformJvmAsyncFunctionDescriptorImpl(
-                        thisDescriptor,
-                        originFunction,
-                        Name.identifier(jvmAsync.functionName),
-                        thisDescriptor.copyAnnotations(originFunction)
-                    ).apply {
-                        init()
-                    })
+                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor,
+                        SuspendTransformJvmAsyncFunctionDescriptorImpl(
+                            thisDescriptor,
+                            originFunction,
+                            jvmAsync.functionName,
+                            thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JVM_ASYNC)
+                        ).apply {
+                            init()
+                        })
                 }
             }
 
             if (thisDescriptor.platform?.isJs() == true) {
                 resolvedAnnotations.jsAsyncAnnotationData?.let { jsAsync ->
-                    addSyntheticFunctions(thisDescriptor, SuspendTransformJsPromiseFunctionImpl(
+                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor, SuspendTransformJsPromiseFunctionImpl(
                         thisDescriptor,
                         originFunction,
-                        Name.identifier(jsAsync.functionName),
-                        thisDescriptor.copyAnnotations(originFunction)
+                        jsAsync.functionName,
+                        thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JS_ASYNC)
                     ).apply {
                         init()
                     })
@@ -211,46 +138,103 @@ open class SuspendTransformSyntheticResolveExtension : SyntheticResolveExtension
         }
 
         // get synthetic functions, add into result
-        takeSyntheticFunctions(thisDescriptor, name.identifier).forEach {
+        syntheticFunctions.takeSyntheticDescriptors(thisDescriptor, name).forEach {
             result += it
         }
 
     }
 
+
+    override fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> {
+        if (!thisDescriptor.isPluginEnabled()) {
+            return super.getSyntheticPropertiesNames(thisDescriptor)
+        }
+
+        return syntheticProperties.getCurrentSyntheticDescriptorNames(thisDescriptor)
+    }
+
+
 }
 
-private fun ClassDescriptor.copyAnnotations(originFunction: SimpleFunctionDescriptor): Annotations {
-
-    val notCompileAnnotationsCopied = this.annotations.filterNotCompileAnnotations()
+private fun ClassDescriptor.copyAnnotations(
+    configuration: SuspendTransformConfiguration, originFunction: SimpleFunctionDescriptor, syntheticType: SyntheticType
+): Annotations {
 
     fun findAnnotation(
-        name: FqName,
-        valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
+        name: FqName, valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
     ): AnnotationDescriptorImpl {
         val descriptor = requireNotNull(originFunction.module.findClassDescriptor(name))
         val type = KotlinTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, emptyList())
         return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
 
-
-    return Annotations.create(
-        buildList {
-            addAll(notCompileAnnotationsCopied)
-            // add @Generated(by = ...)
-            add(
-                findAnnotation(
-                    generatedAnnotationName,
-                    mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
+    val (copy, excludes, includes) = when (syntheticType) {
+        SyntheticType.JVM_BLOCKING -> {
+            configuration.jvm.let {
+                CopyAnnotationsData(
+                    it.copyAnnotationsToSyntheticBlockingFunction,
+                    it.copyAnnotationsToSyntheticBlockingFunctionExcludes,
+                    it.syntheticBlockingFunctionIncludeAnnotations
                 )
-            )
+            }
+        }
 
-            // -Xjvm-default=all
+        SyntheticType.JVM_ASYNC -> {
+            configuration.jvm.let {
+                CopyAnnotationsData(
+                    it.copyAnnotationsToSyntheticAsyncFunction,
+                    it.copyAnnotationsToSyntheticAsyncFunctionExcludes,
+                    it.syntheticAsyncFunctionIncludeAnnotations
+                )
+            }
+        }
+
+        // TODO JS
+
+        else -> CopyAnnotationsData.EMPTY
+    }
+
+
+    return Annotations.create(buildList {
+        if (copy) {
+            val notCompileAnnotationsCopied = this@copyAnnotations.annotations.filterNotCompileAnnotations().filterNot {
+                    val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
+                    excludes.any { ex -> annotationFqNameUnsafe == ex.name.fqn.toUnsafe() }
+                }
+            addAll(notCompileAnnotationsCopied)
+        }
+
+        // add @Generated(by = ...)
+        add(
+            findAnnotation(
+                generatedAnnotationName,
+                mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
+            )
+        )
+
+        // add includes
+        includes.forEach { include ->
+            // TODO
+
+        }
+
+
+        // -Xjvm-default=all
 //            if (platform?.isJvm() == true && kind.isInterface) {
 //                // add @JvmDefault in jvm..?
 //                add(findAnnotation(JvmNames.JVM_DEFAULT_FQ_NAME))
 //            }
-        }
-    )
+    })
+}
+
+private data class CopyAnnotationsData(
+    val copy: Boolean,
+    val excludes: List<SuspendTransformConfiguration.ExcludeAnnotation>,
+    val includes: List<SuspendTransformConfiguration.IncludeAnnotation>
+) {
+    companion object {
+        val EMPTY = CopyAnnotationsData(false, emptyList(), emptyList())
+    }
 }
 
 private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->

@@ -21,12 +21,12 @@ import org.jetbrains.kotlin.types.TypeProjectionImpl
 class SuspendTransformJvmAsyncFunctionDescriptorImpl(
     private val classDescriptor: ClassDescriptor,
     originFunction: SimpleFunctionDescriptor,
-    functionName: Name,
+    functionName: String,
     annotations: Annotations = Annotations.EMPTY,
 ) : AbstractSuspendTransformFunctionDescriptor<JvmAsyncUserData>(
     classDescriptor,
     originFunction,
-    functionName,
+    Name.identifier(functionName),
     annotations,
     ToJvmAsync to JvmAsyncUserData(originFunction)
 ) {

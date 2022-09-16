@@ -15,12 +15,12 @@ import org.jetbrains.kotlin.types.KotlinType
 class SuspendTransformJvmBlockingFunctionDescriptorImpl(
     classDescriptor: ClassDescriptor,
     originFunction: SimpleFunctionDescriptor,
-    functionName: Name,
+    functionName: String,
     annotations: Annotations = Annotations.EMPTY
 ) : AbstractSuspendTransformFunctionDescriptor<JvmBlockingUserData>(
     classDescriptor,
     originFunction,
-    functionName,
+    Name.identifier(functionName),
     annotations,
     ToJvmBlocking to JvmBlockingUserData(originFunction),
 ) {

@@ -11,11 +11,8 @@ plugins {
 }
 
 dependencies {
-    // compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable")
     compileOnly(kotlin("stdlib"))
-//    compileOnly(kotlin("compiler-embeddable"))
     compileOnly(kotlin("compiler"))
-//    compileOnly("org.jetbrains.kotlin:kotlin-compiler")
 
     kapt("com.google.auto.service:auto-service:1.0.1")
     compileOnly("com.google.auto.service:auto-service-annotations:1.0.1")

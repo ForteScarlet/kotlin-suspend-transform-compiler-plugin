@@ -1,9 +1,6 @@
 package love.forte.plugin.suspendtrans.utils
 
-import love.forte.plugin.suspendtrans.generatedAnnotationName
-import love.forte.plugin.suspendtrans.toJsPromiseAnnotationName
-import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
-import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
+import love.forte.plugin.suspendtrans.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -103,28 +100,46 @@ open class FunctionTransformAnnotations(
     }
 }
 
-fun Annotations.resolveToTransformAnnotations(functionBaseName: String): FunctionTransformAnnotations {
-    fun AnnotationDescriptor?.resolve(
+fun Annotations.resolveToTransformAnnotations(
+    configuration: SuspendTransformConfiguration,
+    functionBaseName: String
+): FunctionTransformAnnotations {
+    fun SuspendTransformConfiguration.MarkAnnotation.resolve(
         defaultBaseName: String,
         defaultSuffix: String,
-        annotationBaseNamePropertyName: String = "baseName",
-        annotationSuffixPropertyName: String = "suffix",
-        annotationAsPropertyPropertyName: String = "asProperty",
+        annotationBaseNamePropertyName: String = this.baseNameProperty,
+        annotationSuffixPropertyName: String = this.suffixProperty,
+        annotationAsPropertyPropertyName: String = this.asPropertyProperty,
     ): TransformAnnotationData? {
-        if (this == null) return null
-        return TransformAnnotationData(
-            this,
-            annotationBaseNamePropertyName,
-            annotationSuffixPropertyName,
-            annotationAsPropertyPropertyName,
-            defaultBaseName,
-            defaultSuffix
-        )
+        return findAnnotation(this.annotationName.fqn)?.let {
+            TransformAnnotationData(
+                it,
+                annotationBaseNamePropertyName,
+                annotationSuffixPropertyName,
+                annotationAsPropertyPropertyName,
+                defaultBaseName,
+                defaultSuffix
+            )
+        }
     }
 
-    val jvmBlocking = findAnnotation(toJvmBlockingAnnotationName).resolve(functionBaseName, "Blocking")
-    val jvmAsync = findAnnotation(toJvmAsyncAnnotationName).resolve(functionBaseName, "Async")
-    val jsAsync = findAnnotation(toJsPromiseAnnotationName).resolve(functionBaseName, "Async")
+    val jvmBlockingMarkAnnotation = configuration.jvm.jvmBlockingMarkAnnotation
+    val jvmAsyncMarkAnnotation = configuration.jvm.jvmAsyncMarkAnnotation
+    val jsAsyncMarkAnnotation = configuration.js.jsPromiseMarkAnnotation
+
+    val jvmBlocking =
+        jvmBlockingMarkAnnotation.resolve(
+            functionBaseName,
+            "Blocking"
+        )
+    val jvmAsync = jvmAsyncMarkAnnotation.resolve(
+        functionBaseName,
+        "Async"
+    )
+    val jsAsync = jsAsyncMarkAnnotation.resolve(
+        functionBaseName,
+        "Async"
+    )
 
     if (jvmBlocking == null && jvmAsync == null && jsAsync == null) return FunctionTransformAnnotations.Empty
     return FunctionTransformAnnotations(jvmBlocking, jvmAsync, jsAsync)

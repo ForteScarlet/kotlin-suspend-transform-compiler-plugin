@@ -22,4 +22,4 @@ include(":runtime:suspend-transform-runtime")
 include(":plugins:suspend-transform-plugin-gradle")
 // include(":suspend-transform-plugin-sample")
 
-include(":plugins:ide:suspend-transform-plugin-idea")
+// include(":plugins:ide:suspend-transform-plugin-idea")

@@ -41,6 +41,7 @@ private inline val IrPluginContext.isJs: Boolean get() = platform?.isJs() == tru
  * @author ForteScarlet
  */
 class SuspendTransformTransformer(
+    private val configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
 
