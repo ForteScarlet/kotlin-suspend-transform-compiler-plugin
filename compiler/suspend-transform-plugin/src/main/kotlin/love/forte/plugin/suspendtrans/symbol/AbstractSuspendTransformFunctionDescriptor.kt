@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.types.KotlinType
  *
  * @author ForteScarlet
  */
-abstract class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUserData>(
+sealed class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUserData>(
     private val classDescriptor: ClassDescriptor,
     private val originFunction: SimpleFunctionDescriptor,
     functionName: Name,
@@ -45,6 +45,13 @@ abstract class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUs
         this.isSuspend = false
 
     }
+
+    protected abstract fun transformToPropertyInternal(): AbstractSuspendTransformProperty<D>
+
+    fun transformToProperty(): AbstractSuspendTransformProperty<D> {
+        return transformToPropertyInternal().apply { init() }
+    }
+
 
     protected open fun modality(originFunction: SimpleFunctionDescriptor): Modality {
         if (originFunction.modality == Modality.ABSTRACT) {

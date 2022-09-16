@@ -4,6 +4,7 @@ import love.forte.plugin.suspendtrans.PluginAvailability
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.generatedAnnotationName
+import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.filterNotCompileAnnotations
 import love.forte.plugin.suspendtrans.utils.findClassDescriptor
 import love.forte.plugin.suspendtrans.utils.resolveToTransformAnnotations
@@ -87,6 +88,18 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             return super.generateSyntheticMethods(thisDescriptor, name, bindingContext, fromSupertypes, result)
         }
 
+        fun addSyntheticTransformDescriptors(
+            annotationData: TransformAnnotationData?,
+            descriptors: AbstractSuspendTransformFunctionDescriptor<*>
+        ) {
+            if (annotationData == null) return
+
+            if (annotationData.asProperty == true) {
+                syntheticProperties.addSyntheticDescriptors(thisDescriptor, descriptors.transformToProperty())
+            } else {
+                syntheticFunctions.addSyntheticDescriptors(thisDescriptor, descriptors)
+            }
+        }
 
         // check and add synthetic functions.
         // find all annotated
@@ -97,44 +110,28 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                 return@forEach
             }
 
-            if (thisDescriptor.platform?.isJvm() == true) {
-                resolvedAnnotations.jvmBlockingAnnotationData?.let { jvmBlocking ->
-                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor,
-                        SuspendTransformJvmBlockingFunctionDescriptorImpl(
-                            thisDescriptor,
-                            originFunction,
-                            jvmBlocking.functionName,
-                            thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JVM_BLOCKING)
-                        ).apply {
-                            init()
-                        })
-                }
 
-                resolvedAnnotations.jvmAsyncAnnotationData?.let { jvmAsync ->
-                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor,
-                        SuspendTransformJvmAsyncFunctionDescriptorImpl(
-                            thisDescriptor,
-                            originFunction,
-                            jvmAsync.functionName,
-                            thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JVM_ASYNC)
-                        ).apply {
-                            init()
-                        })
-                }
-            }
 
-            if (thisDescriptor.platform?.isJs() == true) {
-                resolvedAnnotations.jsAsyncAnnotationData?.let { jsAsync ->
-                    syntheticFunctions.addSyntheticDescriptors(thisDescriptor, SuspendTransformJsPromiseFunctionImpl(
-                        thisDescriptor,
-                        originFunction,
-                        jsAsync.functionName,
-                        thisDescriptor.copyAnnotations(configuration, originFunction, SyntheticType.JS_ASYNC)
-                    ).apply {
-                        init()
-                    })
-                }
-            }
+            generateSyntheticTransformFunction(
+                resolvedAnnotations.jvmBlockingAnnotationData,
+                thisDescriptor,
+                originFunction,
+                SyntheticType.JVM_BLOCKING
+            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmBlockingAnnotationData, it) }
+
+            generateSyntheticTransformFunction(
+                resolvedAnnotations.jvmAsyncAnnotationData,
+                thisDescriptor,
+                originFunction,
+                SyntheticType.JVM_ASYNC
+            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmAsyncAnnotationData, it) }
+
+            generateSyntheticTransformFunction(
+                resolvedAnnotations.jsAsyncAnnotationData,
+                thisDescriptor,
+                originFunction,
+                SyntheticType.JS_ASYNC
+            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jsAsyncAnnotationData, it) }
         }
 
         // get synthetic functions, add into result
@@ -145,12 +142,58 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
     }
 
 
+    private fun generateSyntheticTransformFunction(
+        annotationData: TransformAnnotationData?,
+        classDescriptor: ClassDescriptor,
+        originFunction: SimpleFunctionDescriptor,
+        type: SyntheticType,
+    ): AbstractSuspendTransformFunctionDescriptor<*>? {
+        if (annotationData == null) return null
+        return when {
+            classDescriptor.platform.isJvm() && type == SyntheticType.JVM_BLOCKING -> SuspendTransformJvmBlockingFunctionDescriptorImpl(
+                classDescriptor,
+                originFunction,
+                annotationData.functionName,
+                classDescriptor.copyAnnotations(configuration, originFunction, type)
+            )
+
+            classDescriptor.platform.isJvm() && type == SyntheticType.JVM_ASYNC -> SuspendTransformJvmAsyncFunctionDescriptorImpl(
+                classDescriptor,
+                originFunction,
+                annotationData.functionName,
+                classDescriptor.copyAnnotations(configuration, originFunction, type)
+            )
+
+            classDescriptor.platform.isJs() && type == SyntheticType.JS_ASYNC -> SuspendTransformJsPromiseFunctionImpl(
+                classDescriptor,
+                originFunction,
+                annotationData.functionName,
+                classDescriptor.copyAnnotations(configuration, originFunction, type)
+            )
+
+            else -> null
+        }.also { it?.init() }
+    }
+
+
     override fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> {
         if (!thisDescriptor.isPluginEnabled()) {
             return super.getSyntheticPropertiesNames(thisDescriptor)
         }
 
         return syntheticProperties.getCurrentSyntheticDescriptorNames(thisDescriptor)
+    }
+
+    override fun generateSyntheticProperties(
+        thisDescriptor: ClassDescriptor,
+        name: Name,
+        bindingContext: BindingContext,
+        fromSupertypes: ArrayList<PropertyDescriptor>,
+        result: MutableSet<PropertyDescriptor>
+    ) {
+        syntheticProperties.takeSyntheticDescriptors(thisDescriptor, name).forEach {
+            result += it
+        }
     }
 
 

@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -92,7 +93,21 @@ class SuspendTransformTransformer(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        val descriptor = declaration.descriptor
+        resolveFunctionBodyByDescriptor(declaration, declaration.descriptor)
+
+        return super.visitFunctionNew(declaration)
+    }
+
+
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    override fun visitPropertyNew(declaration: IrProperty): IrStatement {
+        val getter = declaration.getter ?: return super.visitPropertyNew(declaration)
+        resolveFunctionBodyByDescriptor(getter, declaration.descriptor)
+
+        return super.visitPropertyNew(declaration)
+    }
+
+    private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
         val generatedOriginFunction = when {
             descriptor.getUserData(ToJvmBlocking) != null -> resolveFunctionBody(
                 declaration,
@@ -115,14 +130,13 @@ class SuspendTransformTransformer(
             else -> null
             //else -> resolveFunction(declaration)
         }
+
         if (generatedOriginFunction != null) {
             postProcessGenerateOriginFunction(generatedOriginFunction)
-//            postProcessGeneratedSyntheticFunction(generatedOriginFunction, declaration)
         }
 
-        return super.visitFunctionNew(declaration)
+        return generatedOriginFunction
     }
-
 
     private fun postProcessGenerateOriginFunction(function: IrFunction) {
         function.annotations = buildList {

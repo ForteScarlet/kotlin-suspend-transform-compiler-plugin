@@ -38,4 +38,7 @@ class SuspendTransformJsPromiseFunctionImpl(
             originReturnType?.let { listOf(TypeProjectionImpl(it)) } ?: emptyList()
         )
     }
+
+    override fun transformToPropertyInternal(): SuspendTransformJsAsyncPropertyDescriptorImpl =
+        SuspendTransformJsAsyncPropertyDescriptorImpl(classDescriptor, this, annotations)
 }

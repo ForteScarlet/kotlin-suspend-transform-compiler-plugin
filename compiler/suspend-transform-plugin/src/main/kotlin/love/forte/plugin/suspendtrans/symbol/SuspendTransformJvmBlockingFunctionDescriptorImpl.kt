@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.types.KotlinType
  * @author ForteScarlet
  */
 class SuspendTransformJvmBlockingFunctionDescriptorImpl(
-    classDescriptor: ClassDescriptor,
+    private val classDescriptor: ClassDescriptor,
     originFunction: SimpleFunctionDescriptor,
     functionName: String,
     annotations: Annotations = Annotations.EMPTY
@@ -25,4 +25,6 @@ class SuspendTransformJvmBlockingFunctionDescriptorImpl(
     ToJvmBlocking to JvmBlockingUserData(originFunction),
 ) {
     override fun returnType(originReturnType: KotlinType?): KotlinType? = originReturnType
+    override fun transformToPropertyInternal(): SuspendTransformJvmBlockingPropertyDescriptorImpl =
+        SuspendTransformJvmBlockingPropertyDescriptorImpl(classDescriptor, this, annotations)
 }

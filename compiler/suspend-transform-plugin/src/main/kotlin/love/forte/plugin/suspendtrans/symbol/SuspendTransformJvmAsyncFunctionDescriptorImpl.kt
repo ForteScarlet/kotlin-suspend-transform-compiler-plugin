@@ -38,4 +38,7 @@ class SuspendTransformJvmAsyncFunctionDescriptorImpl(
             originReturnType?.let { listOf(TypeProjectionImpl(it)) } ?: emptyList()
         )
     }
+
+    override fun transformToPropertyInternal(): SuspendTransformJvmAsyncPropertyDescriptorImpl =
+        SuspendTransformJvmAsyncPropertyDescriptorImpl(classDescriptor, this, annotations)
 }
