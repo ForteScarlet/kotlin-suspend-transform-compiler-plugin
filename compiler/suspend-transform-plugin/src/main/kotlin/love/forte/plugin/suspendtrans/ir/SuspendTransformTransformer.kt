@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.JvmNames.JVM_SYNTHETIC_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
@@ -44,19 +43,24 @@ class SuspendTransformTransformer(
     private val configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-
-    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
+    //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
+    private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
+    private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
+    private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
+    private val jvmOriginIncludeAnnotations = configuration.jvm.originFunctionIncludeAnnotations.toList()
+    private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
 
     private val jvmRunBlockingFunctionOrNull =
-        pluginContext.referenceFunctions(jvmRunInBlockingFunctionName).singleOrNull()
+        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
 
     private val jvmRunBlockingFunction
-        get() = jvmRunBlockingFunctionOrNull ?: error("jvmRunBlockingFunction unsupported.")
+        get() = jvmRunBlockingFunctionOrNull
+            ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
 
-    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunInAsyncFunctionName).singleOrNull()
+    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncFunctionName.fqn).singleOrNull()
 
     private val jvmRunAsyncFunction
-        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction unsupported.")
+        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
 
     private val completableFutureClassOrNull = pluginContext.referenceClass(completableFutureClassName)
 
@@ -64,10 +68,10 @@ class SuspendTransformTransformer(
         get() = completableFutureClassOrNull
             ?: throw NoSuchElementException("completableFutureClass: $completableFutureClassName")
 
-    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunInAsyncFunctionName).singleOrNull()
+    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncFunctionName.fqn).singleOrNull()
 
     private val jsRunAsyncFunction
-        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction unsupported.")
+        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
 
     private val jsPromiseClassOrNull = pluginContext.referenceClass(jsPromiseClassName)
     private val jsPromiseClass get() = jsPromiseClassOrNull ?: error("jsPromiseClass unsupported.")
@@ -138,16 +142,26 @@ class SuspendTransformTransformer(
             addAll(currentAnnotations)
 
             if (pluginContext.isJvm) {
-                // +@JvmSynthetic
-                if (!hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
-                    add(
-                        pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
-                            pluginContext.referenceClass(
-                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
-                            )!!
-                        )
-                    )
+                jvmOriginIncludeAnnotations.forEach { include ->
+                    val name = include.name.fqn
+                    val annotationClass = pluginContext.referenceClass(name) ?: return@forEach
+                    if (!include.repeatable && hasAnnotation(name)) {
+                        return@forEach
+                    }
+
+                    add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(annotationClass))
                 }
+
+                // +@JvmSynthetic
+//                if (!hasAnnotation(JVM_SYNTHETIC_ANNOTATION_FQ_NAME)) {
+//                    add(
+//                        pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(
+//                            pluginContext.referenceClass(
+//                                JVM_SYNTHETIC_ANNOTATION_FQ_NAME
+//                            )!!
+//                        )
+//                    )
+//                }
             }
         }
     }

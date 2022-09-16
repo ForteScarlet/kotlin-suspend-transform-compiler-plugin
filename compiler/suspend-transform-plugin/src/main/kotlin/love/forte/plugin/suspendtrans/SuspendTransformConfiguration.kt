@@ -131,6 +131,19 @@ open class SuspendTransformConfiguration {
         var syntheticAsyncFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf(
             IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4Js")
         )
+
+        /**
+         * 复制源函数上的注解到新的函数上。
+         */
+        var copyAnnotationsToSyntheticAsyncFunction: Boolean = true
+
+        /**
+         * 如果 [copyAnnotationsToSyntheticAsyncFunction] 为 true，则配置在进行拷贝时需要被排除掉（不进行拷贝）的注解。
+         *
+         */
+        var copyAnnotationsToSyntheticAsyncFunctionExcludes: List<ExcludeAnnotation> = listOf(
+            ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
+        )
     }
 
 

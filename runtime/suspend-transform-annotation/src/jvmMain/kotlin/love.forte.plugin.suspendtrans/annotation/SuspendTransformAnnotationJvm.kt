@@ -26,7 +26,7 @@ public annotation class ExperimentalJvmApi
  * ```
  *
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 public actual annotation class JvmBlocking(
     /**
@@ -73,7 +73,7 @@ public actual annotation class JvmBlocking(
  * ```
  *
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 public actual annotation class JvmAsync(
     actual val baseName: String,

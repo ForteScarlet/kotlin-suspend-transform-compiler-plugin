@@ -32,7 +32,7 @@ public expect annotation class Api4Js()
  *
  */
 @OptIn(ExperimentalMultiplatform::class)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
 public expect annotation class JvmBlocking(
@@ -81,7 +81,7 @@ public expect annotation class JvmBlocking(
  *
  */
 @OptIn(ExperimentalMultiplatform::class)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
 public expect annotation class JvmAsync(
@@ -105,7 +105,7 @@ public expect annotation class JvmAsync(
 
 
 @OptIn(ExperimentalMultiplatform::class)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
 public expect annotation class JsPromise()

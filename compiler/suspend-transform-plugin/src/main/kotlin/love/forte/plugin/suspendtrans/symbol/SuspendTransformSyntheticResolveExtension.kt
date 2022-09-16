@@ -44,7 +44,7 @@ private class SyntheticDescriptor<D : CallableMemberDescriptor> {
         getSyntheticDescriptors(classDescriptor).remove(name)?.toList() ?: emptyList()
 
     fun takeSyntheticDescriptors(classDescriptor: ClassDescriptor, name: Name): List<D> =
-        getSyntheticDescriptors(classDescriptor).remove(name.asString())?.toList() ?: emptyList()
+        takeSyntheticDescriptors(classDescriptor, name.asString())
 
     fun getCurrentSyntheticDescriptorNames(classDescriptor: ClassDescriptor): List<Name> =
         getSyntheticDescriptors(classDescriptor).keys.map(Name::identifier)
@@ -162,8 +162,8 @@ private fun ClassDescriptor.copyAnnotations(
 
     fun findAnnotation(
         name: FqName, valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
-    ): AnnotationDescriptorImpl {
-        val descriptor = requireNotNull(originFunction.module.findClassDescriptor(name))
+    ): AnnotationDescriptorImpl? {
+        val descriptor = originFunction.module.findClassDescriptor(name) ?: return null
         val type = KotlinTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, emptyList())
         return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
@@ -189,33 +189,41 @@ private fun ClassDescriptor.copyAnnotations(
             }
         }
 
-        // TODO JS
-
-        else -> CopyAnnotationsData.EMPTY
+        SyntheticType.JS_ASYNC -> {
+            configuration.js.let {
+                CopyAnnotationsData(
+                    it.copyAnnotationsToSyntheticAsyncFunction,
+                    it.copyAnnotationsToSyntheticAsyncFunctionExcludes,
+                    it.syntheticAsyncFunctionIncludeAnnotations
+                )
+            }
+        }
     }
 
 
     return Annotations.create(buildList {
         if (copy) {
             val notCompileAnnotationsCopied = this@copyAnnotations.annotations.filterNotCompileAnnotations().filterNot {
-                    val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
-                    excludes.any { ex -> annotationFqNameUnsafe == ex.name.fqn.toUnsafe() }
-                }
+                val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
+                excludes.any { ex -> annotationFqNameUnsafe == ex.name.fqn.toUnsafe() }
+            }
             addAll(notCompileAnnotationsCopied)
         }
 
         // add @Generated(by = ...)
-        add(
-            findAnnotation(
-                generatedAnnotationName,
-                mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
-            )
-        )
+        findAnnotation(
+            generatedAnnotationName,
+            mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
+        )?.also(::add)
 
         // add includes
         includes.forEach { include ->
-            // TODO
-
+            val name = include.name.fqn
+            val unsafeFqName = name.toUnsafe()
+            if (!include.repeatable && this.any { it.fqName?.toUnsafe() == unsafeFqName }) {
+                return@forEach
+            }
+            findAnnotation(name)?.also(::add)
         }
 
 
@@ -231,11 +239,7 @@ private data class CopyAnnotationsData(
     val copy: Boolean,
     val excludes: List<SuspendTransformConfiguration.ExcludeAnnotation>,
     val includes: List<SuspendTransformConfiguration.IncludeAnnotation>
-) {
-    companion object {
-        val EMPTY = CopyAnnotationsData(false, emptyList(), emptyList())
-    }
-}
+)
 
 private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->
     module.builtIns.getArrayType(
