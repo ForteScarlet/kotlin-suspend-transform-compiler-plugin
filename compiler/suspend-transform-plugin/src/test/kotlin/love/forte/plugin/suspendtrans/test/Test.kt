@@ -30,7 +30,6 @@ class Test {
                     useIR = true
                     javaParameters = true
                     jvmDefault = "all"
-                    jvmTarget = "11"
                 }
             }
         }
