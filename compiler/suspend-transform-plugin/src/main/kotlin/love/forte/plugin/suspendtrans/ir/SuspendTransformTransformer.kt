@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -144,8 +145,26 @@ class SuspendTransformTransformer(
         if (parent is IrDeclarationContainer) {
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
                 .filter { f -> f.descriptor == originFunctionDescriptor }
+            function.descriptor
+            if (originFunctions.size != 1) {
+                // maybe override function
+                /*
+                    interface A {
+                       @JvmBlocking suspend fun a(): Int
+                    }
 
-            require(originFunctions.size == 1)
+                    interface B : A {
+                        // here
+                        override suspend fun a(): Int = 1
+                    }
+                 */
+                System.err.println(
+                    "originFunctions.size should be 1, but ${originFunctions.size} (originFunctionDescriptor = $originFunctionDescriptor, findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
+                )
+                return null
+            }
+//            require(originFunctions.size == 1) {
+//            }
 
             val originFunction = originFunctions.first()
 

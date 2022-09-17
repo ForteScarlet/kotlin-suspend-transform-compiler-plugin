@@ -5,7 +5,7 @@ package love.forte.plugin.suspendtrans
  *
  * @author ForteScarlet
  */
-open class SuspendTransformConfiguration(var enabled: Boolean = true, defaultJvm: Jvm = Jvm(), defaultJs: Js = Js()) {
+open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: Boolean = true, defaultJvm: Jvm = Jvm(), defaultJs: Js = Js()) {
     var jvm: Jvm = defaultJvm
         private set
 
@@ -174,16 +174,16 @@ open class SuspendTransformConfiguration(var enabled: Boolean = true, defaultJvm
 
 
     data class IncludeAnnotation(
-        val name: String, val repeatable: Boolean = false
+        var name: String, var repeatable: Boolean = false
     )
 
     data class ExcludeAnnotation(val name: String)
 
     class MarkAnnotation(
-        val annotationName: String,
-        val baseNameProperty: String = "baseName",
-        val suffixProperty: String = "suffix",
-        val asPropertyProperty: String = "asProperty"
+        var annotationName: String,
+        var baseNameProperty: String = "baseName",
+        var suffixProperty: String = "suffix",
+        var asPropertyProperty: String = "asProperty"
     )
 }
 

@@ -28,8 +28,9 @@ class SuspendTransformComponentRegistrar : ComponentRegistrar {
 
 
 private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
-    val compilerConfiguration = this
-    return SuspendTransformConfiguration().apply {
-        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)
-    }
+//    val compilerConfiguration = this
+    return get(SuspendTransformCommandLineProcessor.CONFIGURATION, SuspendTransformConfiguration())
+//    return SuspendTransformConfiguration().apply {
+//        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)
+//    }
 }
