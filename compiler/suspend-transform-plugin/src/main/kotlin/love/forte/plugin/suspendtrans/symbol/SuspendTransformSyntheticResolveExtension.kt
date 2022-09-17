@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.platform
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
+import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeAttributes
 import org.jetbrains.kotlin.types.Variance
@@ -96,7 +97,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         ) {
             if (annotationData == null) return
 
-            if (annotationData.asProperty == true) {
+            if (annotationData.asProperty == true && descriptors.valueParameters.isEmpty()) {
                 syntheticProperties.addSyntheticDescriptors(
                     thisDescriptor,
                     descriptors.transformToProperty(annotationData)
@@ -109,7 +110,9 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         // check and add synthetic functions.
         // find all annotated
         result
+            .asSequence()
             .filter { f -> f.isSuspend }
+            .filter { f -> f.visibility.isVisibleOutside() }
             .forEach { originFunction ->
             val resolvedAnnotations =
                 originFunction.resolveToTransformAnnotations(thisDescriptor, configuration)

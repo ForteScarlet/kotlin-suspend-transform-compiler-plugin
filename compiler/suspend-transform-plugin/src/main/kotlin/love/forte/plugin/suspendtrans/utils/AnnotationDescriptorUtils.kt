@@ -107,12 +107,15 @@ private operator fun FunctionTransformAnnotations.plus(other: FunctionTransformA
  * 后者优先。
  */
 private operator fun TransformAnnotationData?.plus(other: TransformAnnotationData?): TransformAnnotationData? {
+    println("class annotation data:    $this")
+    println("function annotation data: $other")
     if (this == null && other == null) return null
     if (other == null) return this
     if (this == null) return other
 
     val baseName = other.baseName ?: this.baseName
     val suffix = other.suffix ?: this.suffix
+    val asProperty = other.asProperty?.takeIf { it } ?: this.asProperty
 
     val functionName = if (baseName == null) other.functionName else buildString {
         append(baseName)
@@ -123,14 +126,14 @@ private operator fun TransformAnnotationData?.plus(other: TransformAnnotationDat
         annotationDescriptor = other.annotationDescriptor,
         baseName = baseName,
         suffix = suffix,
-        asProperty = other.asProperty ?: this.asProperty,
+        asProperty = asProperty,
         functionName = functionName
     )
 
 }
 
 
-fun Annotations.resolveToTransformAnnotations(
+private fun Annotations.resolveToTransformAnnotations(
     configuration: SuspendTransformConfiguration,
     functionBaseName: String
 ): FunctionTransformAnnotations {
