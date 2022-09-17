@@ -109,7 +109,9 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         // check and add synthetic functions.
         // find all annotated
         result
+            .asSequence()
             .filter { f -> f.isSuspend }
+            .filter { f -> f.visibility.isPublicAPI }
             .forEach { originFunction ->
             val resolvedAnnotations =
                 originFunction.resolveToTransformAnnotations(thisDescriptor, configuration)
