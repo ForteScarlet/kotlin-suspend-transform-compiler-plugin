@@ -20,7 +20,7 @@ class Foo {
 }
 ```
 
-👇
+compiled 👇
 
 ```kotlin
 class Foo {
@@ -50,7 +50,7 @@ class Foo {
 }
 ```
 
-👇
+compiled 👇
 
 ```kotlin
 class Foo {
