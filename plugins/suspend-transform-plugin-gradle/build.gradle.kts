@@ -1,7 +1,9 @@
+import utils.isCi
+
 plugins {
-    id("java-gradle-plugin")
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
+    id("suspend-transform.jvm-maven-publish")
     id("suspend-transform.gradle-publish")
 }
 
@@ -40,11 +42,20 @@ buildConfig {
 gradlePlugin {
     plugins {
         create("suspendTransform") {
-            id = rootProject.extra["kotlin_plugin_id"] as String
-
+            id = (rootProject.extra["kotlin_plugin_id"] as String)
             displayName = "Kotlin suspend function transformer"
             description = "Kotlin suspend function transformer"
             implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
         }
     }
+    this.isAutomatedPublishing = isCi()
 }
+
+//publishing {
+//    repositories {
+//        mavenLocal()
+//        gradlePluginPortal {
+//            this.name = "Gradle Central Plugin Repository"
+//        }
+//    }
+//}

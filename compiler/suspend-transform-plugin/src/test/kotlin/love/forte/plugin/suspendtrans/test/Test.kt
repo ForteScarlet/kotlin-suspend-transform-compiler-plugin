@@ -16,7 +16,7 @@ class Test {
 
     @Test
     fun test() {
-        testBase("justTest.kt")
+        testBase("basic.kt")
     }
 
     private fun testBase(fileName: String) {

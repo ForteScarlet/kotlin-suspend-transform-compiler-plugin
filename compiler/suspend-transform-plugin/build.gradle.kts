@@ -38,7 +38,7 @@ buildConfig {
         internalVisibility = true
     }
     withoutPackage()
-    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"$group.$name\"")
+    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")
 }
 
 tasks.withType<KotlinCompile> {
@@ -49,15 +49,3 @@ kotlin {
     // explicitApi()
 }
 
-//tasks.test {
-//    useJUnitPlatform()
-//}
-
-// publishing {
-//   publications {
-//     create<MavenPublication>("default") {
-//       from(components["java"])
-//       artifact(tasks.kotlinSourcesJar)
-//     }
-//   }
-// }

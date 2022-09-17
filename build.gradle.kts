@@ -2,34 +2,25 @@ buildscript {
     extra["kotlin_plugin_id"] = "love.forte.plugin.suspend-transform"
 }
 
+group = IProject.GROUP
+version = IProject.VERSION
+description = IProject.DESCRIPTION
+
 allprojects {
-    group = "love.forte.plugin.suspend-transform"
-    version = "0.0.1"
-    
+    group = IProject.GROUP
+    version = IProject.VERSION
+    description = IProject.DESCRIPTION
+
     repositories {
         mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.javaParameters = true
+    }
 }
 
+apply(plugin = "suspend-transform.nexus-publish")
 
-
-// plugins {
-//     kotlin("jvm") version "1.7.10" apply false
-//     id("org.jetbrains.dokka") version "1.7.10" apply false
-//     id("com.gradle.plugin-publish") version "1.0.0" apply false
-//     id("com.github.gmazzo.buildconfig") version "3.1.0" apply false
-// }
-
-// dependencies {
-//     testImplementation(kotlin("test"))
-// }
-//
-// tasks.test {
-//     useJUnitPlatform()
-// }
-//
-// tasks.withType<KotlinCompile> {
-//     kotlinOptions.jvmTarget = "1.8"
-// }

@@ -21,7 +21,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "suspend-transform-kotlin-compiler-plugin"
+rootProject.name = "kotlin-suspend-transform-compiler-plugin"
 
 include(":suspend-transform-runtime")
 include(":suspend-transform-plugin")

@@ -40,14 +40,19 @@ val sonatypeContains = sonatypeUserInfoOrNull != null
                 groupId = project.group.toString()
                 artifactId = project.name
                 version = project.version.toString()
-                
-                pom {
-                    setupPom(project)
+            }
+
+            configureEach {
+                if (this is MavenPublication) {
+                    pom {
+                        setupPom(project)
+                    }
                 }
             }
             
             repositories {
                 mavenLocal()
+                mavenCentral()
                 if (sonatypeContains) {
                     if (project.version.toString().contains("SNAPSHOT", true)) {
                         configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)

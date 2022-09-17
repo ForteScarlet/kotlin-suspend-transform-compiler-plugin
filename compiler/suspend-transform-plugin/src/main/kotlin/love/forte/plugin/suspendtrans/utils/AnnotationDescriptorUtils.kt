@@ -107,8 +107,6 @@ private operator fun FunctionTransformAnnotations.plus(other: FunctionTransformA
  * 后者优先。
  */
 private operator fun TransformAnnotationData?.plus(other: TransformAnnotationData?): TransformAnnotationData? {
-    println("class annotation data:    $this")
-    println("function annotation data: $other")
     if (this == null && other == null) return null
     if (other == null) return this
     if (this == null) return other

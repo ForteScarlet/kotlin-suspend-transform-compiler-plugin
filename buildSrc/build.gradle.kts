@@ -20,6 +20,8 @@ dependencies {
     api("com.github.gmazzo:gradle-buildconfig-plugin:2.0.2")
     // see https://github.com/bnorm/kotlin-power-assert#compatibility
     api("gradle.plugin.com.bnorm.power:kotlin-power-assert-gradle:0.12.0")
+    api("io.github.gradle-nexus:publish-plugin:1.1.0")
+
     // api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
 }
 

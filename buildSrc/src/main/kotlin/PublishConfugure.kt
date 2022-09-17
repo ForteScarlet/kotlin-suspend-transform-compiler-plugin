@@ -17,9 +17,9 @@ fun RepositoryHandler.configPublishMaven(sonatype: Sonatype, username: String?, 
 }
 
 fun MavenPom.setupPom(project: Project) {
-    name.set("${project.group}:${project.name}")
+    name.set("Kotlin suspend transform compiler plugin - ${project.name}")
     description.set(project.description ?: "")
-    url.set("https://github.com/ForteScarlet/suspend-transform-kotlin-compiler-plugin")
+    url.set("https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin")
     licenses {
         license {
             name by "MIT License"
@@ -27,9 +27,9 @@ fun MavenPom.setupPom(project: Project) {
         }
     }
     scm {
-        url.set("https://github.com/ForteScarlet/suspend-transform-kotlin-compiler-plugin")
-        connection.set("scm:git:https://github.com/ForteScarlet/suspend-transform-kotlin-compiler-plugin.git")
-        developerConnection.set("scm:git:ssh://git@github.com/ForteScarlet/suspend-transform-kotlin-compiler-plugin.git")
+        url.set("https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin")
+        connection.set("scm:git:https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git")
+        developerConnection.set("scm:git:ssh://git@github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git")
     }
     setupDevelopers()
 }
