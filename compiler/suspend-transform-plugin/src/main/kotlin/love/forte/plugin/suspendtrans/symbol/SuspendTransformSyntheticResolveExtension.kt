@@ -78,6 +78,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         return syntheticFunctions.getCurrentSyntheticDescriptorNames(thisDescriptor)
     }
 
+
     override fun generateSyntheticMethods(
         thisDescriptor: ClassDescriptor,
         name: Name,
@@ -107,9 +108,11 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
 
         // check and add synthetic functions.
         // find all annotated
-        result.forEach { originFunction ->
+        result
+            .filter { f -> f.isSuspend }
+            .forEach { originFunction ->
             val resolvedAnnotations =
-                originFunction.annotations.resolveToTransformAnnotations(configuration, originFunction.name.identifier)
+                originFunction.resolveToTransformAnnotations(thisDescriptor, configuration)
             if (resolvedAnnotations.isEmpty) {
                 return@forEach
             }
@@ -151,7 +154,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         type: SyntheticType,
     ): AbstractSuspendTransformFunctionDescriptor<*>? {
         if (annotationData == null) return null
-        val asProperty = annotationData.asProperty == true
         return when {
             classDescriptor.platform.isJvm() && type == SyntheticType.JVM_BLOCKING -> SuspendTransformJvmBlockingFunctionDescriptorImpl(
                 classDescriptor,
