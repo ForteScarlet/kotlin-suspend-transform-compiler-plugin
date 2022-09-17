@@ -1,44 +1,19 @@
 package love.forte.plugin.suspendtrans.utils
 
 import love.forte.plugin.suspendtrans.*
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.irConstructorCall
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
-
-
-fun AnnotationDescriptor?.functionName(
-    baseNamePropertyName: String = "baseName",
-    suffixPropertyName: String = "suffix",
-    defaultBaseName: String, defaultSuffix: String,
-): String {
-    if (this == null) return "$defaultBaseName$defaultSuffix"
-
-    val visitor = object : AbstractNullableAnnotationArgumentVoidDataVisitor<String>() {
-        override fun visitStringValue(value: String): String = value
-    }
-
-    val baseName = argumentValue(baseNamePropertyName)?.accept(visitor, null)
-    val suffix = argumentValue(suffixPropertyName)?.accept(visitor, null)
-
-    return (baseName ?: defaultBaseName) + (suffix ?: defaultSuffix)
-}
-
-/**
- * Get the `@Generated` annotation.
- */
-val IrPluginContext.generatedAnnotation get() = referenceClass(generatedAnnotationName)!!
 
 
 fun IrBuilderWithScope.irAnnotationConstructor(
@@ -48,19 +23,6 @@ fun IrBuilderWithScope.irAnnotationConstructor(
         irConstructorCall(it, it.symbol)
     }
 }
-
-fun List<IrConstructorCall>.filterNotCompileAnnotations(): List<IrConstructorCall> = filterNot {
-    it.type.isClassType(toJvmAsyncAnnotationName.toUnsafe()) || it.type.isClassType(toJvmBlockingAnnotationName.toUnsafe()) || it.type.isClassType(
-        toJsPromiseAnnotationName.toUnsafe()
-    )
-}
-
-private fun IrDeclarationWithName.hasEqualFqName(fqName: FqName): Boolean =
-    name == fqName.shortName() && when (val parent = parent) {
-        is IrPackageFragment -> parent.fqName == fqName.parent()
-        is IrDeclarationWithName -> parent.hasEqualFqName(fqName.parent())
-        else -> false
-    }
 
 fun Iterable<AnnotationDescriptor>.filterNotCompileAnnotations(): List<AnnotationDescriptor> = filterNot {
     val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
@@ -72,19 +34,35 @@ fun Iterable<AnnotationDescriptor>.filterNotCompileAnnotations(): List<Annotatio
 
 data class TransformAnnotationData(
     val annotationDescriptor: AnnotationDescriptor,
-    val annotationBaseNamePropertyName: String = "baseName",
-    val annotationSuffixPropertyName: String = "suffix",
-    val annotationAsPropertyPropertyName: String = "asProperty",
-    val defaultBaseName: String,
-    val defaultSuffix: String,
+    val baseName: String?,
+    val suffix: String?,
+    val asProperty: Boolean?,
+    val functionName: String
 ) {
-    val baseName: String? = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
-        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-    val suffix: String? = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
-        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-    val asProperty: Boolean? = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
-        ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
-    val functionName: String = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
+    companion object {
+        fun of(
+            annotationDescriptor: AnnotationDescriptor,
+            annotationBaseNamePropertyName: String = "baseName",
+            annotationSuffixPropertyName: String = "suffix",
+            annotationAsPropertyPropertyName: String = "asProperty",
+            defaultBaseName: String,
+            defaultSuffix: String,
+        ): TransformAnnotationData {
+            val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
+                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
+                ?.takeIf { it.isNotEmpty() }
+            val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
+                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
+                ?.takeIf { it.isNotEmpty() }
+            val asProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
+                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
+            val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
+
+            return TransformAnnotationData(annotationDescriptor, baseName, suffix, asProperty, functionName)
+        }
+    }
+
+
 }
 
 open class FunctionTransformAnnotations(
@@ -100,6 +78,58 @@ open class FunctionTransformAnnotations(
     }
 }
 
+
+fun FunctionDescriptor.resolveToTransformAnnotations(
+    containing: DeclarationDescriptor = this.containingDeclaration,
+    configuration: SuspendTransformConfiguration
+): FunctionTransformAnnotations {
+    val baseName = this.name.identifier
+    val containingAnnotations = containing.annotations.resolveToTransformAnnotations(configuration, baseName)
+    val functionAnnotations = this.annotations.resolveToTransformAnnotations(configuration, baseName)
+
+    return containingAnnotations + functionAnnotations
+}
+
+/*
+ * 后者优先。
+ */
+private operator fun FunctionTransformAnnotations.plus(other: FunctionTransformAnnotations): FunctionTransformAnnotations {
+    if (other.isEmpty) return this
+
+    return FunctionTransformAnnotations(
+        jvmBlockingAnnotationData + other.jvmBlockingAnnotationData,
+        jvmAsyncAnnotationData + other.jvmAsyncAnnotationData,
+        jsAsyncAnnotationData + other.jsAsyncAnnotationData,
+    )
+}
+
+/*
+ * 后者优先。
+ */
+private operator fun TransformAnnotationData?.plus(other: TransformAnnotationData?): TransformAnnotationData? {
+    if (this == null && other == null) return null
+    if (other == null) return this
+    if (this == null) return other
+
+    val baseName = other.baseName ?: this.baseName
+    val suffix = other.suffix ?: this.suffix
+
+    val functionName = if (baseName == null) other.functionName else buildString {
+        append(baseName)
+        suffix?.also(::append)
+    }
+
+    return TransformAnnotationData(
+        annotationDescriptor = other.annotationDescriptor,
+        baseName = baseName,
+        suffix = suffix,
+        asProperty = other.asProperty ?: this.asProperty,
+        functionName = functionName
+    )
+
+}
+
+
 fun Annotations.resolveToTransformAnnotations(
     configuration: SuspendTransformConfiguration,
     functionBaseName: String
@@ -112,7 +142,7 @@ fun Annotations.resolveToTransformAnnotations(
         annotationAsPropertyPropertyName: String = this.asPropertyProperty,
     ): TransformAnnotationData? {
         return findAnnotation(this.annotationName.fqn)?.let {
-            TransformAnnotationData(
+            TransformAnnotationData.of(
                 it,
                 annotationBaseNamePropertyName,
                 annotationSuffixPropertyName,

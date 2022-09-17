@@ -7,6 +7,9 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 @kotlin.annotation.Target(AnnotationTarget.FUNCTION)
 annotation class Hi
 
+@JvmBlocking
+suspend fun hello(): String = "hello"
+
 class JustTest : ITest { //  : ITest
 
     @Hi
