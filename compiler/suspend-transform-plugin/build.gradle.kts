@@ -9,7 +9,10 @@ plugins {
     id("suspend-transform.jvm-maven-publish")
     id("com.bennyhuo.kotlin.plugin.embeddable.test") version "1.7.10.0"
 }
-
+buildscript {
+    plugins {
+    }
+}
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))

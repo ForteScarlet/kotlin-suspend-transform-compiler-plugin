@@ -69,6 +69,8 @@ class Foo {
 ## Usage
 ### Gradle
 
+**Way 1:**
+
 _build.gradle.kts_
 
 ```kotlin
@@ -85,6 +87,40 @@ suspendTransform {
     enabled = true // default: true
 }
 ```
+
+**Way 2:**
+
+_build.gradle.kts_
+
+```kotlin
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:$GRADLE_PLUGIN_VERSION")
+    }
+}
+
+plugins { 
+    kotlin("jvm") // or..?
+    id("love.forte.plugin.suspend-transform") 
+    // other...
+}
+
+// other...
+
+// config it.
+suspendTransform {
+    enabled = true // default: true
+}
+```
+
+### Maven
+
+> Not supported yet.
+
 
 ## Effect
 
@@ -163,7 +199,7 @@ interface Foo {
     @Api4J 
     fun nameBlocking(): String { /* compiled code */ }
 
-    @love.forte.plugin.suspendtrans.annotation.JvmBlocking 
+    @JvmBlocking 
     suspend fun self(): Foo
 
     @Generated 
@@ -238,7 +274,3 @@ class Bar {
     fun noTrans(): Int { /* compiled code */ }
 }
 ```
-
-### Maven
-
-> Not supported yet.
