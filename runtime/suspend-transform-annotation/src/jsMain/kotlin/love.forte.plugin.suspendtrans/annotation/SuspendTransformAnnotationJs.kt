@@ -8,6 +8,6 @@ public actual annotation class Api4Js
 @Retention(AnnotationRetention.BINARY)
 public annotation class ExperimentalJsApi
 
-@Target(AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 public actual annotation class JsPromise
