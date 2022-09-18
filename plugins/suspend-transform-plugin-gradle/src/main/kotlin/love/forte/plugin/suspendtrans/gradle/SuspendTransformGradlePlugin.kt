@@ -1,6 +1,7 @@
 package love.forte.plugin.suspendtrans.gradle
 
 import BuildConfig
+import love.forte.plugin.suspendtrans.CliOptions
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -18,7 +19,13 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         target.extensions.create("suspendTransform", SuspendTransformGradleExtension::class.java)
     }
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        if (!kotlinCompilation.target.project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)) {
+            return false
+        }
+
+        return true
+    }
 
     override fun getCompilerPluginId(): String = BuildConfig.KOTLIN_PLUGIN_ID
 
@@ -56,7 +63,13 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
 
 private fun SuspendTransformGradleExtension.toSubpluginOptions(): List<SubpluginOption> {
-    return listOf()
+    return CliOptions.allOptions.map {
+        SubpluginOption(it.oName, it.resolveToValue(this))
+    }
+//    return listOf(
+//        SubpluginOption(SuspendTransformCommandLineProcessor.Options.ENABLED, enabled.toString()),
+//        SubpluginOption(SuspendTransformCommandLineProcessor.Options)
+//    )
 //    val jvm = this.jvm
 //    val js = this.js
 //    return listOf(

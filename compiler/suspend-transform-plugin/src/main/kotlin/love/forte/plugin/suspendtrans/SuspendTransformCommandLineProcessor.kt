@@ -3,7 +3,6 @@ package love.forte.plugin.suspendtrans
 import BuildConfig
 import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
-import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
@@ -12,55 +11,13 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 @AutoService(CommandLineProcessor::class)
 class SuspendTransformCommandLineProcessor : CommandLineProcessor {
     companion object {
-        val defaultJvm = SuspendTransformConfiguration.Jvm()
-        val defaultJs = SuspendTransformConfiguration.Js()
-        private object Options {
-            const val CONFIGURATION = "configuration"
-            const val ENABLED = "enabled"
-
-            object Jvm {
-                //region blocking
-                const val JVM_BLOCKING_FUNCTION_NAME = "jvm.jvmBlockingFunctionName"
-
-                //region blocking mark
-                const val JVM_BLOCKING_MARK_ANNOTATION = "jvm.jvmBlockingMarkAnnotation"
-                const val JVM_BLOCKING_MARK_ANNOTATION_ANNOTATION_NAME = "jvm.jvmBlockingMarkAnnotation.annotationName"
-                const val JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY = "jvm.jvmBlockingMarkAnnotation.baseNameProperty"
-                const val JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY = "jvm.jvmBlockingMarkAnnotation.suffixProperty"
-                const val JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY = "jvm.jvmBlockingMarkAnnotation.asPropertyProperty"
-                //endregion
-                //endregion
-
-
-
-                //region async mark
-                const val JVM_ASYNC_MARK_ANNOTATION = "jvm.jvmAsyncMarkAnnotation"
-                const val JVM_ASYNC_MARK_ANNOTATION_ANNOTATION_NAME = "jvm.jvmAsyncMarkAnnotation.annotationName"
-                const val JVM_ASYNC_MARK_ANNOTATION_BASE_NAME_PROPERTY = "jvm.jvmAsyncMarkAnnotation.baseNameProperty"
-                const val JVM_ASYNC_MARK_ANNOTATION_SUFFIX_PROPERTY = "jvm.jvmAsyncMarkAnnotation.suffixProperty"
-                const val JVM_ASYNC_MARK_ANNOTATION_AS_PROPERTY_PROPERTY = "jvm.jvmAsyncMarkAnnotation.asPropertyProperty"
-                //endregion
-
-
-
-            }
-
-            object Js
-        }
-
-        val CONFIGURATION: CompilerConfigurationKey<SuspendTransformConfiguration> = CompilerConfigurationKey.create(Options.CONFIGURATION)
+        val CONFIGURATION: CompilerConfigurationKey<SuspendTransformConfiguration> =
+            CompilerConfigurationKey.create(CliOptions.CONFIGURATION)
     }
 
     override val pluginId: String = BuildConfig.KOTLIN_PLUGIN_ID
 
-    override val pluginOptions: Collection<CliOption> = listOf(
-        CliOption(
-            optionName = Options.ENABLED,
-            valueDescription = "bool <true | false>",
-            description = "If the DebugLog annotation should be applied",
-            required = false,
-        ),
-    )
+    override val pluginOptions: Collection<SimpleCliOption> = CliOptions.allOptions.map { it as SimpleCliOption }
 
     override fun processOption(
         option: AbstractCliOption,
@@ -68,64 +25,44 @@ class SuspendTransformCommandLineProcessor : CommandLineProcessor {
         configuration: CompilerConfiguration
     ) {
         fun getConf(): SuspendTransformConfiguration {
-            return configuration[CONFIGURATION] ?: SuspendTransformConfiguration().also { configuration.put(CONFIGURATION, it) }
-        }
-        fun inConf(block: SuspendTransformConfiguration.() -> Unit) {
-            getConf().block()
-        }
-        when (option.optionName) {
-            Options.ENABLED -> inConf { enabled = value.toBoolean() }
-            Options.Jvm.JVM_BLOCKING_FUNCTION_NAME -> inConf {
-                jvm { jvmBlockingFunctionName = value }
+            return configuration[CONFIGURATION] ?: SuspendTransformConfiguration().also {
+                configuration.put(
+                    CONFIGURATION,
+                    it
+                )
             }
-//            //region jvm blocking mark annotation
-//            Options.Jvm.JVM_BLOCKING_MARK_ANNOTATION_ANNOTATION_NAME -> {
-//                getOrInit(JVM_BLOCKING_MARK_ANNOTATION) { defaultJvm.jvmBlockingMarkAnnotation }.also {
-//                    it.annotationName = value
-//                }
-//            }
-//            Options.Jvm.JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY -> {
-//                getOrInit(JVM_BLOCKING_MARK_ANNOTATION) { defaultJvm.jvmBlockingMarkAnnotation }.also {
-//                    it.baseNameProperty = value
-//                }
-//            }
-//            Options.Jvm.JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY -> {
-//                getOrInit(JVM_BLOCKING_MARK_ANNOTATION) { defaultJvm.jvmBlockingMarkAnnotation }.also {
-//                    it.suffixProperty = value
-//                }
-//            }
-//            Options.Jvm.JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY -> {
-//                getOrInit(JVM_BLOCKING_MARK_ANNOTATION) { defaultJvm.jvmBlockingMarkAnnotation }.also {
-//                    it.asPropertyProperty = value
-//                }
-//            }
-//            //endregion
-//            //region jvm async mark annotation
-//            Options.Jvm.JVM_ASYNC_MARK_ANNOTATION_ANNOTATION_NAME -> {
-//                getOrInit(JVM_ASYNC_MARK_ANNOTATION) { defaultJvm.jvmAsyncMarkAnnotation }.also {
-//                    it.annotationName = value
-//                }
-//            }
-//            Options.Jvm.JVM_ASYNC_MARK_ANNOTATION_BASE_NAME_PROPERTY -> {
-//                getOrInit(JVM_ASYNC_MARK_ANNOTATION) { defaultJvm.jvmAsyncMarkAnnotation }.also {
-//                    it.baseNameProperty = value
-//                }
-//            }
-//            Options.Jvm.JVM_ASYNC_MARK_ANNOTATION_SUFFIX_PROPERTY -> {
-//                getOrInit(JVM_ASYNC_MARK_ANNOTATION) { defaultJvm.jvmAsyncMarkAnnotation }.also {
-//                    it.suffixProperty = value
-//                }
-//            }
-//            Options.Jvm.JVM_ASYNC_MARK_ANNOTATION_AS_PROPERTY_PROPERTY -> {
-//                getOrInit(JVM_ASYNC_MARK_ANNOTATION) { defaultJvm.jvmAsyncMarkAnnotation }.also {
-//                    it.asPropertyProperty = value
-//                }
-//            }
-//            //endregion
-
-
-
-            else -> throw IllegalArgumentException("Unexpected config option ${option.optionName}")
         }
+
+        CliOptions.allOptionsMap[option.optionName]?.resolveFromValue(getConf(), value)
+//
+//        when (option.optionName) {
+//            CliOptions.ENABLED.optionName -> inConf { enabled = value.toBoolean() }
+//            CliOptions.Jvm.JVM_BLOCKING_FUNCTION_NAME.optionName -> inConf {
+//                jvm { jvmBlockingFunctionName = value }
+//            }
+//
+//            CliOptions.Jvm.JVM_ASYNC_FUNCTION_NAME.optionName -> inConf {
+//                jvm { jvmAsyncFunctionName = value }
+//            }
+//
+//            CliOptions.Jvm.JVM_BLOCKING_MARK_ANNOTATION_ANNOTATION_NAME.optionName -> inConf {
+//                jvm { jvmBlockingMarkAnnotation.annotationName = value }
+//            }
+//
+//            CliOptions.Jvm.JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY.optionName -> inConf {
+//                jvm { jvmBlockingMarkAnnotation.baseNameProperty = value }
+//            }
+//
+//            CliOptions.Jvm.JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY.optionName -> inConf {
+//                jvm { jvmBlockingMarkAnnotation.suffixProperty = value }
+//            }
+//
+//            CliOptions.Jvm.JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY.optionName -> inConf {
+//                jvm { jvmBlockingMarkAnnotation.asPropertyProperty = value }
+//            }
+//
+//
+//            else -> System.err.println("Unexpected config option ${option.optionName}")
+//        }
     }
 }
