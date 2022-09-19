@@ -20,17 +20,17 @@ kotlin {
         nodejs()
         //binaries.executable()
     }
-    
-    // Only Jvm and JS
-    // configAllNativeTargets()
-    // val nativeTargetSourceNames = targets.flatMapTo(mutableSetOf()) { target ->
-    //     if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
-    //         val name = target.name
-    //         listOf("${name}Main", "${name}Test")
-    //     } else {
-    //         emptyList()
-    //     }
-    // }
+
+    configAllNativeTargetsCoroutinesSupported()
+
+//     val nativeTargetSourceNames = targets.flatMapTo(mutableSetOf()) { target ->
+//         if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
+//             val name = target.name
+//             listOf("${name}Main", "${name}Test")
+//         } else {
+//             emptyList()
+//         }
+//     }
     
     sourceSets {
         val commonMain by getting {

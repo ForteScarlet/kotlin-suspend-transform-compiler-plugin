@@ -1,20 +1,21 @@
 plugins {
     `java-library`
     kotlin("jvm")
-    id("love.forte.plugin.suspend-transform")
-    id("suspend-transform.jvm-maven-publish")
+    // id("love.forte.plugin.suspend-transform")
+    // id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
 }
 
-// buildscript {
-//     this@buildscript.repositories {
-//         mavenLocal()
-//         mavenCentral()
-//     }
-//     dependencies {
-//         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.0.1")
-//     }
-// }
+ buildscript {
+     this@buildscript.repositories {
+         mavenLocal()
+         mavenCentral()
+     }
+     dependencies {
+         //this.implementation()
+         //classpath(project(":plugins:suspend-transform-plugin-gradle"))
+     }
+ }
 
 //withType<JavaCompile> {
 //    sourceCompatibility = "11"
