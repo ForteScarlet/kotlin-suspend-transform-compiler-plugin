@@ -35,7 +35,6 @@ class Foo {
 
     @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
     fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
-    
 }
 ```
 
@@ -85,6 +84,13 @@ plugins {
 // config it.
 suspendTransform {
     enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
 }
 ```
 
@@ -114,6 +120,13 @@ plugins {
 // config it.
 suspendTransform {
     enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
 }
 ```
 
@@ -175,8 +188,8 @@ import kotlin.jvm.JvmSynthetic
 @JvmBlocking 
 @JvmAsync
 interface Foo {
-    @love.forte.plugin.suspendtrans.annotation.Generated 
-    @love.forte.plugin.suspendtrans.annotation.Api4J 
+    @Generated 
+    @Api4J 
     val selfBlocking: Foo /* compiled code */
 
     suspend fun age(def: Int /* = compiled code */): Int
