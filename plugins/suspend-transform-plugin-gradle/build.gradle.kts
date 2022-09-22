@@ -49,6 +49,7 @@ gradlePlugin {
         }
     }
     this.isAutomatedPublishing = isCi()
+    // repo?
 }
 
 //publishing {
