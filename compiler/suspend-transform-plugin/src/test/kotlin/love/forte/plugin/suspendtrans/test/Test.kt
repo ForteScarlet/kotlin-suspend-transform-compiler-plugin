@@ -3,6 +3,7 @@ package love.forte.plugin.suspendtrans.test
 import com.bennyhuo.kotlin.compiletesting.extensions.source.SingleFileModuleInfoLoader
 import com.tschuchort.compiletesting.KotlinCompilation
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,8 +16,13 @@ import kotlin.test.assertEquals
 class Test {
 
     @Test
-    fun test() {
+    fun basicTest() {
         testBase("basic.kt")
+    }
+
+    @Test
+    fun overrideTest() {
+        testBase("override.kt")
     }
 
     private fun testBase(fileName: String) {
@@ -24,7 +30,14 @@ class Test {
         val sourceModuleInfos = loader.loadSourceModuleInfos()
 
         val modules = sourceModuleInfos.map {
-            KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar())).apply {
+            KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar().apply {
+                defaultConfiguration = SuspendTransformConfiguration().apply {
+                    jvm {
+                        jvmBlockingMarkAnnotation.functionInheritable = true
+                        jvmAsyncMarkAnnotation.functionInheritable = true
+                    }
+                }
+            })).apply {
                 compilation.apply {
                     workingDir = File("build/em-jvm")
                     useIR = true
