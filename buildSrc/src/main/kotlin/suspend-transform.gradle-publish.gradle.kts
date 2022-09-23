@@ -2,7 +2,7 @@ import utils.systemProperty
 import utils.by
 
 plugins {
-    id("java-gradle-plugin")
+    `java-gradle-plugin`
     id("com.gradle.plugin-publish") // version "1.0.0-rc-1"
 }
 
