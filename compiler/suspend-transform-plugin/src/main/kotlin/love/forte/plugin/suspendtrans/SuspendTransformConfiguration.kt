@@ -183,7 +183,8 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
         var annotationName: String,
         var baseNameProperty: String = "baseName",
         var suffixProperty: String = "suffix",
-        var asPropertyProperty: String = "asProperty"
+        var asPropertyProperty: String = "asProperty",
+        var functionInheritable: Boolean = false
     )
 }
 

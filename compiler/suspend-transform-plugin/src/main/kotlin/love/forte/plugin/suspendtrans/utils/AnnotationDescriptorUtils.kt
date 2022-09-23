@@ -37,7 +37,8 @@ data class TransformAnnotationData(
     val baseName: String?,
     val suffix: String?,
     val asProperty: Boolean?,
-    val functionName: String
+    val functionName: String,
+    val functionInheritable: Boolean,
 ) {
     companion object {
         fun of(
@@ -47,6 +48,7 @@ data class TransformAnnotationData(
             annotationAsPropertyPropertyName: String = "asProperty",
             defaultBaseName: String,
             defaultSuffix: String,
+            functionInheritable: Boolean,
         ): TransformAnnotationData {
             val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
@@ -58,7 +60,7 @@ data class TransformAnnotationData(
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
-            return TransformAnnotationData(annotationDescriptor, baseName, suffix, asProperty, functionName)
+            return TransformAnnotationData(annotationDescriptor, baseName, suffix, asProperty, functionName, functionInheritable)
         }
     }
 
@@ -76,7 +78,19 @@ open class FunctionTransformAnnotations(
         override val isEmpty: Boolean
             get() = true
     }
+
+    override fun toString(): String {
+        return "FunctionTransformAnnotations(jvmBlockingAnnotationData=$jvmBlockingAnnotationData, jvmAsyncAnnotationData=$jvmAsyncAnnotationData, jsAsyncAnnotationData=$jsAsyncAnnotationData)"
+    }
+
+
 }
+
+fun FunctionTransformAnnotations.resolveByFunctionInheritable(): FunctionTransformAnnotations = FunctionTransformAnnotations(
+    jvmBlockingAnnotationData?.takeIf { it.functionInheritable },
+    jvmAsyncAnnotationData?.takeIf { it.functionInheritable },
+    jsAsyncAnnotationData?.takeIf { it.functionInheritable },
+)
 
 
 fun FunctionDescriptor.resolveToTransformAnnotations(
@@ -120,12 +134,15 @@ private operator fun TransformAnnotationData?.plus(other: TransformAnnotationDat
         suffix?.also(::append)
     }
 
+    val functionInheritable = other.functionInheritable.takeIf { it }?: this.functionInheritable
+
     return TransformAnnotationData(
         annotationDescriptor = other.annotationDescriptor,
         baseName = baseName,
         suffix = suffix,
         asProperty = asProperty,
-        functionName = functionName
+        functionName = functionName,
+        functionInheritable = functionInheritable
     )
 
 }
@@ -149,7 +166,8 @@ private fun Annotations.resolveToTransformAnnotations(
                 annotationSuffixPropertyName,
                 annotationAsPropertyPropertyName,
                 defaultBaseName,
-                defaultSuffix
+                defaultSuffix,
+                functionInheritable
             )
         }
     }
