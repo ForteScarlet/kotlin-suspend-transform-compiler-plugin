@@ -3,6 +3,8 @@
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
+@JvmBlocking
+@JvmAsync
 interface IFoo {
     suspend fun run(n: Int): Bar
 }
@@ -13,6 +15,8 @@ interface Foo : IFoo {
     suspend fun run(): Bar
 
     suspend fun run(name: String): Bar
+
+    override suspend fun run(n: Int): Bar
 }
 
 class FooImpl : Foo {
