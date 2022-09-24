@@ -55,12 +55,19 @@ data class TransformAnnotationData(
                 ?.takeIf { it.isNotEmpty() }
             val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-                //?.takeIf { it.isNotEmpty() }
+
             val asProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
-            return TransformAnnotationData(annotationDescriptor, baseName, suffix, asProperty, functionName, functionInheritable)
+            return TransformAnnotationData(
+                annotationDescriptor,
+                baseName,
+                suffix,
+                asProperty,
+                functionName,
+                functionInheritable
+            )
         }
     }
 
@@ -86,11 +93,12 @@ open class FunctionTransformAnnotations(
 
 }
 
-fun FunctionTransformAnnotations.resolveByFunctionInheritable(): FunctionTransformAnnotations = FunctionTransformAnnotations(
-    jvmBlockingAnnotationData?.takeIf { it.functionInheritable },
-    jvmAsyncAnnotationData?.takeIf { it.functionInheritable },
-    jsAsyncAnnotationData?.takeIf { it.functionInheritable },
-)
+fun FunctionTransformAnnotations.resolveByFunctionInheritable(): FunctionTransformAnnotations =
+    FunctionTransformAnnotations(
+        jvmBlockingAnnotationData?.takeIf { it.functionInheritable },
+        jvmAsyncAnnotationData?.takeIf { it.functionInheritable },
+        jsAsyncAnnotationData?.takeIf { it.functionInheritable },
+    )
 
 
 fun FunctionDescriptor.resolveToTransformAnnotations(
@@ -101,6 +109,7 @@ fun FunctionDescriptor.resolveToTransformAnnotations(
     val containingAnnotations = containing.annotations.resolveToTransformAnnotations(configuration, baseName)
     val functionAnnotations = this.annotations.resolveToTransformAnnotations(configuration, baseName)
 
+    // 函数上标记的注解会直接覆盖类上的标记。
     return containingAnnotations + functionAnnotations
 }
 
@@ -111,9 +120,9 @@ private operator fun FunctionTransformAnnotations.plus(other: FunctionTransformA
     if (other.isEmpty) return this
 
     return FunctionTransformAnnotations(
-        jvmBlockingAnnotationData + other.jvmBlockingAnnotationData,
-        jvmAsyncAnnotationData + other.jvmAsyncAnnotationData,
-        jsAsyncAnnotationData + other.jsAsyncAnnotationData,
+        other.jvmBlockingAnnotationData ?: jvmBlockingAnnotationData, // + other.jvmBlockingAnnotationData,
+        other.jvmAsyncAnnotationData ?: jvmAsyncAnnotationData, // + other.jvmAsyncAnnotationData,
+        other.jsAsyncAnnotationData ?: jsAsyncAnnotationData, // + other.jsAsyncAnnotationData,
     )
 }
 
@@ -134,7 +143,7 @@ private operator fun TransformAnnotationData?.plus(other: TransformAnnotationDat
         suffix?.also(::append)
     }
 
-    val functionInheritable = other.functionInheritable.takeIf { it }?: this.functionInheritable
+    val functionInheritable = other.functionInheritable.takeIf { it } ?: this.functionInheritable
 
     return TransformAnnotationData(
         annotationDescriptor = other.annotationDescriptor,
