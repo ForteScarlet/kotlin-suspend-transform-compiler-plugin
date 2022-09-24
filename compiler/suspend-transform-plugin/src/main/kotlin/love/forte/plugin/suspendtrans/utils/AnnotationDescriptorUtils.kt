@@ -55,7 +55,7 @@ data class TransformAnnotationData(
                 ?.takeIf { it.isNotEmpty() }
             val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-                ?.takeIf { it.isNotEmpty() }
+                //?.takeIf { it.isNotEmpty() }
             val asProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"

@@ -25,6 +25,11 @@ class Test {
         testBase("override.kt")
     }
 
+    @Test
+    fun asPropertyTest() {
+        testBase("asProperty.kt")
+    }
+
     private fun testBase(fileName: String) {
         val loader = SingleFileModuleInfoLoader("testData/$fileName")
         val sourceModuleInfos = loader.loadSourceModuleInfos()
@@ -39,7 +44,7 @@ class Test {
                 }
             })).apply {
                 compilation.apply {
-                    workingDir = File("build/em-jvm")
+                    workingDir = File("build/em-jvm/${fileName.substringBeforeLast(".")}")
                     useIR = true
                     javaParameters = true
                     jvmDefault = "all"
