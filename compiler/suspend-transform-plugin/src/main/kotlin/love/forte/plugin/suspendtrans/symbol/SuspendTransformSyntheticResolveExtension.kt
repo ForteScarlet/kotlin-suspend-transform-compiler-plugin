@@ -19,7 +19,10 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
-import org.jetbrains.kotlin.resolve.descriptorUtil.*
+import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.descriptorUtil.platform
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinTypeFactory
@@ -145,13 +148,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                         )
                     }
                 if (resolvedAnnotations.isEmpty) {
-                    println("ORIGINAL: $originFunction")
-                    println(originFunction.overriddenTreeUniqueAsSequence(true).toList())
-                    println(originFunction.overriddenTreeUniqueAsSequence(false).toList())
-                    println(originFunction.overriddenTreeAsSequence(true).toList())
-                    println(originFunction.overriddenTreeAsSequence(false).toList())
-                    originFunction.original
-                    println()
                     // find from overridden function
                     val superAnnotation = originFunction.findSuspendOverridden()?.let { superFunction ->
                         functionAnnotationsCache.computeIfAbsent(superFunction) { f ->

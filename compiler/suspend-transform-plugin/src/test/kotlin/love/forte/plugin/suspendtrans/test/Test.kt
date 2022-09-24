@@ -30,6 +30,11 @@ class Test {
         testBase("asProperty.kt")
     }
 
+    @Test
+    fun typeAttrTest() {
+        testBase("typeAttr.kt")
+    }
+
     private fun testBase(fileName: String) {
         val loader = SingleFileModuleInfoLoader("testData/$fileName")
         val sourceModuleInfos = loader.loadSourceModuleInfos()
