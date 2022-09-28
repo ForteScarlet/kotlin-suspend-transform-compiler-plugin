@@ -4,6 +4,8 @@
 
 <img src=".project/cover.png" alt="cover">
 
+[GitHub](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin) | [Gitee](https://gitee.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin)
+
 **English** | [简体中文](README_CN.md)
 
 ## Summary
