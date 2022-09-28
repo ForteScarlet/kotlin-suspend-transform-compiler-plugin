@@ -56,6 +56,9 @@ jobs:
             -Porg.gradle.jvmargs="-Xmx8G -XX:MaxPermSize=2g -Dfile.encoding=UTF-8"
             -Porg.gradle.workers.max=16
             -Porg.gradle.parallel=true
+            -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} 
+            -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
+            
 
   create-release:
     name: Create release
