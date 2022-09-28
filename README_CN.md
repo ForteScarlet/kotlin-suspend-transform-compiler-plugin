@@ -61,7 +61,7 @@ class Foo {
         return "Hello"
     }
     @Api4Js // RequiresOptIn 注解, 向Kotlin开发者提供警告
-    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
+    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
 }
 ```
 
