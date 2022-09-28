@@ -9,4 +9,8 @@ class Foo {
     @JvmBlocking(asProperty = true, suffix = "")
     @JvmAsync(asProperty = true)
     suspend fun name(): String = ""
+
+    @JvmBlocking
+    @JvmAsync
+    suspend fun age(): Int = 1
 }

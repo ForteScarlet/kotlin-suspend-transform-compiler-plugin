@@ -14,7 +14,7 @@ private fun includeAnnotationEncode(value: List<SuspendTransformConfiguration.In
 private fun includeAnnotationDecode(value: String): List<SuspendTransformConfiguration.IncludeAnnotation> {
     return value.split(",").map {
         val annotationName = it.substringBeforeLast(REPEAT_MARK)
-        val repeat = annotationName == it
+        val repeat = annotationName != it
         SuspendTransformConfiguration.IncludeAnnotation(annotationName, repeat)
     }
 }

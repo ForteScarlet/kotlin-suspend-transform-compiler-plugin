@@ -2,6 +2,7 @@ package love.forte.plugin.suspendtrans.test
 
 import com.bennyhuo.kotlin.compiletesting.extensions.source.SingleFileModuleInfoLoader
 import com.tschuchort.compiletesting.KotlinCompilation
+import love.forte.plugin.suspendtrans.CliOptions
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import java.io.File
@@ -33,6 +34,28 @@ class Test {
     @Test
     fun typeAttrTest() {
         testBase("typeAttr.kt")
+    }
+
+    @Test
+    fun testCliOptions() {
+        val testIncludeAnnotations = listOf(
+            SuspendTransformConfiguration.IncludeAnnotation("Repeatable", true),
+            SuspendTransformConfiguration.IncludeAnnotation("Simple", false),
+        )
+        val toValue = SuspendTransformConfiguration().apply {
+            jvm {
+                originFunctionIncludeAnnotations = testIncludeAnnotations
+            }
+        }
+
+        val value = CliOptions.Jvm.ORIGIN_FUNCTION_INCLUDE_ANNOTATIONS.resolveToValue(toValue)
+
+        val fromValue = SuspendTransformConfiguration()
+
+        CliOptions.Jvm.ORIGIN_FUNCTION_INCLUDE_ANNOTATIONS.resolveFromValue(fromValue, value)
+
+        assertEquals(toValue.jvm.originFunctionIncludeAnnotations, fromValue.jvm.originFunctionIncludeAnnotations)
+
     }
 
     private fun testBase(fileName: String) {
