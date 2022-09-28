@@ -79,7 +79,7 @@ _build.gradle.kts_
 
 ```kotlin
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "KOTLIN_VERSION" // 或 js? 或 multiplatform?
+    id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION" // 或 js? 或 multiplatform?
     id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
     // 其他...
 }
@@ -108,7 +108,7 @@ _build.gradle_
 
 ```groovy
 plugins {
-    id "org.jetbrains.kotlin.jvm" // 或 js? 或 multiplatform?
+    id "org.jetbrains.kotlin.jvm" version "$KOTLIN_VERSION" // 或 js? 或 multiplatform?
     id "love.forte.plugin.suspend-transform" version "$PLUGIN_VERSION" 
     // 其他...
 }
