@@ -59,11 +59,6 @@ object CliOptions {
             JVM_BLOCKING_MARK_ANNOTATION.option("asPropertyProperty") {
                 withProp { jvm.jvmBlockingMarkAnnotation::asPropertyProperty }
             }
-        val JVM_BLOCKING_MARK_ANNOTATION_FUNCTION_INHERITABLE =
-            JVM_BLOCKING_MARK_ANNOTATION.option("functionInheritable") {
-                inc { jvm.jvmBlockingMarkAnnotation.functionInheritable = it.toBoolean()  }
-                out { jvm.jvmBlockingMarkAnnotation.functionInheritable.toString() }
-            }
         //endregion
 
         val COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION =
@@ -114,11 +109,6 @@ object CliOptions {
             JVM_ASYNC_MARK_ANNOTATION.option("asPropertyProperty") {
                 withProp { jvm.jvmAsyncMarkAnnotation::asPropertyProperty }
             }
-        val JVM_ASYNC_MARK_ANNOTATION_FUNCTION_INHERITABLE =
-            JVM_ASYNC_MARK_ANNOTATION.option("functionInheritable") {
-                inc { jvm.jvmAsyncMarkAnnotation.functionInheritable = it.toBoolean()  }
-                out { jvm.jvmAsyncMarkAnnotation.functionInheritable.toString() }
-            }
         //endregion
 
 
@@ -157,7 +147,6 @@ object CliOptions {
         Jvm.JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY,
         Jvm.JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY,
         Jvm.JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY,
-        Jvm.JVM_BLOCKING_MARK_ANNOTATION_FUNCTION_INHERITABLE,
         Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION,
         Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION_EXCLUDES_NAME,
         Jvm.SYNTHETIC_BLOCKING_FUNCTION_INCLUDE_ANNOTATIONS,
@@ -166,7 +155,6 @@ object CliOptions {
         Jvm.JVM_ASYNC_MARK_ANNOTATION_BASE_NAME_PROPERTY,
         Jvm.JVM_ASYNC_MARK_ANNOTATION_SUFFIX_PROPERTY,
         Jvm.JVM_ASYNC_MARK_ANNOTATION_AS_PROPERTY_PROPERTY,
-        Jvm.JVM_ASYNC_MARK_ANNOTATION_FUNCTION_INHERITABLE,
         Jvm.SYNTHETIC_ASYNC_FUNCTION_INCLUDE_ANNOTATIONS,
         Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION,
         Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION_EXCLUDES_NAME,

@@ -42,10 +42,7 @@ class Test {
         val modules = sourceModuleInfos.map {
             KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar().apply {
                 defaultConfiguration = SuspendTransformConfiguration().apply {
-                    jvm {
-                        jvmBlockingMarkAnnotation.functionInheritable = true
-                        jvmAsyncMarkAnnotation.functionInheritable = true
-                    }
+
                 }
             })).apply {
                 compilation.apply {
