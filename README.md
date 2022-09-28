@@ -63,7 +63,7 @@ class Foo {
         return "Hello"
     }
     @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
 }
 ```
 
