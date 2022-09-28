@@ -60,13 +60,13 @@ jobs:
   create-release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: publish-release
+    needs: test-build-publish
     permissions:
       contents: write
     steps:
-      # 检出仓库代码
-      - name: Check Out Repo
-        uses: actions/checkout@v2
+#      # 检出仓库代码
+#      - name: Check Out Repo
+#        uses: actions/checkout@v2
 
         # Create gitHub release
       - name: Create Github Release
