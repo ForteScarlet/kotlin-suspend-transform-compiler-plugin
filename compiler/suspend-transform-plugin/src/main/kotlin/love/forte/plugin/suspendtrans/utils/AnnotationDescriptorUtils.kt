@@ -38,8 +38,10 @@ data class TransformAnnotationData(
     val suffix: String?,
     val asProperty: Boolean?,
     val functionName: String,
-    val functionInheritable: Boolean,
 ) {
+    // TODO remove.
+    val functionInheritable: Boolean = false
+
     companion object {
         fun of(
             annotationDescriptor: AnnotationDescriptor,
@@ -48,7 +50,6 @@ data class TransformAnnotationData(
             annotationAsPropertyPropertyName: String = "asProperty",
             defaultBaseName: String,
             defaultSuffix: String,
-            functionInheritable: Boolean,
         ): TransformAnnotationData {
             val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
@@ -66,7 +67,6 @@ data class TransformAnnotationData(
                 suffix,
                 asProperty,
                 functionName,
-                functionInheritable
             )
         }
     }
@@ -143,15 +143,12 @@ private operator fun TransformAnnotationData?.plus(other: TransformAnnotationDat
         suffix?.also(::append)
     }
 
-    val functionInheritable = other.functionInheritable.takeIf { it } ?: this.functionInheritable
-
     return TransformAnnotationData(
         annotationDescriptor = other.annotationDescriptor,
         baseName = baseName,
         suffix = suffix,
         asProperty = asProperty,
         functionName = functionName,
-        functionInheritable = functionInheritable
     )
 
 }
@@ -176,7 +173,6 @@ private fun Annotations.resolveToTransformAnnotations(
                 annotationAsPropertyPropertyName,
                 defaultBaseName,
                 defaultSuffix,
-                functionInheritable
             )
         }
     }

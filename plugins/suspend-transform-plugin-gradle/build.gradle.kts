@@ -21,6 +21,7 @@ buildConfig {
 
     val project = project(":compiler:suspend-transform-plugin-embeddable")
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")
+    buildConfigField("String", "PLUGIN_VERSION", "\"${version}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${project.group}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_NAME", "\"${project.name}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_VERSION", "\"${project.version}\"")
