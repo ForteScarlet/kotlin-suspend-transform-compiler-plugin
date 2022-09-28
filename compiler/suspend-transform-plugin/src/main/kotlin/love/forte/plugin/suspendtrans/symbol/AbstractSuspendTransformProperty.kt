@@ -25,7 +25,7 @@ sealed class AbstractSuspendTransformProperty<D : SuspendTransformUserData>(
     sourceFunction.visibility,
     false,
     sourceFunction.name,
-    CallableMemberDescriptor.Kind.DECLARATION,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
     sourceFunction.source,
     false,
     false,

@@ -26,7 +26,7 @@ sealed class AbstractSuspendTransformFunctionDescriptor<D : SuspendTransformUser
     null,
     annotations,
     functionName,
-    CallableMemberDescriptor.Kind.DECLARATION,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
     originFunction.source
 ) {
 
