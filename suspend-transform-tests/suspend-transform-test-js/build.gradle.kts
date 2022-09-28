@@ -1,6 +1,6 @@
 plugins {
     kotlin("js")
-    id("love.forte.plugin.suspend-transform")
+    //id("love.forte.plugin.suspend-transform")
     // id(project(":suspend-transform-plugin-gradle"))
 }
 

@@ -20,9 +20,9 @@ open class SuspendTransformGradleExtension : SuspendTransformConfiguration() {
     var includeRuntime: Boolean = true
 
     /**
-     * 当 [includeRuntime] 为 true 时，配置runtime环境的依赖方式。默认为 `runtimeOnly`。
+     * 当 [includeRuntime] 为 true 时，配置runtime环境的依赖方式。默认为 `implementation`。
      */
-    var runtimeConfigurationName: String = "runtimeOnly"
+    var runtimeConfigurationName: String = "implementation"
 
     /**
      * 将runtime环境作为 `api` 的方式进行配置。

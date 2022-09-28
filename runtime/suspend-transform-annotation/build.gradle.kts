@@ -21,6 +21,8 @@ kotlin {
         nodejs()
     }
 
+    configAllNativeTargets()
+
     sourceSets {
         val commonMain by getting
     }

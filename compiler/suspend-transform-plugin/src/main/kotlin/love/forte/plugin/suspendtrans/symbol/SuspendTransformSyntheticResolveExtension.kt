@@ -4,15 +4,9 @@ import love.forte.plugin.suspendtrans.PluginAvailability
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.generatedAnnotationName
-import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
-import love.forte.plugin.suspendtrans.utils.filterNotCompileAnnotations
-import love.forte.plugin.suspendtrans.utils.findClassDescriptor
-import love.forte.plugin.suspendtrans.utils.resolveToTransformAnnotations
+import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -62,12 +56,24 @@ private enum class SyntheticType {
     JVM_BLOCKING, JVM_ASYNC, JS_ASYNC
 }
 
+private val FunctionDescriptor.allParametersExpectDispatch: List<ParameterDescriptor>
+    get() {
+        val vps = valueParameters
+        val cps = contextReceiverParameters
+        return buildList(vps.size + cps.size + 1) {
+            extensionReceiverParameter?.let { add(it) }
+            addAll(cps)
+            addAll(vps)
+        }
+    }
+
 /**
  *
  * @author ForteScarlet
  */
 open class SuspendTransformSyntheticResolveExtension(open val configuration: SuspendTransformConfiguration) :
     SyntheticResolveExtension, PluginAvailability {
+    private val functionAnnotationsCache = ConcurrentHashMap<SimpleFunctionDescriptor, FunctionTransformAnnotations>()
 
     private val syntheticFunctions = SyntheticDescriptor<SimpleFunctionDescriptor>()
     private val syntheticProperties = SyntheticDescriptor<PropertyDescriptor>()
@@ -107,6 +113,26 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             }
         }
 
+        fun FunctionDescriptor.findSuspendOverridden(): SimpleFunctionDescriptor? {
+            return fromSupertypes.find { sup ->
+                if (!sup.isSuspend) return@find false
+                val thisAllParams = this.allParametersExpectDispatch
+                val supAllParams = sup.allParametersExpectDispatch
+
+                if (thisAllParams.size != supAllParams.size) return@find false
+
+                thisAllParams.forEachIndexed { index, p ->
+                    val supp = supAllParams[index]
+
+                    if (p.type != supp.type) {
+                        return@find false
+                    }
+                }
+
+                true
+            }
+        }
+
         // check and add synthetic functions.
         // find all annotated
         result
@@ -114,33 +140,49 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             .filter { f -> f.isSuspend }
             .filter { f -> f.visibility.isVisibleOutside() }
             .forEach { originFunction ->
-            val resolvedAnnotations =
-                originFunction.resolveToTransformAnnotations(thisDescriptor, configuration)
-            if (resolvedAnnotations.isEmpty) {
-                return@forEach
+                var resolvedAnnotations =
+                    functionAnnotationsCache.computeIfAbsent(originFunction) { f ->
+                        f.resolveToTransformAnnotations(
+                            thisDescriptor,
+                            configuration
+                        )
+                    }
+                if (resolvedAnnotations.isEmpty) {
+                    // find from overridden function
+                    val superAnnotation = originFunction.findSuspendOverridden()?.let { superFunction ->
+                        functionAnnotationsCache.computeIfAbsent(superFunction) { f ->
+                            f.resolveToTransformAnnotations(
+                                configuration = configuration
+                            )
+                        }
+                    }?.resolveByFunctionInheritable()
+                        ?.takeIf { !it.isEmpty }
+                        ?: return@forEach
+
+                    resolvedAnnotations = superAnnotation
+                }
+
+                generateSyntheticTransformFunction(
+                    resolvedAnnotations.jvmBlockingAnnotationData,
+                    thisDescriptor,
+                    originFunction,
+                    SyntheticType.JVM_BLOCKING
+                )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmBlockingAnnotationData, it) }
+
+                generateSyntheticTransformFunction(
+                    resolvedAnnotations.jvmAsyncAnnotationData,
+                    thisDescriptor,
+                    originFunction,
+                    SyntheticType.JVM_ASYNC
+                )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmAsyncAnnotationData, it) }
+
+                generateSyntheticTransformFunction(
+                    resolvedAnnotations.jsAsyncAnnotationData,
+                    thisDescriptor,
+                    originFunction,
+                    SyntheticType.JS_ASYNC
+                )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jsAsyncAnnotationData, it) }
             }
-
-            generateSyntheticTransformFunction(
-                resolvedAnnotations.jvmBlockingAnnotationData,
-                thisDescriptor,
-                originFunction,
-                SyntheticType.JVM_BLOCKING
-            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmBlockingAnnotationData, it) }
-
-            generateSyntheticTransformFunction(
-                resolvedAnnotations.jvmAsyncAnnotationData,
-                thisDescriptor,
-                originFunction,
-                SyntheticType.JVM_ASYNC
-            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jvmAsyncAnnotationData, it) }
-
-            generateSyntheticTransformFunction(
-                resolvedAnnotations.jsAsyncAnnotationData,
-                thisDescriptor,
-                originFunction,
-                SyntheticType.JS_ASYNC
-            )?.also { addSyntheticTransformDescriptors(resolvedAnnotations.jsAsyncAnnotationData, it) }
-        }
 
         // get synthetic functions, add into result
         syntheticFunctions.takeSyntheticDescriptors(thisDescriptor, name).forEach {

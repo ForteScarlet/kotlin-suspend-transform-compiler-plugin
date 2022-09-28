@@ -24,20 +24,6 @@
           </set>
         </option>
       </GradleProjectSettings>
-      <GradleProjectSettings>
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/suspend-transform-tests" />
-        <option name="gradleHome" value="D:/code/gradle/gradle-6.8.2" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/suspend-transform-tests" />
-            <option value="$PROJECT_DIR$/suspend-transform-tests/buildSrc" />
-            <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-js" />
-            <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-jvm" />
-            <option value="$PROJECT_DIR$/suspend-transform-tests/suspend-transform-test-jvm-ktonly" />
-          </set>
-        </option>
-      </GradleProjectSettings>
     </option>
   </component>
 </project>

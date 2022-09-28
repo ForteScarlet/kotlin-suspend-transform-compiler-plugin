@@ -35,7 +35,6 @@ class Foo {
 
     @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
     fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
-    
 }
 ```
 
@@ -59,23 +58,25 @@ class Foo {
         return "Hello"
     }
     @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInBlocking' from the runtime provided by the plugin
+    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
 }
 ```
 
 > JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
-
 ## Usage
 ### Gradle
 
-**Way 1:**
+**Using the [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block):**
+
+<details open>
+<summary>Kotlin</summary>
 
 _build.gradle.kts_
 
 ```kotlin
-plugins { 
-    kotlin("jvm") // or..?
+plugins {
+    id("org.jetbrains.kotlin.jvm") version "KOTLIN_VERSION" // or js? or multiplatform?
     id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
     // other...
 }
@@ -85,10 +86,53 @@ plugins {
 // config it.
 suspendTransform {
     enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
 }
 ```
 
-**Way 2:**
+</details>
+
+<details>
+<summary>Groovy</summary>
+
+_build.gradle_
+
+```groovy
+plugins {
+    id "org.jetbrains.kotlin.jvm" // or js? or multiplatform?
+    id "love.forte.plugin.suspend-transform" version "$PLUGIN_VERSION" 
+    // other...
+}
+
+// other...
+
+// config it.
+suspendTransform {
+    enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
+}
+```
+
+</details>
+
+
+
+**Using [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application):**
+
+<details open>
+<summary>Kotlin</summary>
 
 _build.gradle.kts_
 
@@ -103,8 +147,8 @@ buildscript {
     }
 }
 
-plugins { 
-    kotlin("jvm") // or..?
+plugins {
+    id("org.jetbrains.kotlin.jvm") // or js? or multiplatform?
     id("love.forte.plugin.suspend-transform") 
     // other...
 }
@@ -114,13 +158,73 @@ plugins {
 // config it.
 suspendTransform {
     enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
 }
 ```
+
+</details>
+
+<details>
+<summary>Groovy</summary>
+
+_build.gradle_
+
+```groovy
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:$VERSION"
+    }
+}
+
+
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" // or js? or multiplatform?
+    id "love.forte.plugin.suspend-transform" 
+    // other...
+}
+
+// other...
+
+// config it.
+suspendTransform {
+    enabled = true // default: true
+    includeRuntime = true // default: true
+    jvm {
+        // ...
+    }
+    js {
+        // ...
+    }
+}
+```
+
+</details>
 
 ### Maven
 
 > Not supported yet.
 
+## Cautions
+
+### Gradle JVM
+
+Gradle JVM must be JDK11+
+
+### JS platform
+
+JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
 ## Effect
 
@@ -163,7 +267,7 @@ class Bar {
 
 **compiled:**
 
-> Simplified from decompiled results.
+> _Simplified from decompiled results._
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
@@ -175,8 +279,8 @@ import kotlin.jvm.JvmSynthetic
 @JvmBlocking 
 @JvmAsync
 interface Foo {
-    @love.forte.plugin.suspendtrans.annotation.Generated 
-    @love.forte.plugin.suspendtrans.annotation.Api4J 
+    @Generated 
+    @Api4J 
     val selfBlocking: Foo /* compiled code */
 
     suspend fun age(def: Int /* = compiled code */): Int
@@ -273,4 +377,109 @@ class Bar {
 
     fun noTrans(): Int { /* compiled code */ }
 }
+```
+
+## Custom config
+
+```kotlin
+plugin {
+    id("love.forte.plugin.suspend-transform") version "$VERSION"
+}
+
+
+suspendTransform {
+    // enabled suspend transform plugin
+    enabled = true
+    // include 'love.forte.plugin.suspend-transform:suspend-transform-runtime' to the runtime environment
+    includeRuntime = true
+    // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
+    runtimeConfigurationName = "implementation"
+    
+    // jvm platform target config
+    jvm {
+        // jvm blocking annotation. default: @JvmBlocking
+        jvmBlockingMarkAnnotation.apply {
+            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmBlocking"
+            baseNameProperty = "baseName"
+            suffixProperty = "suffix"
+            asPropertyProperty = "asProperty"
+        }
+        
+        // jvm async annotation. default: @JvmAsync
+        jvmAsyncMarkAnnotation.apply {
+            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmAsync"
+            baseNameProperty = "baseName"
+            suffixProperty = "suffix"
+            asPropertyProperty = "asProperty"
+        }
+
+        // jvm blocking function. 
+        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): T
+        jvmBlockingFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInBlocking$"
+        
+        // jvm async function. 
+        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T>
+        jvmAsyncFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInAsync$"
+
+        // annotations that to be included to the synthetic blocking functions
+        syntheticBlockingFunctionIncludeAnnotations = listOf(
+            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+        )
+
+        // annotations that to be included to the synthetic async functions
+        syntheticAsyncFunctionIncludeAnnotations = listOf(
+            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+        )
+
+        // copy the annotations from source function to the synthetic blocking function
+        copyAnnotationsToSyntheticBlockingFunction = true
+        
+        // copy the annotations from source function to the synthetic async function
+        copyAnnotationsToSyntheticAsyncFunction = true
+
+        // if 'copyAnnotationsToSyntheticBlockingFunction == true',
+        // list of annotations to be excluded in the copy process
+        copyAnnotationsToSyntheticBlockingFunctionExcludes = listOf(
+            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
+        )
+
+        // if 'copyAnnotationsToSyntheticAsyncFunction == true',
+        // list of annotations to be excluded in the copy process
+        copyAnnotationsToSyntheticAsyncFunctionExcludes = listOf(
+            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
+        )
+    }
+    
+    js {
+        // Roughly similar to what is in 'jvm'
+    }
+    
+    
+}
+```
+
+## License
+
+see [LICENSE](LICENSE) .
+
+```text
+Copyright (c) 2022 ForteScarlet
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
