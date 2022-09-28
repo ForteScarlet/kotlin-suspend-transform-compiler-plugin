@@ -56,3 +56,23 @@ jobs:
             -Porg.gradle.jvmargs="-Xmx8G -XX:MaxPermSize=2g -Dfile.encoding=UTF-8"
             -Porg.gradle.workers.max=16
             -Porg.gradle.parallel=true
+
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: publish-release
+    permissions:
+      contents: write
+    steps:
+      # 检出仓库代码
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+        # Create gitHub release
+      - name: Create Github Release
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          token: ${{ secrets.FORTE_TOKEN }}
+#          body_path: .changelog/${{ github.ref_name }}.md
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'preview') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
