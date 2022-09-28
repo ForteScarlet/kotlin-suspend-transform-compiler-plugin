@@ -2,13 +2,13 @@
 [![Maven Central](https://img.shields.io/maven-central/v/love.forte.plugin.suspend-transform/suspend-transform-plugin)](https://repo1.maven.org/maven2/love/forte/plugin/suspend-transform/suspend-transform-plugin/) 
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/love.forte.plugin.suspend-transform)](https://plugins.gradle.org/plugin/love.forte.plugin.suspend-transform)
 
-<img src=".project/cover.png" alt="cover">
+<img src=".project/cover.png" alt="封面">
 
-**English** | [简体中文](README_CN.md)
+[English](README.md) | **简体中文**
 
-## Summary
+## 简介
 
-Kotlin compiler plugin for generating platform-compatible functions for suspend functions.
+用于为Kotlin挂起函数自动生成平台兼容函数的Kotlin编译器插件。
 
 ### JVM
 
@@ -23,21 +23,21 @@ class Foo {
 }
 ```
 
-compiled 👇
+编译后 👇
 
 ```kotlin
 class Foo {
-    // Hide from Java
+    // 对Java隐藏
     @JvmSynthetic
     suspend fun waitAndGet(): String {
         delay(5)
         return "Hello"
     }
-    @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' from the runtime provided by the plugin
+    @Api4J // RequiresOptIn 注解, 向Kotlin开发者提供警告
+    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' 来自于插件提供的运行时依赖
 
-    @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+    @Api4J // RequiresOptIn 注解, 向Kotlin开发者提供警告
+    fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
 }
 ```
 
@@ -52,7 +52,7 @@ class Foo {
 }
 ```
 
-compiled 👇
+编译后 👇
 
 ```kotlin
 class Foo {
@@ -60,17 +60,17 @@ class Foo {
         delay(5)
         return "Hello"
     }
-    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+    @Api4Js // RequiresOptIn 注解, 向Kotlin开发者提供警告
+    fun waitAndGetBlocking(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
 }
 ```
 
-> JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+> JS 目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
-## Usage
+## 使用
 ### Gradle
 
-**Using the [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block):**
+**通过 [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block) 使用:**
 
 <details open>
 <summary>Kotlin</summary>
@@ -79,17 +79,17 @@ _build.gradle.kts_
 
 ```kotlin
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "KOTLIN_VERSION" // or js? or multiplatform?
+    id("org.jetbrains.kotlin.jvm") version "KOTLIN_VERSION" // 或 js? 或 multiplatform?
     id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
-    // other...
+    // 其他...
 }
 
-// other...
+// 其他...
 
-// config it.
+// 配置
 suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
+    enabled = true // 默认: true
+    includeRuntime = true // 默认: true
     jvm {
         // ...
     }
@@ -108,17 +108,17 @@ _build.gradle_
 
 ```groovy
 plugins {
-    id "org.jetbrains.kotlin.jvm" // or js? or multiplatform?
+    id "org.jetbrains.kotlin.jvm" // 或 js? 或 multiplatform?
     id "love.forte.plugin.suspend-transform" version "$PLUGIN_VERSION" 
-    // other...
+    // 其他...
 }
 
-// other...
+// 其他...
 
-// config it.
+// 配置
 suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
+    enabled = true // 默认: true
+    includeRuntime = true // 默认: true
     jvm {
         // ...
     }
@@ -132,7 +132,7 @@ suspendTransform {
 
 
 
-**Using [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application):**
+**通过 [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application) 使用:**
 
 <details open>
 <summary>Kotlin</summary>
@@ -151,17 +151,17 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") // or js? or multiplatform?
+    id("org.jetbrains.kotlin.jvm") // 或 js? 或 multiplatform?
     id("love.forte.plugin.suspend-transform") 
-    // other...
+    // 其他...
 }
 
-// other...
+// 其他...
 
-// config it.
+// 配置
 suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
+    enabled = true // 默认: true
+    includeRuntime = true // 默认: true
     jvm {
         // ...
     }
@@ -193,17 +193,17 @@ buildscript {
 
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" // or js? or multiplatform?
+    id "org.jetbrains.kotlin.jvm" // 或 js? 或 multiplatform?
     id "love.forte.plugin.suspend-transform" 
-    // other...
+    // 其他...
 }
 
-// other...
+// 其他...
 
-// config it.
+// 配置
 suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
+    enabled = true // 默认: true
+    includeRuntime = true // 默认: true
     jvm {
         // ...
     }
@@ -217,21 +217,21 @@ suspendTransform {
 
 ### Maven
 
-> Not supported yet.
+> 尚不支持。
 
-## Cautions
+## 注意事项
 
 ### Gradle JVM
 
-Gradle JVM must be JDK11+
+Gradle JVM 必须满足 JDK11+
 
-### JS platform
+### JS平台
 
-JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+JS目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
-## Effect
+## 效果
 
-**source:**
+**源代码:**
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
@@ -255,7 +255,7 @@ class FooImpl : Foo {
     suspend fun size(): Long = 666
     override suspend fun name(): String = "forte"
     override suspend fun age(def: Int): Int = def
-    @JvmBlocking(asProperty = true) // must be 'asProperty=true'
+    @JvmBlocking(asProperty = true) // asProperty 必须为 true
     override suspend fun self(): FooImpl = this
 }
 
@@ -268,9 +268,9 @@ class Bar {
 }
 ```
 
-**compiled:**
+**编译结果:**
 
-> _Simplified from decompiled results._
+> _简化自反编译结果_
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
@@ -382,7 +382,7 @@ class Bar {
 }
 ```
 
-## Custom config
+## 自定义配置
 
 ```kotlin
 plugin {
@@ -391,16 +391,16 @@ plugin {
 
 
 suspendTransform {
-    // enabled suspend transform plugin
+    // 开启插件
     enabled = true
-    // include 'love.forte.plugin.suspend-transform:suspend-transform-runtime' to the runtime environment
+    // 添加依赖 'love.forte.plugin.suspend-transform:suspend-transform-runtime' 到运行时环境
     includeRuntime = true
-    // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
+    // 添加的依赖 'love.forte.plugin.suspend-transform:suspend-transform-runtime' 的 'configuration name'
     runtimeConfigurationName = "implementation"
     
-    // jvm platform target config
+    // jvm平台目标配置
     jvm {
-        // jvm blocking annotation. default: @JvmBlocking
+        // jvm阻塞标记注解。默认: @JvmBlocking
         jvmBlockingMarkAnnotation.apply {
             annotationName = "love.forte.plugin.suspendtrans.annotation.JvmBlocking"
             baseNameProperty = "baseName"
@@ -408,7 +408,7 @@ suspendTransform {
             asPropertyProperty = "asProperty"
         }
         
-        // jvm async annotation. default: @JvmAsync
+        // jvm异步标记注解。默认: @JvmAsync
         jvmAsyncMarkAnnotation.apply {
             annotationName = "love.forte.plugin.suspendtrans.annotation.JvmAsync"
             baseNameProperty = "baseName"
@@ -416,54 +416,52 @@ suspendTransform {
             asPropertyProperty = "asProperty"
         }
 
-        // jvm blocking function. 
-        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): T
+        // jvm阻塞转化函数
+        // 函数签名必须满足: fun <T> <fun-name>(block: suspend () -> T): T
         jvmBlockingFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInBlocking$"
         
-        // jvm async function. 
-        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T>
+        // jvm异步转化函数
+        // 函数签名必须满足 fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T>
         jvmAsyncFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInAsync$"
 
-        // annotations that to be included to the synthetic blocking functions
+        // 需要追加到生成的jvm阻塞函数上的额外注解
         syntheticBlockingFunctionIncludeAnnotations = listOf(
             SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
         )
 
-        // annotations that to be included to the synthetic async functions
+        // 需要追加到生成的jvm异步函数上的额外注解
         syntheticAsyncFunctionIncludeAnnotations = listOf(
             SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
         )
 
-        // copy the annotations from source function to the synthetic blocking function
+        // 是否需要拷贝源函数上的注解到jvm阻塞函数上
         copyAnnotationsToSyntheticBlockingFunction = true
         
-        // copy the annotations from source function to the synthetic async function
+        // 是否需要拷贝源函数上的注解到jvm异步函数上
         copyAnnotationsToSyntheticAsyncFunction = true
 
-        // if 'copyAnnotationsToSyntheticBlockingFunction == true',
-        // list of annotations to be excluded in the copy process
+        // 如果需要拷贝注解，配置拷贝过程中需要排除的注解
         copyAnnotationsToSyntheticBlockingFunctionExcludes = listOf(
             SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
         )
 
-        // if 'copyAnnotationsToSyntheticAsyncFunction == true',
-        // list of annotations to be excluded in the copy process
+        // 如果需要拷贝注解，配置拷贝过程中需要排除的注解
         copyAnnotationsToSyntheticAsyncFunctionExcludes = listOf(
             SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
         )
     }
     
     js {
-        // Roughly similar to what is in 'jvm'
+        // 与 'jvm' 中的配置基本类似
     }
     
     
 }
 ```
 
-## License
+## 开源协议
 
-see [LICENSE](LICENSE) .
+参考 [LICENSE](LICENSE) .
 
 ```text
 Copyright (c) 2022 ForteScarlet
