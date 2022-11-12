@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
@@ -212,14 +213,15 @@ private fun generateTransformBodyForFunction(
 
             if (owner.valueParameters.size > 1) {
                 val secondType = owner.valueParameters[1].type
-                KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
-                val coroutineScopeTypeName = COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("CoroutineScope"))
+                val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
                 val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
                 if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
-                    originFunction.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-                        if (dispatchReceiverParameter.type.isClassType(coroutineScopeTypeNameUnsafe)) {
-                            // put 'this' to second arg
-                            putValueArgument(1, irGet(dispatchReceiverParameter))
+                    function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
+                        context.referenceClass(coroutineScopeTypeName)?.also { coroutineScopeRef ->
+                            if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
+                                // put 'this' to second arg
+                                putValueArgument(1, irGet(dispatchReceiverParameter))
+                            }
                         }
                     }
                 }
