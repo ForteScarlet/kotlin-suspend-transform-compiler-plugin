@@ -1,7 +1,3 @@
-import com.bennyhuo.kotlin.plugin.embeddable.embeddableCompiler
-import com.bennyhuo.kotlin.plugin.embeddable.getOrCreate
-import com.bennyhuo.kotlin.plugin.embeddable.testWithEmbedded
-import embeddable.testWithEmbedded0
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -19,6 +15,8 @@ plugins {
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
 //    compileOnly(kotlin("compiler-embeddable"))
 
     kapt("com.google.auto.service:auto-service:1.0.1")

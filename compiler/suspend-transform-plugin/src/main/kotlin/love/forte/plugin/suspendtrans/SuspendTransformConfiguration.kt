@@ -51,13 +51,27 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
         var jvmAsyncMarkAnnotation = MarkAnnotation(TO_JVM_ASYNC_ANNOTATION_NAME)
 
         /**
-         * 格式必须为
+         * 格式必须为:
          *
          * ```kotlin
-         * fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T> {
+         * fun <T> <fun-name>(block: suspend () -> T[, scope: CoroutineScope = ...]): CompletableFuture<T> {
          *     // ...
          * }
          * ```
+         *
+         * 其中，此异步函数可以有第二个参数，此参数格式必须为 [kotlinx.coroutines.CoroutineScope]。
+         * 如果存在此参数，当转化函数所处类型自身实现了 [kotlinx.coroutines.CoroutineScope] 时，将会将其自身作为参数填入，类似于：
+         *
+         * ```kotlin
+         * class Bar : CoroutineScope {
+         *    @JvmAsync
+         *    suspend fun foo(): Foo
+         *
+         *    @Api4J fun fooAsync(): CompletableFuture<Foo> = runInAsync(block = { foo() }, scope = this)
+         * }
+         * ```
+         * 当前类型不属于 [kotlinx.coroutines.CoroutineScope] 类型时不会使用此参数。
+         *
          */
         var jvmAsyncFunctionName: String = JVM_RUN_IN_ASYNC_FUNCTION_NAME
 
