@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 @AutoService(ComponentRegistrar::class)
 class SuspendTransformComponentRegistrar : ComponentRegistrar {
 
-    internal var defaultConfiguration: SuspendTransformConfiguration? = null
+    //internal var defaultConfiguration: SuspendTransformConfiguration? = null
 
 
     override fun registerProjectComponents(
@@ -20,7 +20,7 @@ class SuspendTransformComponentRegistrar : ComponentRegistrar {
         configuration: CompilerConfiguration,
     ) {
 
-        val suspendTransformConfiguration = defaultConfiguration ?: configuration.resolveToSuspendTransformConfiguration()
+        val suspendTransformConfiguration =/* defaultConfiguration ?: */configuration.resolveToSuspendTransformConfiguration()
 
         if (suspendTransformConfiguration.enabled) {
             SyntheticResolveExtension.registerExtension(project, SuspendTransformSyntheticResolveExtension(suspendTransformConfiguration))

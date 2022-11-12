@@ -1,12 +1,10 @@
 package love.forte.plugin.suspendtrans.ir
 
 import love.forte.plugin.suspendtrans.*
-import love.forte.plugin.suspendtrans.utils.createIrBuilder
-import love.forte.plugin.suspendtrans.utils.createSuspendLambdaWithCoroutineScope
-import love.forte.plugin.suspendtrans.utils.irAnnotationConstructor
-import love.forte.plugin.suspendtrans.utils.paramsAndReceiversAsParamsList
+import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.builtins.StandardNames.COROUTINES_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
@@ -15,18 +13,16 @@ import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
-import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.serialization.deserialization.KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
 
 /**
  *
@@ -145,7 +141,7 @@ class SuspendTransformTransformer(
         if (parent is IrDeclarationContainer) {
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
                 .filter { f -> f.descriptor == originFunctionDescriptor }
-            function.descriptor
+
             if (originFunctions.size != 1) {
                 // maybe override function
                 /*
@@ -209,6 +205,27 @@ private fun generateTransformBodyForFunction(
                     putValueArgument(index, irGet(parameter))
                 }
             })
+            // argument: 1, if is CoroutineScope, and this is CoroutineScope.
+            //println("transformTargetFunctionCall.owner: ${transformTargetFunctionCall.owner}")
+            //println(transformTargetFunctionCall.owner.valueParameters)
+            val owner = transformTargetFunctionCall.owner
+
+            if (owner.valueParameters.size > 1) {
+                val secondType = owner.valueParameters[1].type
+                KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
+                val coroutineScopeTypeName = COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("CoroutineScope"))
+                val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
+                if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
+                    originFunction.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
+                        if (dispatchReceiverParameter.type.isClassType(coroutineScopeTypeNameUnsafe)) {
+                            // put 'this' to second arg
+                            putValueArgument(1, irGet(dispatchReceiverParameter))
+                        }
+                    }
+                }
+
+            }
+
         })
     }
 }

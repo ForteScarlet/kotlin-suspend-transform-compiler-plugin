@@ -15,15 +15,15 @@ description = "Generate platform-compatible functions for Kotlin suspend functio
 val isPublishConfigurable = isPublishConfigurable()
 
 if (!isPublishConfigurable) {
-    println("[WARN] - sonatype.username or sonatype.password is null, cannot config nexus publishing.")
+    logger.warn("sonatype.username or sonatype.password is null, cannot config nexus publishing.")
 }
 
 
 if (isPublishConfigurable) {
     val (sonatypeUsername, sonatypePassword) = sonatypeUserInfo
     nexusPublishing {
-        println("[NEXUS] - project.group:   ${project.group}")
-        println("[NEXUS] - project.version: ${project.version}")
+        logger.info("[NEXUS] - project.group:   ${project.group}")
+        logger.info("[NEXUS] - project.version: ${project.version}")
         packageGroup by project.group.toString()
         repositoryDescription by (project.description ?: "")
         
@@ -50,7 +50,7 @@ if (isPublishConfigurable) {
     }
     
     
-    println("[nexus-publishing-configure] - [$name] configured.")
+    logger.info("[nexus-publishing-configure] - [{}] configured.", name)
 }
 
 

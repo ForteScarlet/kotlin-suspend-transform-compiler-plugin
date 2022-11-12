@@ -44,7 +44,11 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        
+        getByName("jsMain") {
+            dependencies {
+                compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.6.4")
+            }
+        }
         getByName("jvmMain") {
             dependencies {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")

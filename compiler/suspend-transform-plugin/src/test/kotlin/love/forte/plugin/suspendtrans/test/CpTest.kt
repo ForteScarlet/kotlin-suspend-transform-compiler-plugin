@@ -1,11 +1,12 @@
 package love.forte.plugin.suspendtrans.test
 
-import com.bennyhuo.kotlin.compiletesting.extensions.source.SingleFileModuleInfoLoader
+import com.bennyhuo.kotlin.compiletesting.extensions.module.KotlinModule
+import com.bennyhuo.kotlin.compiletesting.extensions.module.compileAll
+import com.bennyhuo.kotlin.compiletesting.extensions.source.FileBasedModuleInfoLoader
 import com.tschuchort.compiletesting.KotlinCompilation
 import love.forte.plugin.suspendtrans.CliOptions
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -14,7 +15,7 @@ import kotlin.test.assertEquals
  *
  * @author ForteScarlet
  */
-class Test {
+class CpTest {
 
     @Test
     fun basicTest() {
@@ -59,33 +60,29 @@ class Test {
     }
 
     private fun testBase(fileName: String) {
-        val loader = SingleFileModuleInfoLoader("testData/$fileName")
+        val loader = FileBasedModuleInfoLoader("testData/$fileName")
         val sourceModuleInfos = loader.loadSourceModuleInfos()
 
         val modules = sourceModuleInfos.map {
-            KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar().apply {
-                defaultConfiguration = SuspendTransformConfiguration().apply {
-
-                }
-            })).apply {
-                compilation.apply {
-                    workingDir = File("build/em-jvm/${fileName.substringBeforeLast(".")}")
-                    useIR = true
-                    javaParameters = true
-                    jvmDefault = "all"
-                }
+            KotlinModule(it, componentRegistrars = listOf(SuspendTransformComponentRegistrar())).apply {
+                //compilation.apply {
+                //    workingDir = File("build/em-jvm/${fileName.substringBeforeLast(".")}")
+                //    useIR = true
+                //    javaParameters = true
+                //    jvmDefault = "all"
+                //}
             }
         }
 
-        modules.resolveAllDependencies()
+//        modules.resolveAllDependencies()
         modules.compileAll()
 
         modules.forEach { module ->
             val result = module.compileResult!!
-            assertEquals(result.exitCode, KotlinCompilation.ExitCode.OK)
-            println(" ==== JAVA CODE : ${result.generatedFiles} ====")
-            println(result.javaCode("JustTest"))
-            println(" ===================")
+            assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+            //println(" ==== JAVA CODE : ${result.generatedFiles} ====")
+            //println(result.javaCode("JustTest"))
+            //println(" ===================")
         }
 
 //

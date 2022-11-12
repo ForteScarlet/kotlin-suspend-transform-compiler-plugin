@@ -9,10 +9,7 @@ plugins {
     id("suspend-transform.jvm-maven-publish")
     id("com.bennyhuo.kotlin.plugin.embeddable.test") version "1.7.10.0"
 }
-buildscript {
-    plugins {
-    }
-}
+
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))
@@ -22,19 +19,30 @@ dependencies {
 
     testImplementation(kotlin("stdlib"))
     testImplementation(kotlin("test-junit"))
-    testImplementation(kotlin("compiler-embeddable"))
+//    testImplementation(kotlin("compiler-embeddable"))
+    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable")
 
     testImplementation(project(":runtime:suspend-transform-annotation"))
     testImplementation(project(":runtime:suspend-transform-runtime"))
 
 //    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
-    testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
-    testImplementation("com.bennyhuo.kotlin:kotlin-compile-testing-extensions:1.7.10.1")
+//    testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
+    testImplementation("com.bennyhuo.kotlin:kotlin-compile-testing-extensions:1.7.10.2-SNAPSHOT")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     // testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 }
 val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions.freeCompilerArgs += listOf("-Xjvm-default=enable", "-opt-in=kotlin.RequiresOptIn")
+
+repositories {
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
+}
 
 buildConfig {
     useKotlinOutput {

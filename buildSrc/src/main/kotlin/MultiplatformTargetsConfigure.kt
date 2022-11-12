@@ -25,8 +25,6 @@ fun KotlinMultiplatformExtension.configAllNativeTargets(
 ) {
     presets.all {
         if (this !is KotlinNativeTargetPreset || !filter(this)) return@all
-        println(this)
-        println(this.name)
         configureOrCreate(name, this, configureEach)
     }
 }

@@ -15,10 +15,13 @@ allprojects {
         mavenLocal()
         mavenCentral()
         gradlePluginPortal()
+        //maven {
+        //    url = URI("")
+        //}
     }
     this.tasks.withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
     }
     this.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
