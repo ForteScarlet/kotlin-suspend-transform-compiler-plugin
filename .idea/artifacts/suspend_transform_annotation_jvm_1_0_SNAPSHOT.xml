@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="suspend-transform-annotation-jvm-1.0-SNAPSHOT">
-    <output-path>$PROJECT_DIR$/suspend-transform-annotation/build/libs</output-path>
-    <root id="archive" name="suspend-transform-annotation-jvm-1.0-SNAPSHOT.jar">
-      <element id="module-output" name="suspend-transform-kotlin-compile-plugin.suspend-transform-annotation.jvmMain" />
-    </root>
-  </artifact>
-</component>
