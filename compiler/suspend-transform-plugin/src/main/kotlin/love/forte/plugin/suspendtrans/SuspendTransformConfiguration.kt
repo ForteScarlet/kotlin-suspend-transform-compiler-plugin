@@ -1,11 +1,26 @@
 package love.forte.plugin.suspendtrans
 
+data class FunctionInfo(
+    val packageName: String,
+    val className: String?,
+    val functionName: String,
+)
+
+data class ClassInfo @JvmOverloads constructor(
+    val packageName: String,
+    val className: String,
+    val local: Boolean = false
+)
 
 /**
  *
  * @author ForteScarlet
  */
-open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: Boolean = true, defaultJvm: Jvm = Jvm(), defaultJs: Js = Js()) {
+open class SuspendTransformConfiguration @JvmOverloads constructor(
+    var enabled: Boolean = true,
+    defaultJvm: Jvm = Jvm(),
+    defaultJs: Js = Js()
+) {
     var jvm: Jvm = defaultJvm
         private set
 
@@ -34,6 +49,16 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
          */
         var jvmBlockingMarkAnnotation = MarkAnnotation(TO_JVM_BLOCKING_ANNOTATION_NAME)
 
+
+        /**
+         * 如果 [jvmBlockingFunctionName] 不为null，则会尝试优先解析。
+         *
+         * @see jvmBlockingFunctionInfo
+         */
+        @Deprecated("Use jvmBlockingFunctionInfo")
+        var jvmBlockingFunctionName: String? = null // JVM_RUN_IN_BLOCKING_FUNCTION_NAME
+
+
         /**
          * 格式必须为
          *
@@ -43,12 +68,25 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
          * }
          * ```
          */
-        var jvmBlockingFunctionName: String = JVM_RUN_IN_BLOCKING_FUNCTION_NAME
+        var jvmBlockingFunctionInfo: FunctionInfo = FunctionInfo(
+            JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME,
+            JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME,
+            JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME,
+        )
 
         /**
          * 标记为异步函数的标记注解。
          */
         var jvmAsyncMarkAnnotation = MarkAnnotation(TO_JVM_ASYNC_ANNOTATION_NAME)
+
+        /**
+         * 如果 [jvmAsyncFunctionName] 不为null，则会尝试优先解析。
+         *
+         * @see jvmAsyncFunctionInfo
+         *
+         */
+        @Deprecated("Use jvmBlockingFunctionInfo")
+        var jvmAsyncFunctionName: String? = null // JVM_RUN_IN_ASYNC_FUNCTION_NAME
 
         /**
          * 格式必须为:
@@ -73,21 +111,43 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
          * 当前类型不属于 [kotlinx.coroutines.CoroutineScope] 类型时不会使用此参数。
          *
          */
-        var jvmAsyncFunctionName: String = JVM_RUN_IN_ASYNC_FUNCTION_NAME
+        var jvmAsyncFunctionInfo: FunctionInfo = FunctionInfo(
+            JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+            JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+            JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+        )
+
+
+        /**
+         * @see originFunctionIncludeAnnotationInfos
+         */
+        @Deprecated("Use 'originFunctionIncludeAnnotationInfos'")
+        var originFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
+//        listOf(
+//            IncludeAnnotation("kotlin.jvm.JvmSynthetic")
+//        )
 
         /**
          * 要在被合成的源函数上追加的注解。必须保证不存在参数。
          */
-        var originFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf(
-            IncludeAnnotation("kotlin.jvm.JvmSynthetic")
+        var originFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
+            IncludeAnnotationInfo(ClassInfo("kotlin.jvm", "JvmSynthetic"))
         )
 
         /**
-         * 要在合成出来的 blocking 函数上追加的额外注解。（不需要指定 `@Generated`）。
-         *
+         * @see syntheticBlockingFunctionIncludeAnnotationInfos
          */
-        var syntheticBlockingFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf(
-            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+        @Deprecated("Use 'syntheticBlockingFunctionIncludeAnnotationInfos'")
+        var syntheticBlockingFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
+//        listOf(
+//            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+//        )
+
+        /**
+         * 要在合成出来的 blocking 函数上追加的额外注解。（不需要指定 `@Generated`）。
+         */
+        var syntheticBlockingFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
+            IncludeAnnotationInfo(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
         )
 
         /**
@@ -107,8 +167,17 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
          * 要在合成出来的 async 函数上追加的额外注解。（不需要指定 `@Generated`）。
          *
          */
-        var syntheticAsyncFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf(
-            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+        @Deprecated("Use 'syntheticAsyncFunctionIncludeAnnotationInfos'")
+        var syntheticAsyncFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
+//        listOf(
+//            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
+//        )
+        /**
+         * 要在合成出来的 async 函数上追加的额外注解。（不需要指定 `@Generated`）。
+         *
+         */
+        var syntheticAsyncFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
+            IncludeAnnotationInfo(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
         )
 
 
@@ -136,6 +205,13 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
      * JS platform config
      */
     open class Js {
+
+        /**
+         * @see jsPromiseFunctionInfo
+         */
+        @Deprecated("Unused")
+        var jsPromiseFunctionName: String? = null // JS_RUN_IN_ASYNC_FUNCTION_NAME
+
         /**
          * 格式必须为
          * ```kotlin
@@ -144,7 +220,11 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
          * }
          * ```
          */
-        var jsPromiseFunctionName: String = JS_RUN_IN_ASYNC_FUNCTION_NAME
+        var jsPromiseFunctionInfo: FunctionInfo = FunctionInfo(
+            JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+            JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+            JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+        )
 
 
         /**
@@ -189,6 +269,10 @@ open class SuspendTransformConfiguration @JvmOverloads constructor(var enabled: 
 
     data class IncludeAnnotation(
         var name: String, var repeatable: Boolean = false
+    )
+
+    data class IncludeAnnotationInfo(
+        var classInfo: ClassInfo, var repeatable: Boolean = false
     )
 
     data class ExcludeAnnotation(val name: String)

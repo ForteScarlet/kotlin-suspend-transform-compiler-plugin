@@ -31,13 +31,15 @@ object CliOptions {
 
         val ORIGIN_FUNCTION_INCLUDE_ANNOTATIONS = option("jvm.originFunctionIncludeAnnotations") {
             inc { jvm.originFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-            out { includeAnnotationEncode(jvm.originFunctionIncludeAnnotations) }
+            // TODO
+            out { includeAnnotationEncode(jvm.originFunctionIncludeAnnotations ?: emptyList()) }
         }
 
 
         //region blocking
         val JVM_BLOCKING_FUNCTION_NAME = option("jvm.jvmBlockingFunctionName") {
-            withProp { jvm::jvmBlockingFunctionName }
+            // TODO
+            withNullableProp { jvm::jvmBlockingFunctionName }
         }
 
         //region blocking mark
@@ -79,7 +81,8 @@ object CliOptions {
         val SYNTHETIC_BLOCKING_FUNCTION_INCLUDE_ANNOTATIONS =
             option("jvm.syntheticBlockingFunctionIncludeAnnotations") {
                 inc { jvm.syntheticBlockingFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-                out { includeAnnotationEncode(jvm.syntheticBlockingFunctionIncludeAnnotations) }
+                // TODO
+                out { includeAnnotationEncode(jvm.syntheticBlockingFunctionIncludeAnnotations ?: emptyList()) }
             }
 
         //endregion
@@ -87,7 +90,8 @@ object CliOptions {
 
         //region async
         val JVM_ASYNC_FUNCTION_NAME = option("jvm.jvmAsyncFunctionName") {
-            withProp { jvm::jvmAsyncFunctionName }
+            // TODO
+            withNullableProp { jvm::jvmAsyncFunctionName }
         }
 
         //region async mark
@@ -114,7 +118,8 @@ object CliOptions {
 
         val SYNTHETIC_ASYNC_FUNCTION_INCLUDE_ANNOTATIONS = option("jvm.syntheticAsyncFunctionIncludeAnnotations") {
             inc { jvm.syntheticAsyncFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-            out { includeAnnotationEncode(jvm.syntheticAsyncFunctionIncludeAnnotations) }
+            // TODO
+            out { includeAnnotationEncode(jvm.syntheticAsyncFunctionIncludeAnnotations ?: emptyList()) }
         }
 
         val COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION =
@@ -178,6 +183,11 @@ private class ResolveBuilder {
     fun withProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String>) {
         inc { block().setter.call(it) }
         out { block().getter.call() }
+    }
+
+    fun withNullableProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String?>) {
+        inc { block().setter.call(it.takeIf { it.isNotEmpty() }) }
+        out { block().getter.call() ?: "" }
     }
 }
 

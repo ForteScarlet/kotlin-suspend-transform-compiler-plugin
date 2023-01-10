@@ -1,9 +1,6 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.PluginAvailability
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.fqn
-import love.forte.plugin.suspendtrans.generatedAnnotationName
+import love.forte.plugin.suspendtrans.*
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.descriptors.*
@@ -11,7 +8,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
@@ -256,7 +253,7 @@ private fun copyAnnotations(
 ): Pair<Annotations, Annotations> {
 
     fun findAnnotation(
-        name: FqName, valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
+        name: ClassId, valueArguments: Map<Name, ConstantValue<*>> = mutableMapOf()
     ): AnnotationDescriptorImpl? {
         val descriptor = originFunction.module.findClassDescriptor(name) ?: return null
         val type = KotlinTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, emptyList())
@@ -269,7 +266,9 @@ private fun copyAnnotations(
                 CopyAnnotationsData(
                     it.copyAnnotationsToSyntheticBlockingFunction,
                     it.copyAnnotationsToSyntheticBlockingFunctionExcludes,
-                    it.syntheticBlockingFunctionIncludeAnnotations
+                    // TODO
+                    it.syntheticBlockingFunctionIncludeAnnotations?.map { a -> a.toInfo() }
+                        ?: it.syntheticBlockingFunctionIncludeAnnotationInfos.map { a -> a.toInfo() }
                 )
             }
         }
@@ -279,7 +278,9 @@ private fun copyAnnotations(
                 CopyAnnotationsData(
                     it.copyAnnotationsToSyntheticAsyncFunction,
                     it.copyAnnotationsToSyntheticAsyncFunctionExcludes,
-                    it.syntheticAsyncFunctionIncludeAnnotations
+                    // TODO
+                    it.syntheticAsyncFunctionIncludeAnnotations?.map { a -> a.toInfo() }
+                        ?: it.syntheticAsyncFunctionIncludeAnnotationInfos.map { a -> a.toInfo() }
                 )
             }
         }
@@ -289,7 +290,8 @@ private fun copyAnnotations(
                 CopyAnnotationsData(
                     it.copyAnnotationsToSyntheticAsyncFunction,
                     it.copyAnnotationsToSyntheticAsyncFunctionExcludes,
-                    it.syntheticAsyncFunctionIncludeAnnotations
+                    // TODO
+                    it.syntheticAsyncFunctionIncludeAnnotations.map { a -> a.toInfo() }
                 )
             }
         }
@@ -317,18 +319,18 @@ private fun copyAnnotations(
 
         // add @Generated(by = ...)
         findAnnotation(
-            generatedAnnotationName,
+            generatedAnnotationClassId,
             mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
         )?.also(::add)
 
         // add includes
         includes.forEach { include ->
-            val name = include.name.fqn
-            val unsafeFqName = name.toUnsafe()
+            val classId = include.classId
+            val unsafeFqName = classId.packageFqName.child(classId.shortClassName).toUnsafe()
             if (!include.repeatable && this.any { it.fqName?.toUnsafe() == unsafeFqName }) {
                 return@forEach
             }
-            findAnnotation(name)?.also(::add)
+            findAnnotation(classId)?.also(::add)
         }
     }
 
@@ -338,7 +340,7 @@ private fun copyAnnotations(
 private data class CopyAnnotationsData(
     val copyFunction: Boolean,
     val excludes: List<SuspendTransformConfiguration.ExcludeAnnotation>,
-    val includes: List<SuspendTransformConfiguration.IncludeAnnotation>
+    val includes: List<IncludeAnnotationInfo>
 )
 
 private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->
@@ -361,4 +363,21 @@ private fun SimpleFunctionDescriptor.toGeneratedByDescriptorInfo(): List<StringV
         add(d.returnType?.getJetTypeFqName(true)?.sv ?: "?".sv)
     }
 
+}
+
+private data class IncludeAnnotationInfo(
+    val classId: ClassId,
+    val repeatable: Boolean
+)
+
+private fun ClassInfo.toClassId(): ClassId {
+    return ClassId(packageName.fqn, className.fqn, local)
+}
+
+private fun SuspendTransformConfiguration.IncludeAnnotation.toInfo(): IncludeAnnotationInfo {
+    return IncludeAnnotationInfo(ClassId.topLevel(name.fqn), repeatable)
+}
+
+private fun SuspendTransformConfiguration.IncludeAnnotationInfo.toInfo(): IncludeAnnotationInfo {
+    return IncludeAnnotationInfo(classInfo.toClassId(), repeatable)
 }

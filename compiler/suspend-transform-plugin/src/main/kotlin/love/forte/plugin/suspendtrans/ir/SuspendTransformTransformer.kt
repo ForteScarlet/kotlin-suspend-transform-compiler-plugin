@@ -3,8 +3,8 @@ package love.forte.plugin.suspendtrans.ir
 import love.forte.plugin.suspendtrans.*
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
+import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.builtins.StandardNames.COROUTINES_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
@@ -19,11 +19,12 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.serialization.deserialization.KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
 
 /**
  *
@@ -39,23 +40,42 @@ class SuspendTransformTransformer(
     //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
     private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
     private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
+
+    private val jvmRunBlockingCallableId: CallableId = jvmRunBlockingFunctionName?.callableId
+        ?: configuration.jvm.jvmBlockingFunctionInfo.let { blocking ->
+            CallableId(blocking.packageName.fqn, blocking.className?.fqn, Name.identifier(blocking.functionName))
+        }
+    private val jvmRunAsyncCallableId: CallableId = jvmRunAsyncFunctionName?.callableId
+        ?: configuration.jvm.jvmAsyncFunctionInfo.let { async ->
+            CallableId(async.packageName.fqn, async.className?.fqn, Name.identifier(async.functionName))
+        }
+
+
     private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
-    private val jvmOriginIncludeAnnotations = configuration.jvm.originFunctionIncludeAnnotations.toList()
+    private val jsRunAsyncCallableId = jsRunAsyncFunctionName?.callableId
+        ?: configuration.js.jsPromiseFunctionInfo.let { promise ->
+            CallableId(promise.packageName.fqn, promise.className?.fqn, Name.identifier(promise.functionName))
+        }
+
+
+    private val jvmOriginIncludeAnnotations =
+        configuration.jvm.originFunctionIncludeAnnotations?.toList() ?: emptyList()
     private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
 
     private val jvmRunBlockingFunctionOrNull =
-        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
+//        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
+        pluginContext.referenceFunctions(jvmRunBlockingCallableId).firstOrNull()
 
     private val jvmRunBlockingFunction
         get() = jvmRunBlockingFunctionOrNull
             ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
 
-    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncFunctionName.fqn).singleOrNull()
+    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncCallableId).firstOrNull()
 
     private val jvmRunAsyncFunction
         get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
 
-    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncFunctionName.fqn).singleOrNull()
+    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncCallableId).firstOrNull()
 
     private val jsRunAsyncFunction
         get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
@@ -107,6 +127,7 @@ class SuspendTransformTransformer(
         return generatedOriginFunction
     }
 
+    @OptIn(FirIncompatiblePluginAPI::class)
     private fun postProcessGenerateOriginFunction(function: IrFunction) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
@@ -214,10 +235,11 @@ private fun generateTransformBodyForFunction(
             if (owner.valueParameters.size > 1) {
                 val secondType = owner.valueParameters[1].type
                 val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
+                val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
                 val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
                 if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
                     function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-                        context.referenceClass(coroutineScopeTypeName)?.also { coroutineScopeRef ->
+                        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
                             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                                 // put 'this' to second arg
                                 putValueArgument(1, irGet(dispatchReceiverParameter))
