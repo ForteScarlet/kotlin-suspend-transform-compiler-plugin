@@ -19,8 +19,7 @@ if (!isPublishConfigurable) {
 }
 
 
-if (isPublishConfigurable) {
-    val (sonatypeUsername, sonatypePassword) = sonatypeUserInfo
+//if (isPublishConfigurable) {
     nexusPublishing {
         logger.info("[NEXUS] - project.group:   ${project.group}")
         logger.info("[NEXUS] - project.version: ${project.version}")
@@ -43,6 +42,7 @@ if (isPublishConfigurable) {
         repositories {
             sonatype {
                 snapshotRepositoryUrl by uri(Sonatype.Snapshot.URL)
+                val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull ?: return@sonatype
                 username by sonatypeUsername
                 password by sonatypePassword
             }
@@ -51,7 +51,7 @@ if (isPublishConfigurable) {
     
     
     logger.info("[nexus-publishing-configure] - [{}] configured.", name)
-}
+//}
 
 
 

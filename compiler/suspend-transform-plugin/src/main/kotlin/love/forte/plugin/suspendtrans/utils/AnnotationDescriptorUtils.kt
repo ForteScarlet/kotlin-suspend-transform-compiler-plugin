@@ -1,10 +1,12 @@
 package love.forte.plugin.suspendtrans.utils
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.Transformer
+import love.forte.plugin.suspendtrans.toJsPromiseAnnotationName
+import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
+import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -39,9 +41,6 @@ data class TransformAnnotationData(
     val asProperty: Boolean?,
     val functionName: String,
 ) {
-    // TODO remove.
-    val functionInheritable: Boolean = false
-
     companion object {
         fun of(
             annotationDescriptor: AnnotationDescriptor,
@@ -74,127 +73,30 @@ data class TransformAnnotationData(
 
 }
 
-open class FunctionTransformAnnotations(
-    val jvmBlockingAnnotationData: TransformAnnotationData?,
-    val jvmAsyncAnnotationData: TransformAnnotationData?,
-    val jsAsyncAnnotationData: TransformAnnotationData?,
-) {
-    open val isEmpty: Boolean get() = jvmBlockingAnnotationData == null && jvmAsyncAnnotationData == null && jsAsyncAnnotationData == null
 
-    object Empty : FunctionTransformAnnotations(null, null, null) {
-        override val isEmpty: Boolean
-            get() = true
-    }
+fun Transformer.resolveAnnotationData(
+    functionDescriptor: FunctionDescriptor,
+    containing: DeclarationDescriptor = functionDescriptor.containingDeclaration,
+    defaultBaseName: String,
+    annotationBaseNamePropertyName: String = this.markAnnotation.baseNameProperty,
+    annotationSuffixPropertyName: String = this.markAnnotation.suffixProperty,
+    annotationAsPropertyPropertyName: String = this.markAnnotation.asPropertyProperty,
+): TransformAnnotationData? {
+    val markAnnotationClassId = markAnnotation.classInfo.toClassId()
+    val annotationFqn = markAnnotationClassId.asSingleFqName() // .packageFqName.child(markAnnotationClassId.shortClassName)
 
-    override fun toString(): String {
-        return "FunctionTransformAnnotations(jvmBlockingAnnotationData=$jvmBlockingAnnotationData, jvmAsyncAnnotationData=$jvmAsyncAnnotationData, jsAsyncAnnotationData=$jsAsyncAnnotationData)"
-    }
+    val foundAnnotation = functionDescriptor.annotations.findAnnotation(annotationFqn)
+        ?: containing.annotations.findAnnotation(annotationFqn)
 
-
-}
-
-fun FunctionTransformAnnotations.resolveByFunctionInheritable(): FunctionTransformAnnotations =
-    FunctionTransformAnnotations(
-        jvmBlockingAnnotationData?.takeIf { it.functionInheritable },
-        jvmAsyncAnnotationData?.takeIf { it.functionInheritable },
-        jsAsyncAnnotationData?.takeIf { it.functionInheritable },
-    )
-
-
-fun FunctionDescriptor.resolveToTransformAnnotations(
-    containing: DeclarationDescriptor = this.containingDeclaration,
-    configuration: SuspendTransformConfiguration
-): FunctionTransformAnnotations {
-    val baseName = this.name.identifier
-    val containingAnnotations = containing.annotations.resolveToTransformAnnotations(configuration, baseName)
-    val functionAnnotations = this.annotations.resolveToTransformAnnotations(configuration, baseName)
-
-    // 函数上标记的注解会直接覆盖类上的标记。
-    return containingAnnotations + functionAnnotations
-}
-
-/*
- * 后者优先。
- */
-private operator fun FunctionTransformAnnotations.plus(other: FunctionTransformAnnotations): FunctionTransformAnnotations {
-    if (other.isEmpty) return this
-
-    return FunctionTransformAnnotations(
-        other.jvmBlockingAnnotationData ?: jvmBlockingAnnotationData, // + other.jvmBlockingAnnotationData,
-        other.jvmAsyncAnnotationData ?: jvmAsyncAnnotationData, // + other.jvmAsyncAnnotationData,
-        other.jsAsyncAnnotationData ?: jsAsyncAnnotationData, // + other.jsAsyncAnnotationData,
-    )
-}
-
-/*
- * 后者优先。
- */
-private operator fun TransformAnnotationData?.plus(other: TransformAnnotationData?): TransformAnnotationData? {
-    if (this == null && other == null) return null
-    if (other == null) return this
-    if (this == null) return other
-
-    val baseName = other.baseName ?: this.baseName
-    val suffix = other.suffix ?: this.suffix
-    val asProperty = other.asProperty?.takeIf { it } ?: this.asProperty
-
-    val functionName = if (baseName == null) other.functionName else buildString {
-        append(baseName)
-        suffix?.also(::append)
-    }
-
-    return TransformAnnotationData(
-        annotationDescriptor = other.annotationDescriptor,
-        baseName = baseName,
-        suffix = suffix,
-        asProperty = asProperty,
-        functionName = functionName,
-    )
-
-}
-
-
-private fun Annotations.resolveToTransformAnnotations(
-    configuration: SuspendTransformConfiguration,
-    functionBaseName: String
-): FunctionTransformAnnotations {
-    fun SuspendTransformConfiguration.MarkAnnotation.resolve(
-        defaultBaseName: String,
-        defaultSuffix: String,
-        annotationBaseNamePropertyName: String = this.baseNameProperty,
-        annotationSuffixPropertyName: String = this.suffixProperty,
-        annotationAsPropertyPropertyName: String = this.asPropertyProperty,
-    ): TransformAnnotationData? {
-        return findAnnotation(this.annotationName.fqn)?.let {
-            TransformAnnotationData.of(
-                it,
-                annotationBaseNamePropertyName,
-                annotationSuffixPropertyName,
-                annotationAsPropertyPropertyName,
-                defaultBaseName,
-                defaultSuffix,
-            )
-        }
-    }
-
-    val jvmBlockingMarkAnnotation = configuration.jvm.jvmBlockingMarkAnnotation
-    val jvmAsyncMarkAnnotation = configuration.jvm.jvmAsyncMarkAnnotation
-    val jsAsyncMarkAnnotation = configuration.js.jsPromiseMarkAnnotation
-
-    val jvmBlocking =
-        jvmBlockingMarkAnnotation.resolve(
-            functionBaseName,
-            "Blocking"
+    return foundAnnotation?.let {
+        TransformAnnotationData.of(
+            it,
+            annotationBaseNamePropertyName,
+            annotationSuffixPropertyName,
+            annotationAsPropertyPropertyName,
+            defaultBaseName,
+            markAnnotation.defaultSuffix,
         )
-    val jvmAsync = jvmAsyncMarkAnnotation.resolve(
-        functionBaseName,
-        "Async"
-    )
-    val jsAsync = jsAsyncMarkAnnotation.resolve(
-        functionBaseName,
-        "Async"
-    )
-
-    if (jvmBlocking == null && jvmAsync == null && jsAsync == null) return FunctionTransformAnnotations.Empty
-    return FunctionTransformAnnotations(jvmBlocking, jvmAsync, jsAsync)
+    }
 }
+

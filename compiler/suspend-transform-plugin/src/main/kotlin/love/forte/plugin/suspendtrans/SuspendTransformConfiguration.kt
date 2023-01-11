@@ -1,287 +1,249 @@
 package love.forte.plugin.suspendtrans
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class FunctionInfo(
-    val packageName: String,
-    val className: String?,
-    val functionName: String,
+    var packageName: String,
+    var className: String?,
+    var functionName: String,
 )
 
+@Serializable
 data class ClassInfo @JvmOverloads constructor(
-    val packageName: String,
-    val className: String,
-    val local: Boolean = false
+    var packageName: String,
+    var className: String,
+    var local: Boolean = false
+)
+
+@Serializable
+enum class TargetPlatform {
+    JVM, JS
+}
+
+/**
+ * 根据某个标记注解，
+ * 将一个挂起函数根据一个指定的生成为某种
+ *
+ */
+@Serializable
+data class Transformer(
+    /** 函数上的某种标记。 */
+    val markAnnotation: MarkAnnotation,
+
+    /**
+     * 用于转化的函数信息。
+     *
+     * 这个函数的实际格式必须为
+     *
+     * ```kotlin
+     * fun <T> <fun-name>(block: suspend () -> T[, scope: CoroutineScope = ...]): T {
+     *     // ...
+     * }
+     * ```
+     *
+     * 其中，此异步函数可以有第二个参数，此参数格式必须为 [kotlinx.coroutines.CoroutineScope]。
+     * 如果存在此参数，当转化函数所处类型自身实现了 [kotlinx.coroutines.CoroutineScope] 时，将会将其自身作为参数填入，类似于：
+     *
+     * ```kotlin
+     * class Bar : CoroutineScope {
+     *    @Xxx
+     *    suspend fun foo(): Foo
+     *
+     *    @Api4J fun fooXxx(): CompletableFuture<Foo> = transform(block = { foo() }, scope = this)
+     * }
+     */
+    val transformFunctionInfo: FunctionInfo,
+
+    /**
+     * 转化后的返回值类型, 为null时代表与原函数一致。
+     */
+    val transformReturnType: ClassInfo?,
+
+    /**
+     * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。
+     */
+    val transformReturnTypeGeneric: Boolean,
+
+    /**
+     * 函数生成后，需要在原函数上追加的注解信息。
+     *
+     * 例如追加个 `@kotlin.jvm.JvmSynthetic` 之类的。
+     */
+    val originFunctionIncludeAnnotations: List<IncludeAnnotation>,
+
+    /**
+     * 需要在生成出来的函数上追截的注解信息。（不需要指定 `@Generated`）
+     */
+    val syntheticFunctionIncludeAnnotations: List<IncludeAnnotation>,
+
+    /**
+     * 是否复制源函数上的注解到新的函数上。
+     */
+    val copyAnnotationsToSyntheticFunction: Boolean,
+
+    /**
+     * 复制原函数上注解时需要排除掉的注解。
+     */
+    val copyAnnotationExcludes: List<ClassInfo>
+)
+
+/**
+ * 用于标记的注解信息.
+ */
+@Serializable
+data class MarkAnnotation @JvmOverloads constructor(
+    /**
+     * 注解类信息
+     */
+    val classInfo: ClassInfo,
+    /**
+     * 用于标记生成函数需要使用的基础函数名的注解属性名。
+     */
+    val baseNameProperty: String = "baseName",
+
+    /**
+     * 用于标记生成函数需要使用的基础函数名之后的后缀的注解属性名。
+     */
+    val suffixProperty: String = "suffix",
+
+    /**
+     * 用于标记生成函数是否需要转化为 property 类型的注解属性名。
+     */
+    val asPropertyProperty: String = "asProperty",
+
+    /**
+     * 当 [suffixProperty] 不存在时使用的默认后缀
+     */
+    val defaultSuffix: String = "",
+)
+
+
+@Serializable
+data class IncludeAnnotation(
+    val classInfo: ClassInfo, val repeatable: Boolean = false
 )
 
 /**
  *
  * @author ForteScarlet
  */
-open class SuspendTransformConfiguration @JvmOverloads constructor(
-    var enabled: Boolean = true,
-    defaultJvm: Jvm = Jvm(),
-    defaultJs: Js = Js()
-) {
-    var jvm: Jvm = defaultJvm
-        private set
+@Serializable
+open class SuspendTransformConfiguration {
+    var enabled: Boolean = true
 
-    var js: Js = defaultJs
-        private set
+    var transformers: MutableMap<TargetPlatform, MutableList<Transformer>> =
+        LinkedHashMap<TargetPlatform, MutableList<Transformer>>().apply {
+            // jvm
+            val jvmOriginFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))
+            )
 
-    fun jvm(block: Jvm.() -> Unit) {
-        jvm.block()
+            val jvmCopyExcludes = listOf(
+                ClassInfo("kotlin.jvm", "JvmSynthetic")
+            )
+
+            val jvmSyntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
+            )
+
+            // jvm to blocking
+            val jvmBlockingMarkAnnotationClassInfo =
+                ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking")
+            val jvmBlockingAnnotationInfo = MarkAnnotation(jvmBlockingMarkAnnotationClassInfo)
+            val jvmBlockingTransformFunction = FunctionInfo(
+                JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME,
+                JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME,
+                JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME,
+            )
+
+            val jvmBlockingTransformer = Transformer(
+                markAnnotation = jvmBlockingAnnotationInfo,
+                transformFunctionInfo = jvmBlockingTransformFunction,
+                transformReturnType = null,
+                transformReturnTypeGeneric = false,
+                originFunctionIncludeAnnotations = jvmOriginFunctionIncludeAnnotations,
+                copyAnnotationsToSyntheticFunction = true,
+                copyAnnotationExcludes = jvmCopyExcludes,
+                syntheticFunctionIncludeAnnotations = jvmSyntheticFunctionIncludeAnnotations
+            )
+            // jvm to async
+
+            val jvmAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmAsync")
+            val jvmAsyncAnnotationInfo = MarkAnnotation(jvmAsyncMarkAnnotationClassInfo)
+            val jvmAsyncTransformFunction = FunctionInfo(
+                JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+                JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+                JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+            )
+
+            val jvmAsyncTransformer = Transformer(
+                markAnnotation = jvmAsyncAnnotationInfo,
+                transformFunctionInfo = jvmAsyncTransformFunction,
+                transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
+                transformReturnTypeGeneric = true,
+                originFunctionIncludeAnnotations = jvmOriginFunctionIncludeAnnotations,
+                copyAnnotationsToSyntheticFunction = true,
+                copyAnnotationExcludes = jvmCopyExcludes,
+                syntheticFunctionIncludeAnnotations = jvmSyntheticFunctionIncludeAnnotations
+            )
+
+            put(TargetPlatform.JVM, mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer))
+
+
+            // js to async
+            val jsSyntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4Js"))
+            )
+
+            val jsAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JsPromise")
+            val jsAsyncAnnotationInfo = MarkAnnotation(jsAsyncMarkAnnotationClassInfo)
+            val jsAsyncTransformFunction = FunctionInfo(
+                JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+                JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+                JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+            )
+
+            val jsPromiseTransformer = Transformer(
+                markAnnotation = jsAsyncAnnotationInfo,
+                transformFunctionInfo = jsAsyncTransformFunction,
+                transformReturnType = ClassInfo("kotlin.js", "Promise"),
+                transformReturnTypeGeneric = true,
+                originFunctionIncludeAnnotations = listOf(),
+                copyAnnotationsToSyntheticFunction = true,
+                copyAnnotationExcludes = listOf(),
+                syntheticFunctionIncludeAnnotations = jsSyntheticFunctionIncludeAnnotations
+            )
+
+            put(TargetPlatform.JS, mutableListOf(jsPromiseTransformer))
+        }
+
+    fun addTransformers(target: TargetPlatform, vararg transformers: Transformer) {
+        this.transformers.computeIfAbsent(target) { mutableListOf() }.addAll(transformers)
     }
 
-    fun js(block: Js.() -> Unit) {
-        js.block()
+    fun addTransformers(target: TargetPlatform, transformers: Collection<Transformer>) {
+        this.transformers.computeIfAbsent(target) { mutableListOf() }.addAll(transformers)
+    }
+
+    fun jvmTransformers(vararg transformers: Transformer) {
+        addTransformers(target = TargetPlatform.JVM, transformers = transformers)
+    }
+
+    fun jsTransformers(vararg transformers: Transformer) {
+        addTransformers(target = TargetPlatform.JS, transformers = transformers)
+    }
+
+    fun jvmTransformers(transformers: Collection<Transformer>) {
+        addTransformers(target = TargetPlatform.JVM, transformers = transformers)
+    }
+
+    fun jsTransformers(transformers: Collection<Transformer>) {
+        addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 
     override fun toString(): String {
-        return "SuspendTransformConfiguration(enabled=$enabled, jvm=$jvm, js=$js)"
+        return "SuspendTransformConfiguration(enabled=$enabled, transformers=$transformers)"
     }
-
-    /**
-     * Jvm platform config
-     */
-    open class Jvm {
-
-        /**
-         * 标记为阻塞函数的标记注解。
-         */
-        var jvmBlockingMarkAnnotation = MarkAnnotation(TO_JVM_BLOCKING_ANNOTATION_NAME)
-
-
-        /**
-         * 如果 [jvmBlockingFunctionName] 不为null，则会尝试优先解析。
-         *
-         * @see jvmBlockingFunctionInfo
-         */
-        @Deprecated("Use jvmBlockingFunctionInfo")
-        var jvmBlockingFunctionName: String? = null // JVM_RUN_IN_BLOCKING_FUNCTION_NAME
-
-
-        /**
-         * 格式必须为
-         *
-         * ```kotlin
-         * fun <T> <fun-name>(block: suspend () -> T): T {
-         *     // ...
-         * }
-         * ```
-         */
-        var jvmBlockingFunctionInfo: FunctionInfo = FunctionInfo(
-            JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME,
-            JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME,
-            JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME,
-        )
-
-        /**
-         * 标记为异步函数的标记注解。
-         */
-        var jvmAsyncMarkAnnotation = MarkAnnotation(TO_JVM_ASYNC_ANNOTATION_NAME)
-
-        /**
-         * 如果 [jvmAsyncFunctionName] 不为null，则会尝试优先解析。
-         *
-         * @see jvmAsyncFunctionInfo
-         *
-         */
-        @Deprecated("Use jvmBlockingFunctionInfo")
-        var jvmAsyncFunctionName: String? = null // JVM_RUN_IN_ASYNC_FUNCTION_NAME
-
-        /**
-         * 格式必须为:
-         *
-         * ```kotlin
-         * fun <T> <fun-name>(block: suspend () -> T[, scope: CoroutineScope = ...]): CompletableFuture<T> {
-         *     // ...
-         * }
-         * ```
-         *
-         * 其中，此异步函数可以有第二个参数，此参数格式必须为 [kotlinx.coroutines.CoroutineScope]。
-         * 如果存在此参数，当转化函数所处类型自身实现了 [kotlinx.coroutines.CoroutineScope] 时，将会将其自身作为参数填入，类似于：
-         *
-         * ```kotlin
-         * class Bar : CoroutineScope {
-         *    @JvmAsync
-         *    suspend fun foo(): Foo
-         *
-         *    @Api4J fun fooAsync(): CompletableFuture<Foo> = runInAsync(block = { foo() }, scope = this)
-         * }
-         * ```
-         * 当前类型不属于 [kotlinx.coroutines.CoroutineScope] 类型时不会使用此参数。
-         *
-         */
-        var jvmAsyncFunctionInfo: FunctionInfo = FunctionInfo(
-            JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
-            JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
-            JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
-        )
-
-
-        /**
-         * @see originFunctionIncludeAnnotationInfos
-         */
-        @Deprecated("Use 'originFunctionIncludeAnnotationInfos'")
-        var originFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
-//        listOf(
-//            IncludeAnnotation("kotlin.jvm.JvmSynthetic")
-//        )
-
-        /**
-         * 要在被合成的源函数上追加的注解。必须保证不存在参数。
-         */
-        var originFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
-            IncludeAnnotationInfo(ClassInfo("kotlin.jvm", "JvmSynthetic"))
-        )
-
-        /**
-         * @see syntheticBlockingFunctionIncludeAnnotationInfos
-         */
-        @Deprecated("Use 'syntheticBlockingFunctionIncludeAnnotationInfos'")
-        var syntheticBlockingFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
-//        listOf(
-//            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-//        )
-
-        /**
-         * 要在合成出来的 blocking 函数上追加的额外注解。（不需要指定 `@Generated`）。
-         */
-        var syntheticBlockingFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
-            IncludeAnnotationInfo(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
-        )
-
-        /**
-         * 复制源函数上的注解到新的函数上。
-         */
-        var copyAnnotationsToSyntheticBlockingFunction: Boolean = true
-
-        /**
-         * 如果 [copyAnnotationsToSyntheticBlockingFunction] 为 true，则配置在进行拷贝时需要被排除掉（不进行拷贝）的注解。
-         *
-         */
-        var copyAnnotationsToSyntheticBlockingFunctionExcludes: List<ExcludeAnnotation> = listOf(
-            ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-
-        /**
-         * 要在合成出来的 async 函数上追加的额外注解。（不需要指定 `@Generated`）。
-         *
-         */
-        @Deprecated("Use 'syntheticAsyncFunctionIncludeAnnotationInfos'")
-        var syntheticAsyncFunctionIncludeAnnotations: List<IncludeAnnotation>? = null
-//        listOf(
-//            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-//        )
-        /**
-         * 要在合成出来的 async 函数上追加的额外注解。（不需要指定 `@Generated`）。
-         *
-         */
-        var syntheticAsyncFunctionIncludeAnnotationInfos: List<IncludeAnnotationInfo> = listOf(
-            IncludeAnnotationInfo(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
-        )
-
-
-        /**
-         * 复制源函数上的注解到新的函数上。
-         */
-        var copyAnnotationsToSyntheticAsyncFunction: Boolean = true
-
-        /**
-         * 如果 [copyAnnotationsToSyntheticAsyncFunction] 为 true，则配置在进行拷贝时需要被排除掉（不进行拷贝）的注解。
-         *
-         */
-        var copyAnnotationsToSyntheticAsyncFunctionExcludes: List<ExcludeAnnotation> = listOf(
-            ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-
-        override fun toString(): String {
-            return "Jvm(jvmBlockingMarkAnnotation=$jvmBlockingMarkAnnotation, jvmBlockingFunctionName='$jvmBlockingFunctionName', jvmAsyncMarkAnnotation=$jvmAsyncMarkAnnotation, jvmAsyncFunctionName='$jvmAsyncFunctionName', originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticBlockingFunctionIncludeAnnotations=$syntheticBlockingFunctionIncludeAnnotations, copyAnnotationsToSyntheticBlockingFunction=$copyAnnotationsToSyntheticBlockingFunction, copyAnnotationsToSyntheticBlockingFunctionExcludes=$copyAnnotationsToSyntheticBlockingFunctionExcludes, syntheticAsyncFunctionIncludeAnnotations=$syntheticAsyncFunctionIncludeAnnotations, copyAnnotationsToSyntheticAsyncFunction=$copyAnnotationsToSyntheticAsyncFunction, copyAnnotationsToSyntheticAsyncFunctionExcludes=$copyAnnotationsToSyntheticAsyncFunctionExcludes)"
-        }
-
-
-    }
-
-    /**
-     * JS platform config
-     */
-    open class Js {
-
-        /**
-         * @see jsPromiseFunctionInfo
-         */
-        @Deprecated("Unused")
-        var jsPromiseFunctionName: String? = null // JS_RUN_IN_ASYNC_FUNCTION_NAME
-
-        /**
-         * 格式必须为
-         * ```kotlin
-         * fun <T> <fun-name>(block: suspend () -> T): Promise<T> {
-         *      // ...
-         * }
-         * ```
-         */
-        var jsPromiseFunctionInfo: FunctionInfo = FunctionInfo(
-            JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
-            JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
-            JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
-        )
-
-
-        /**
-         * 标记为异步函数的标记注解。
-         */
-        var jsPromiseMarkAnnotation = MarkAnnotation(TO_JS_PROMISE_ANNOTATION_NAME)
-
-
-        /**
-         * 要在被合成的源函数上追加的注解。必须保证不存在参数。
-         */
-        var originFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf()
-
-        /**
-         * 要在合成出来的 async 函数上追加的额外注解。（不需要指定 `@Generated`）。
-         *
-         */
-        var syntheticAsyncFunctionIncludeAnnotations: List<IncludeAnnotation> = listOf(
-            IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4Js")
-        )
-
-        /**
-         * 复制源函数上的注解到新的函数上。
-         */
-        var copyAnnotationsToSyntheticAsyncFunction: Boolean = true
-
-
-        /**
-         * 如果 [copyAnnotationsToSyntheticAsyncFunction] 为 true，则配置在进行拷贝时需要被排除掉（不进行拷贝）的注解。
-         *
-         */
-        var copyAnnotationsToSyntheticAsyncFunctionExcludes: List<ExcludeAnnotation> = listOf(
-            ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-
-        override fun toString(): String {
-            return "Js(jsPromiseFunctionName='$jsPromiseFunctionName', jsPromiseMarkAnnotation=$jsPromiseMarkAnnotation, originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticAsyncFunctionIncludeAnnotations=$syntheticAsyncFunctionIncludeAnnotations, copyAnnotationsToSyntheticAsyncFunction=$copyAnnotationsToSyntheticAsyncFunction, copyAnnotationsToSyntheticAsyncFunctionExcludes=$copyAnnotationsToSyntheticAsyncFunctionExcludes)"
-        }
-
-    }
-
-
-    data class IncludeAnnotation(
-        var name: String, var repeatable: Boolean = false
-    )
-
-    data class IncludeAnnotationInfo(
-        var classInfo: ClassInfo, var repeatable: Boolean = false
-    )
-
-    data class ExcludeAnnotation(val name: String)
-
-    class MarkAnnotation(
-        var annotationName: String,
-        var baseNameProperty: String = "baseName",
-        var suffixProperty: String = "suffix",
-        var asPropertyProperty: String = "asProperty",
-    )
 }
 

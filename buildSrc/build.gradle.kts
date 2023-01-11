@@ -14,6 +14,7 @@ val dokkaPluginVersion = "1.7.20"
 dependencies {
     api(gradleApi())
     api(kotlin("gradle-plugin", kotlinVersion))
+    api(kotlin("serialization", kotlinVersion))
     api("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaPluginVersion")
     
     api("com.gradle.publish:plugin-publish-plugin:0.12.0")
