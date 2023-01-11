@@ -1,6 +1,4 @@
-import gradle.kotlin.dsl.accessors._59a6e08710bd766406b34ec8c4dcd1fe.publishing
 import gradle.kotlin.dsl.accessors._59a6e08710bd766406b34ec8c4dcd1fe.signing
-import utils.systemProperty
 import utils.by
 
 plugins {
@@ -25,16 +23,15 @@ publishing {
             if (this !is MavenPublication) {
                 return@configureEach
             }
-            
+
             artifact(jarJavadoc)
-            
+
             pom {
                 setupPom(project)
             }
         }
-        
+
         repositories {
-            mavenLocal()
             if (sonatypeContains) {
                 if (project.version.toString().contains("SNAPSHOT", true)) {
                     configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)
@@ -42,6 +39,7 @@ publishing {
                     configPublishMaven(Sonatype.Central, sonatypeUsername, sonatypePassword)
                 }
             }
+            mavenLocal()
         }
     }
 }

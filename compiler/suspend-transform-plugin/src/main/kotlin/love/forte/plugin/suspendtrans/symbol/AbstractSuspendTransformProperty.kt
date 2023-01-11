@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.SuspendTransformUserData
+import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.CallableDescriptor.UserDataKey
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -12,11 +12,10 @@ import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
  *
  * @author ForteScarlet
  */
-sealed class AbstractSuspendTransformProperty<D : SuspendTransformUserData>(
+abstract class AbstractSuspendTransformProperty(
     private val sourceClass: ClassDescriptor,
     private val sourceFunction: SimpleFunctionDescriptor,
     private val getterAnnotations: Annotations = sourceFunction.annotations, // TODO?
-    private val userDataKey: UserDataKey<D>
 ) : PropertyDescriptorImpl(
     sourceClass,
     null,
@@ -34,11 +33,11 @@ sealed class AbstractSuspendTransformProperty<D : SuspendTransformUserData>(
     sourceFunction.isExternal,
     false
 ) {
-    private val userDataValue = sourceFunction.getUserData(userDataKey)
+    private val userDataValue = sourceFunction.getUserData(SuspendTransformUserDataKey)
 
     @Suppress("UNCHECKED_CAST")
     override fun <V : Any?> getUserData(key: UserDataKey<V>?): V? {
-        if (key == userDataKey) {
+        if (key == SuspendTransformUserDataKey) {
             return userDataValue as? V?
         }
 

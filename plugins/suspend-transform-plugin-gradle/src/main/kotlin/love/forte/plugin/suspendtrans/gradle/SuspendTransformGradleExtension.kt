@@ -10,12 +10,6 @@ import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 open class SuspendTransformGradleExtension : SuspendTransformConfiguration() {
     /**
      * 是否增加 `love.forte.plugin.suspend-transform:suspend-transform-runtime` 的运行时。
-     *
-     * 如果下述函数都被重新指定，则可以考虑将 [includeRuntime] 设置为false。
-     * - [SuspendTransformConfiguration.Jvm.jvmBlockingFunctionName]
-     * - [SuspendTransformConfiguration.Jvm.jvmAsyncFunctionName]
-     * - [SuspendTransformConfiguration.Js.jsPromiseFunctionName]
-     *
      */
     var includeRuntime: Boolean = true
 

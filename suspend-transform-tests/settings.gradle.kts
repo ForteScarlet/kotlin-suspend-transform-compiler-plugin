@@ -1,12 +1,15 @@
 pluginManagement {
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
-     plugins {
-         id("love.forte.plugin.suspend-transform") version "0.0.1"
-     }
+//     plugins {
+//         id("love.forte.plugin.suspend-transform") version "0.2.0"
+//     }
+//    dependencies {
+//        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.2.0")
+//    }
 }
 
 rootProject.name = "suspend-transform-kotlin-compiler-plugin-tests"

@@ -1,163 +1,72 @@
 package love.forte.plugin.suspendtrans
 
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import kotlin.reflect.KMutableProperty
 
-private typealias ExcludeAnnotation = SuspendTransformConfiguration.ExcludeAnnotation
-
-private const val REPEAT_MARK = "\$&+"
-
-private fun includeAnnotationEncode(value: List<SuspendTransformConfiguration.IncludeAnnotation>): String {
-    return value.joinToString(",") { if (it.repeatable) "${it.name}$REPEAT_MARK" else it.name }
-}
-
-private fun includeAnnotationDecode(value: String): List<SuspendTransformConfiguration.IncludeAnnotation> {
-    return value.split(",").map {
-        val annotationName = it.substringBeforeLast(REPEAT_MARK)
-        val repeat = annotationName != it
-        SuspendTransformConfiguration.IncludeAnnotation(annotationName, repeat)
-    }
+private val defaultJson = Json {
+    isLenient = true
+    ignoreUnknownKeys = true
+    encodeDefaults = true
 }
 
 object CliOptions {
 
     const val CONFIGURATION = "configuration"
-    val ENABLED = option("enabled") {
+
+    /** 冒号转义符 */
+    private const val COLON_ESCAPE_CHARACTER = "&%1_"
+    /** 逗号转义符 */
+    private const val COMMA_ESCAPE_CHARACTER = "&%2_"
+
+    private val rawRegex = Regex("[:,]")
+    private val encodeRegex = Regex("(&%1_|&%2_)")
+
+
+    private val TRANSFORMERS = option(
+        name = "transformers",
+        valueDescription = "Serialize the results in JSON format for configuration information",
+        description = "Serialize the results in JSON format for configuration information",
+    ) {
+        // MutableMap<TargetPlatform, MutableList<Transformer>>
+        val serializer = MapSerializer(TargetPlatform.serializer(), ListSerializer(Transformer.serializer()))
+
+        inc {
+            val jsonStr = encodeRegex.replace(it) { result ->
+                when (val value = result.value) {
+                    COLON_ESCAPE_CHARACTER -> ":"
+                    COMMA_ESCAPE_CHARACTER -> ","
+                    else -> value
+                }
+            }
+
+            transformers = defaultJson.decodeFromString(serializer, jsonStr).toMutableMap()
+        }
+        out {
+            val encoded = defaultJson.encodeToString(serializer, this.transformers)
+
+            rawRegex.replace(encoded) { result ->
+                when (val value = result.value) {
+                    ":" -> COLON_ESCAPE_CHARACTER
+                    "," -> COMMA_ESCAPE_CHARACTER
+                    else -> value
+                }
+            }
+
+        }
+    }
+
+    private val ENABLED = option("enabled") {
         inc { enabled = it.toBoolean() }
         out { enabled.toString() }
     }
 
-    object Jvm {
-
-        val ORIGIN_FUNCTION_INCLUDE_ANNOTATIONS = option("jvm.originFunctionIncludeAnnotations") {
-            inc { jvm.originFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-            out { includeAnnotationEncode(jvm.originFunctionIncludeAnnotations) }
-        }
-
-
-        //region blocking
-        val JVM_BLOCKING_FUNCTION_NAME = option("jvm.jvmBlockingFunctionName") {
-            withProp { jvm::jvmBlockingFunctionName }
-        }
-
-        //region blocking mark
-        const val JVM_BLOCKING_MARK_ANNOTATION = "jvm.jvmBlockingMarkAnnotation"
-
-        val JVM_BLOCKING_MARK_ANNOTATION_ANNOTATION_NAME =
-            JVM_BLOCKING_MARK_ANNOTATION.option("annotationName") {
-                withProp { jvm.jvmBlockingMarkAnnotation::annotationName }
-            }
-        val JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY =
-            JVM_BLOCKING_MARK_ANNOTATION.option("baseNameProperty") {
-                withProp { jvm.jvmBlockingMarkAnnotation::baseNameProperty }
-            }
-        val JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY =
-            JVM_BLOCKING_MARK_ANNOTATION.option("suffixProperty") {
-                withProp { jvm.jvmBlockingMarkAnnotation::suffixProperty }
-            }
-        val JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY =
-            JVM_BLOCKING_MARK_ANNOTATION.option("asPropertyProperty") {
-                withProp { jvm.jvmBlockingMarkAnnotation::asPropertyProperty }
-            }
-        //endregion
-
-        val COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION =
-            option("jvm.copyAnnotationsToSyntheticBlockingFunction") {
-                inc { jvm.copyAnnotationsToSyntheticBlockingFunction = it.toBoolean() }
-                out { jvm.copyAnnotationsToSyntheticBlockingFunction.toString() }
-            }
-        const val COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION_EXCLUDES =
-            "jvm.copyAnnotationsToSyntheticBlockingFunctionExcludes"
-
-        val COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION_EXCLUDES_NAME =
-            COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION_EXCLUDES.option("name") {
-                inc { jvm.copyAnnotationsToSyntheticBlockingFunctionExcludes = it.split(",").map(::ExcludeAnnotation) }
-                out { jvm.copyAnnotationsToSyntheticBlockingFunctionExcludes.joinToString(",") { it.name } }
-
-            }
-
-        val SYNTHETIC_BLOCKING_FUNCTION_INCLUDE_ANNOTATIONS =
-            option("jvm.syntheticBlockingFunctionIncludeAnnotations") {
-                inc { jvm.syntheticBlockingFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-                out { includeAnnotationEncode(jvm.syntheticBlockingFunctionIncludeAnnotations) }
-            }
-
-        //endregion
-
-
-        //region async
-        val JVM_ASYNC_FUNCTION_NAME = option("jvm.jvmAsyncFunctionName") {
-            withProp { jvm::jvmAsyncFunctionName }
-        }
-
-        //region async mark
-        const val JVM_ASYNC_MARK_ANNOTATION = "jvm.jvmAsyncMarkAnnotation"
-
-        val JVM_ASYNC_MARK_ANNOTATION_ANNOTATION_NAME =
-            JVM_ASYNC_MARK_ANNOTATION.option("annotationName") {
-                withProp { jvm.jvmAsyncMarkAnnotation::annotationName }
-            }
-        val JVM_ASYNC_MARK_ANNOTATION_BASE_NAME_PROPERTY =
-            JVM_ASYNC_MARK_ANNOTATION.option("baseNameProperty") {
-                withProp { jvm.jvmAsyncMarkAnnotation::baseNameProperty }
-            }
-        val JVM_ASYNC_MARK_ANNOTATION_SUFFIX_PROPERTY =
-            JVM_ASYNC_MARK_ANNOTATION.option("suffixProperty") {
-                withProp { jvm.jvmAsyncMarkAnnotation::suffixProperty }
-            }
-        val JVM_ASYNC_MARK_ANNOTATION_AS_PROPERTY_PROPERTY =
-            JVM_ASYNC_MARK_ANNOTATION.option("asPropertyProperty") {
-                withProp { jvm.jvmAsyncMarkAnnotation::asPropertyProperty }
-            }
-        //endregion
-
-
-        val SYNTHETIC_ASYNC_FUNCTION_INCLUDE_ANNOTATIONS = option("jvm.syntheticAsyncFunctionIncludeAnnotations") {
-            inc { jvm.syntheticAsyncFunctionIncludeAnnotations = includeAnnotationDecode(it) }
-            out { includeAnnotationEncode(jvm.syntheticAsyncFunctionIncludeAnnotations) }
-        }
-
-        val COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION =
-            option("jvm.copyAnnotationsToSyntheticAsyncFunction") {
-                inc { jvm.copyAnnotationsToSyntheticAsyncFunction = it.toBoolean() }
-                out { jvm.copyAnnotationsToSyntheticAsyncFunction.toString() }
-            }
-        const val COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION_EXCLUDES =
-            "jvm.copyAnnotationsToSyntheticAsyncFunctionExcludes"
-
-        val COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION_EXCLUDES_NAME =
-            COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION_EXCLUDES.option("name") {
-                inc { jvm.copyAnnotationsToSyntheticAsyncFunctionExcludes = it.split(",").map(::ExcludeAnnotation) }
-                out { jvm.copyAnnotationsToSyntheticAsyncFunctionExcludes.joinToString(",") { it.name } }
-            }
-
-        //endregion
-
-
-    }
-
-    object Js
-
 
     val allOptions: List<ICliOption> = listOf(
         ENABLED,
-        Jvm.ORIGIN_FUNCTION_INCLUDE_ANNOTATIONS,
-        Jvm.JVM_BLOCKING_FUNCTION_NAME,
-        Jvm.JVM_BLOCKING_MARK_ANNOTATION_ANNOTATION_NAME,
-        Jvm.JVM_BLOCKING_MARK_ANNOTATION_BASE_NAME_PROPERTY,
-        Jvm.JVM_BLOCKING_MARK_ANNOTATION_SUFFIX_PROPERTY,
-        Jvm.JVM_BLOCKING_MARK_ANNOTATION_AS_PROPERTY_PROPERTY,
-        Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION,
-        Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_BLOCKING_FUNCTION_EXCLUDES_NAME,
-        Jvm.SYNTHETIC_BLOCKING_FUNCTION_INCLUDE_ANNOTATIONS,
-        Jvm.JVM_ASYNC_FUNCTION_NAME,
-        Jvm.JVM_ASYNC_MARK_ANNOTATION_ANNOTATION_NAME,
-        Jvm.JVM_ASYNC_MARK_ANNOTATION_BASE_NAME_PROPERTY,
-        Jvm.JVM_ASYNC_MARK_ANNOTATION_SUFFIX_PROPERTY,
-        Jvm.JVM_ASYNC_MARK_ANNOTATION_AS_PROPERTY_PROPERTY,
-        Jvm.SYNTHETIC_ASYNC_FUNCTION_INCLUDE_ANNOTATIONS,
-        Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION,
-        Jvm.COPY_ANNOTATIONS_TO_SYNTHETIC_ASYNC_FUNCTION_EXCLUDES_NAME,
+        TRANSFORMERS
     )
     val allOptionsMap = allOptions.associateBy { it.oName }
 
@@ -178,6 +87,11 @@ private class ResolveBuilder {
     fun withProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String>) {
         inc { block().setter.call(it) }
         out { block().getter.call() }
+    }
+
+    fun withNullableProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String?>) {
+        inc { block().setter.call(it.takeIf { it.isNotEmpty() }) }
+        out { block().getter.call() ?: "" }
     }
 }
 

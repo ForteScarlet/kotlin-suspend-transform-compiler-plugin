@@ -1,7 +1,7 @@
-allprojects {
+subprojects {
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
 }

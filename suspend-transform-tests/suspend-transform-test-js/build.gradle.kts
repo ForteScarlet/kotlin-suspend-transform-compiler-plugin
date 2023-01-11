@@ -1,6 +1,6 @@
 plugins {
     kotlin("js")
-    //id("love.forte.plugin.suspend-transform")
+    id("love.forte.plugin.suspend-transform")
     // id(project(":suspend-transform-plugin-gradle"))
 }
 
@@ -25,7 +25,7 @@ kotlin {
 kotlin {
     dependencies {
         implementation(kotlin("stdlib"))
-        implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.0.1")
+//        implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.2.0")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     }
 }

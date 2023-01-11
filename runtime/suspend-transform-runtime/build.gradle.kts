@@ -35,7 +35,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                compileOnly(project(":runtime:suspend-transform-annotation"))
+                implementation(project(":runtime:suspend-transform-annotation"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
@@ -46,7 +46,7 @@ kotlin {
         }
         getByName("jsMain") {
             dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.6.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.6.4")
             }
         }
         getByName("jvmMain") {
