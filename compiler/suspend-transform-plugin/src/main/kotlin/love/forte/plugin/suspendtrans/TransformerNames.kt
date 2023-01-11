@@ -52,6 +52,7 @@ const val JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin
 val JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME: String? = null
 
 const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME: String = "\$runInBlocking\$"
+
 //endregion
 
 

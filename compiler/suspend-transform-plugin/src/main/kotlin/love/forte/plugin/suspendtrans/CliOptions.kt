@@ -1,5 +1,7 @@
 package love.forte.plugin.suspendtrans
 
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import kotlin.reflect.KMutableProperty
@@ -14,13 +16,46 @@ object CliOptions {
 
     const val CONFIGURATION = "configuration"
 
-    private val RAW_CONFIGURATION = option(
-        name = "raw_configuration",
+    /** 冒号转义符 */
+    private const val COLON_ESCAPE_CHARACTER = "&%1_"
+    /** 逗号转义符 */
+    private const val COMMA_ESCAPE_CHARACTER = "&%2_"
+
+    private val rawRegex = Regex("[:,]")
+    private val encodeRegex = Regex("(&%1_|&%2_)")
+
+
+    private val TRANSFORMERS = option(
+        name = "transformers",
         valueDescription = "Serialize the results in JSON format for configuration information",
         description = "Serialize the results in JSON format for configuration information",
     ) {
-        inc { defaultJson.decodeFromString(SuspendTransformConfiguration.serializer(), it) }
-        out { defaultJson.encodeToString(SuspendTransformConfiguration.serializer(), this) }
+        // MutableMap<TargetPlatform, MutableList<Transformer>>
+        val serializer = MapSerializer(TargetPlatform.serializer(), ListSerializer(Transformer.serializer()))
+
+        inc {
+            val jsonStr = encodeRegex.replace(it) { result ->
+                when (val value = result.value) {
+                    COLON_ESCAPE_CHARACTER -> ":"
+                    COMMA_ESCAPE_CHARACTER -> ","
+                    else -> value
+                }
+            }
+
+            transformers = defaultJson.decodeFromString(serializer, jsonStr).toMutableMap()
+        }
+        out {
+            val encoded = defaultJson.encodeToString(serializer, this.transformers)
+
+            rawRegex.replace(encoded) { result ->
+                when (val value = result.value) {
+                    ":" -> COLON_ESCAPE_CHARACTER
+                    "," -> COMMA_ESCAPE_CHARACTER
+                    else -> value
+                }
+            }
+
+        }
     }
 
     private val ENABLED = option("enabled") {
@@ -31,7 +66,7 @@ object CliOptions {
 
     val allOptions: List<ICliOption> = listOf(
         ENABLED,
-        RAW_CONFIGURATION
+        TRANSFORMERS
     )
     val allOptionsMap = allOptions.associateBy { it.oName }
 

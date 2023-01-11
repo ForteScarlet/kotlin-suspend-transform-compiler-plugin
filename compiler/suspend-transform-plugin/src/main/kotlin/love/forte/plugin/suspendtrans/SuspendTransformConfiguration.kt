@@ -18,7 +18,7 @@ data class ClassInfo @JvmOverloads constructor(
 
 @Serializable
 enum class TargetPlatform {
-    JVM, JS
+    COMMON, JVM, JS
 }
 
 /**
@@ -54,6 +54,7 @@ data class Transformer(
      * }
      */
     val transformFunctionInfo: FunctionInfo,
+
 
     /**
      * 转化后的返回值类型, 为null时代表与原函数一致。
@@ -128,122 +129,164 @@ data class IncludeAnnotation(
  *
  * @author ForteScarlet
  */
+@Suppress("unused")
 @Serializable
 open class SuspendTransformConfiguration {
     var enabled: Boolean = true
 
-    var transformers: MutableMap<TargetPlatform, MutableList<Transformer>> =
-        LinkedHashMap<TargetPlatform, MutableList<Transformer>>().apply {
-            // jvm
-            val jvmOriginFunctionIncludeAnnotations = listOf(
-                IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))
-            )
+    var transformers: MutableMap<TargetPlatform, List<Transformer>> = mutableMapOf()
 
-            val jvmCopyExcludes = listOf(
-                ClassInfo("kotlin.jvm", "JvmSynthetic")
-            )
+    fun clear() {
+        transformers.clear()
+    }
 
-            val jvmSyntheticFunctionIncludeAnnotations = listOf(
-                IncludeAnnotation(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"))
-            )
+    fun useJvmDefault() {
+        transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer)
+    }
 
-            // jvm to blocking
-            val jvmBlockingMarkAnnotationClassInfo =
-                ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking")
-            val jvmBlockingAnnotationInfo = MarkAnnotation(jvmBlockingMarkAnnotationClassInfo)
-            val jvmBlockingTransformFunction = FunctionInfo(
-                JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME,
-                JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME,
-                JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME,
-            )
+    fun useJsDefault() {
+        transformers[TargetPlatform.JS] = mutableListOf(jsPromiseTransformer)
+    }
 
-            val jvmBlockingTransformer = Transformer(
-                markAnnotation = jvmBlockingAnnotationInfo,
-                transformFunctionInfo = jvmBlockingTransformFunction,
-                transformReturnType = null,
-                transformReturnTypeGeneric = false,
-                originFunctionIncludeAnnotations = jvmOriginFunctionIncludeAnnotations,
-                copyAnnotationsToSyntheticFunction = true,
-                copyAnnotationExcludes = jvmCopyExcludes,
-                syntheticFunctionIncludeAnnotations = jvmSyntheticFunctionIncludeAnnotations
-            )
-            // jvm to async
-
-            val jvmAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmAsync")
-            val jvmAsyncAnnotationInfo = MarkAnnotation(jvmAsyncMarkAnnotationClassInfo)
-            val jvmAsyncTransformFunction = FunctionInfo(
-                JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
-                JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
-                JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
-            )
-
-            val jvmAsyncTransformer = Transformer(
-                markAnnotation = jvmAsyncAnnotationInfo,
-                transformFunctionInfo = jvmAsyncTransformFunction,
-                transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
-                transformReturnTypeGeneric = true,
-                originFunctionIncludeAnnotations = jvmOriginFunctionIncludeAnnotations,
-                copyAnnotationsToSyntheticFunction = true,
-                copyAnnotationExcludes = jvmCopyExcludes,
-                syntheticFunctionIncludeAnnotations = jvmSyntheticFunctionIncludeAnnotations
-            )
-
-            put(TargetPlatform.JVM, mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer))
-
-
-            // js to async
-            val jsSyntheticFunctionIncludeAnnotations = listOf(
-                IncludeAnnotation(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4Js"))
-            )
-
-            val jsAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JsPromise")
-            val jsAsyncAnnotationInfo = MarkAnnotation(jsAsyncMarkAnnotationClassInfo)
-            val jsAsyncTransformFunction = FunctionInfo(
-                JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
-                JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
-                JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
-            )
-
-            val jsPromiseTransformer = Transformer(
-                markAnnotation = jsAsyncAnnotationInfo,
-                transformFunctionInfo = jsAsyncTransformFunction,
-                transformReturnType = ClassInfo("kotlin.js", "Promise"),
-                transformReturnTypeGeneric = true,
-                originFunctionIncludeAnnotations = listOf(),
-                copyAnnotationsToSyntheticFunction = true,
-                copyAnnotationExcludes = listOf(),
-                syntheticFunctionIncludeAnnotations = jsSyntheticFunctionIncludeAnnotations
-            )
-
-            put(TargetPlatform.JS, mutableListOf(jsPromiseTransformer))
-        }
+    fun useDefault() {
+        useJvmDefault()
+        useJsDefault()
+    }
 
     fun addTransformers(target: TargetPlatform, vararg transformers: Transformer) {
-        this.transformers.computeIfAbsent(target) { mutableListOf() }.addAll(transformers)
+        this.transformers.compute(target) { _, list ->
+            if (list != null) {
+                list + transformers
+            } else {
+                listOf(elements = transformers)
+            }
+        }
     }
 
     fun addTransformers(target: TargetPlatform, transformers: Collection<Transformer>) {
-        this.transformers.computeIfAbsent(target) { mutableListOf() }.addAll(transformers)
+        this.transformers.compute(target) { _, list ->
+            if (list != null) {
+                list + transformers
+            } else {
+                transformers.toList()
+            }
+        }
     }
 
-    fun jvmTransformers(vararg transformers: Transformer) {
+    fun addJvmTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JVM, transformers = transformers)
     }
 
-    fun jsTransformers(vararg transformers: Transformer) {
+    fun addJvmTransformers(transformers: Collection<Transformer>) {
+        addTransformers(target = TargetPlatform.JVM, transformers = transformers)
+    }
+
+    fun addJsTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 
-    fun jvmTransformers(transformers: Collection<Transformer>) {
-        addTransformers(target = TargetPlatform.JVM, transformers = transformers)
-    }
-
-    fun jsTransformers(transformers: Collection<Transformer>) {
+    fun addJsTransformers(transformers: Collection<Transformer>) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 
     override fun toString(): String {
         return "SuspendTransformConfiguration(enabled=$enabled, transformers=$transformers)"
+    }
+
+    companion object {
+        //region JVM defaults
+        @JvmStatic
+        val jvmSyntheticClassInfo = ClassInfo("kotlin.jvm", "JvmSynthetic")
+
+        @JvmStatic
+        val jvmApi4JAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J")
+        //endregion
+
+        //region JVM blocking defaults
+
+        @JvmStatic
+        val jvmBlockingMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking")
+
+        @JvmStatic
+        val jvmBlockingAnnotationInfo = MarkAnnotation(jvmBlockingMarkAnnotationClassInfo, defaultSuffix = "Blocking")
+
+        @JvmStatic
+        val jvmBlockingTransformFunction = FunctionInfo(
+            JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME,
+            JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME,
+            JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME,
+        )
+
+        @JvmStatic
+        val jvmBlockingTransformer = Transformer(
+            markAnnotation = jvmBlockingAnnotationInfo,
+            transformFunctionInfo = jvmBlockingTransformFunction,
+            transformReturnType = null,
+            transformReturnTypeGeneric = false,
+            originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+            copyAnnotationsToSyntheticFunction = true,
+            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo),
+            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
+        )
+        //endregion
+
+        //region JVM async defaults
+        @JvmStatic
+        val jvmAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmAsync")
+
+        @JvmStatic
+        val jvmAsyncAnnotationInfo = MarkAnnotation(jvmAsyncMarkAnnotationClassInfo, defaultSuffix = "Async")
+
+        @JvmStatic
+        val jvmAsyncTransformFunction = FunctionInfo(
+            JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+            JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+            JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+        )
+
+        @JvmStatic
+        val jvmAsyncTransformer = Transformer(
+            markAnnotation = jvmAsyncAnnotationInfo,
+            transformFunctionInfo = jvmAsyncTransformFunction,
+            transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
+            transformReturnTypeGeneric = true,
+            originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+            copyAnnotationsToSyntheticFunction = true,
+            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo),
+            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
+        )
+        //endregion
+
+        //region JS defaults
+        @JvmStatic
+        val jsApi4JsAnnotationInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4Js")
+
+        @JvmStatic
+        val jsAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JsPromise")
+
+        @JvmStatic
+        val jsAsyncAnnotationInfo = MarkAnnotation(jsAsyncMarkAnnotationClassInfo, defaultSuffix = "Async")
+
+        @JvmStatic
+        val jsAsyncTransformFunction = FunctionInfo(
+            JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+            JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+            JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+        )
+
+        @JvmStatic
+        val jsPromiseTransformer = Transformer(
+            markAnnotation = jsAsyncAnnotationInfo,
+            transformFunctionInfo = jsAsyncTransformFunction,
+            transformReturnType = ClassInfo("kotlin.js", "Promise"),
+            transformReturnTypeGeneric = true,
+            originFunctionIncludeAnnotations = listOf(),
+            copyAnnotationsToSyntheticFunction = true,
+            copyAnnotationExcludes = listOf(),
+            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jsApi4JsAnnotationInfo))
+        )
+        //endregion
+
     }
 }
 

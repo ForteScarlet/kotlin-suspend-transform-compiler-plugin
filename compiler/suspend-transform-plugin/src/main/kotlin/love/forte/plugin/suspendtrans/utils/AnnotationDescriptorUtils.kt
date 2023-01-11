@@ -53,6 +53,7 @@ data class TransformAnnotationData(
             val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
                 ?.takeIf { it.isNotEmpty() }
+
             val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
 

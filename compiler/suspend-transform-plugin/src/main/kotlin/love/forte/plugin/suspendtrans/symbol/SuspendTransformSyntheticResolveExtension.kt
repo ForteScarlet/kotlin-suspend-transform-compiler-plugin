@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeAttributes
 import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.error.ErrorModuleDescriptor.platform
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -50,10 +52,6 @@ private class SyntheticDescriptor<D : CallableMemberDescriptor> {
         getSyntheticDescriptors(classDescriptor).computeIfAbsent(descriptor.name.asString()) { ConcurrentLinkedQueue() }
             .add(descriptor)
     }
-}
-
-private enum class SyntheticType {
-    JVM_BLOCKING, JVM_ASYNC, JS_ASYNC
 }
 
 private val FunctionDescriptor.allParametersExpectDispatch: List<ParameterDescriptor>
@@ -192,10 +190,26 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
     ): AbstractSuspendTransformFunctionDescriptor? {
         if (annotationData == null) return null
 
-        if ((classDescriptor.platform.isJvm() && targetPlatform == TargetPlatform.JVM)
-            || (classDescriptor.platform.isJs() && targetPlatform == TargetPlatform.JS)
-        ) {
+        fun check(): Boolean {
+            val platform = classDescriptor.platform
+            if (platform.isJvm() && targetPlatform == TargetPlatform.JVM) {
+                return true
+            }
 
+            if (platform.isJs() && targetPlatform == TargetPlatform.JS) {
+                return true
+            }
+
+            if (platform.isCommon() && targetPlatform == TargetPlatform.COMMON) {
+                return true
+            }
+
+            return false
+        }
+
+        platform.isCommon()
+
+        if (check()) {
             return SimpleSuspendTransformFunctionDescriptor(
                 classDescriptor,
                 originFunction,
@@ -208,7 +222,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
 
         return null
     }
-
 
     override fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> {
         if (!thisDescriptor.isPluginEnabled()) {

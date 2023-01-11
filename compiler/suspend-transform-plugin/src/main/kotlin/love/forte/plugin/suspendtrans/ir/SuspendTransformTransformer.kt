@@ -112,9 +112,9 @@ class SuspendTransformTransformer(
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val includes =  userData.transformer.syntheticFunctionIncludeAnnotations
+            val syntheticFunctionIncludes =  userData.transformer.originFunctionIncludeAnnotations
 
-            includes.forEach { include ->
+            syntheticFunctionIncludes.forEach { include ->
                 val classId = include.classInfo.toClassId()
                 val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
                 if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
