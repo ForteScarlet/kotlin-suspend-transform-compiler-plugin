@@ -12,9 +12,9 @@ allprojects {
     description = IProject.DESCRIPTION
 
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
         //maven {
         //    url = URI("")
         //}

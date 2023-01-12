@@ -4,6 +4,7 @@ plugins {
     java
     kotlin("jvm")
     kotlin("kapt")
+    kotlin("plugin.serialization")
     id("com.github.gmazzo.buildconfig")
     //id("com.bnorm.power.kotlin-power-assert")
     id("suspend-transform.jvm-maven-publish")
@@ -16,6 +17,7 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
 //    compileOnly(kotlin("compiler-embeddable"))
 

@@ -8,16 +8,17 @@ repositories {
     gradlePluginPortal()
 }
 
-val kotlinVersion = "1.7.20"
+val kotlinVersion = "1.8.0"
 val dokkaPluginVersion = "1.7.20"
 
 dependencies {
     api(gradleApi())
     api(kotlin("gradle-plugin", kotlinVersion))
+    api(kotlin("serialization", kotlinVersion))
     api("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaPluginVersion")
     
     api("com.gradle.publish:plugin-publish-plugin:0.12.0")
-    api("com.github.gmazzo:gradle-buildconfig-plugin:2.0.2")
+    api("com.github.gmazzo:gradle-buildconfig-plugin:3.1.0")
     // see https://github.com/bnorm/kotlin-power-assert#compatibility
     api("gradle.plugin.com.bnorm.power:kotlin-power-assert-gradle:0.12.0")
     api("io.github.gradle-nexus:publish-plugin:1.1.0")

@@ -3,8 +3,8 @@ package love.forte.plugin.suspendtrans.ir
 import love.forte.plugin.suspendtrans.*
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
+import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.builtins.StandardNames.COROUTINES_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
@@ -19,46 +19,60 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.js.isJs
-import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.serialization.deserialization.KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
 
 /**
  *
  * @author ForteScarlet
  */
 class SuspendTransformTransformer(
-    configuration: SuspendTransformConfiguration,
+    private val configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-    private inline val isJvm: Boolean get() = pluginContext.platform?.isJvm() == true
-    private inline val isJs: Boolean get() = pluginContext.platform?.isJs() == true
+//    private inline val isJvm: Boolean get() = pluginContext.platform?.isJvm() == true
+//    private inline val isJs: Boolean get() = pluginContext.platform?.isJs() == true
 
     //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
-    private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
-    private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
-    private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
-    private val jvmOriginIncludeAnnotations = configuration.jvm.originFunctionIncludeAnnotations.toList()
-    private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
+//    private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
+//    private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
 
-    private val jvmRunBlockingFunctionOrNull =
-        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
-
-    private val jvmRunBlockingFunction
-        get() = jvmRunBlockingFunctionOrNull
-            ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
-
-    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncFunctionName.fqn).singleOrNull()
-
-    private val jvmRunAsyncFunction
-        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
-
-    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncFunctionName.fqn).singleOrNull()
-
-    private val jsRunAsyncFunction
-        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
+//    private val jvmRunBlockingCallableId: CallableId = jvmRunBlockingFunctionName?.callableId
+//        ?: configuration.jvm.jvmBlockingFunctionInfo.let { blocking ->
+//            CallableId(blocking.packageName.fqn, blocking.className?.fqn, Name.identifier(blocking.functionName))
+//        }
+//    private val jvmRunAsyncCallableId: CallableId = jvmRunAsyncFunctionName?.callableId
+//        ?: configuration.jvm.jvmAsyncFunctionInfo.let { async ->
+//            CallableId(async.packageName.fqn, async.className?.fqn, Name.identifier(async.functionName))
+//        }
+//
+//    private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
+//    private val jsRunAsyncCallableId = jsRunAsyncFunctionName?.callableId
+//        ?: configuration.js.jsPromiseFunctionInfo.let { promise ->
+//            CallableId(promise.packageName.fqn, promise.className?.fqn, Name.identifier(promise.functionName))
+//        }
+//
+//    private val jvmOriginIncludeAnnotations =
+//        configuration.jvm.originFunctionIncludeAnnotations?.toList() ?: emptyList()
+//    private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
+//
+//    private val jvmRunBlockingFunctionOrNull =
+////        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
+//        pluginContext.referenceFunctions(jvmRunBlockingCallableId).firstOrNull()
+//
+//    private val jvmRunBlockingFunction
+//        get() = jvmRunBlockingFunctionOrNull
+//            ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
+//
+//    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncCallableId).firstOrNull()
+//
+//    private val jvmRunAsyncFunction
+//        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
+//
+//    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncCallableId).firstOrNull()
+//
+//    private val jsRunAsyncFunction
+//        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
@@ -77,53 +91,33 @@ class SuspendTransformTransformer(
     }
 
     private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
-        val generatedOriginFunction = when {
-            descriptor.getUserData(ToJvmBlocking) != null -> resolveFunctionBody(
-                declaration,
-                descriptor.getUserData(ToJvmBlocking)!!.originFunction,
-                jvmRunBlockingFunction
-            )
+        val userData = descriptor.getUserData(SuspendTransformUserDataKey) ?: return null
+        val callableFunction = pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
+                ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
 
-            descriptor.getUserData(ToJvmAsync) != null -> resolveFunctionBody(
-                declaration,
-                descriptor.getUserData(ToJvmAsync)!!.originFunction,
-                jvmRunAsyncFunction
-            )
-
-            descriptor.getUserData(ToJsAsync) != null -> resolveFunctionBody(
-                declaration,
-                descriptor.getUserData(ToJsAsync)!!.originFunction,
-                jsRunAsyncFunction
-            )
-
-            else -> null
-            //else -> resolveFunction(declaration)
-        }
+        val generatedOriginFunction = resolveFunctionBody(declaration, userData.originFunction, callableFunction)
 
         if (generatedOriginFunction != null) {
-            postProcessGenerateOriginFunction(generatedOriginFunction)
+            postProcessGenerateOriginFunction(generatedOriginFunction, userData)
         }
 
         return generatedOriginFunction
     }
 
-    private fun postProcessGenerateOriginFunction(function: IrFunction) {
+    @OptIn(FirIncompatiblePluginAPI::class)
+    private fun postProcessGenerateOriginFunction(function: IrFunction, userData: SuspendTransformUserData) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
             fun hasAnnotation(name: FqName): Boolean =
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val includes = when {
-                isJvm -> jvmOriginIncludeAnnotations
-                isJs -> jsOriginIncludeAnnotations
-                else -> emptyList()
-            }
+            val syntheticFunctionIncludes =  userData.transformer.originFunctionIncludeAnnotations
 
-            includes.forEach { include ->
-                val name = include.name.fqn
-                val annotationClass = pluginContext.referenceClass(name) ?: return@forEach
-                if (!include.repeatable && hasAnnotation(name)) {
+            syntheticFunctionIncludes.forEach { include ->
+                val classId = include.classInfo.toClassId()
+                val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
+                if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
                     return@forEach
                 }
 
@@ -214,10 +208,11 @@ private fun generateTransformBodyForFunction(
             if (owner.valueParameters.size > 1) {
                 val secondType = owner.valueParameters[1].type
                 val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
+                val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
                 val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
                 if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
                     function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-                        context.referenceClass(coroutineScopeTypeName)?.also { coroutineScopeRef ->
+                        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
                             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                                 // put 'this' to second arg
                                 putValueArgument(1, irGet(dispatchReceiverParameter))
