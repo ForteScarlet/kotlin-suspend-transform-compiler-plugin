@@ -38,7 +38,8 @@ data class TransformAnnotationData(
     val annotationDescriptor: AnnotationDescriptor,
     val baseName: String?,
     val suffix: String?,
-    val asProperty: Boolean?,
+    val rawAsProperty: Boolean?,
+    val asProperty: Boolean,
     val functionName: String,
 ) {
     companion object {
@@ -49,6 +50,7 @@ data class TransformAnnotationData(
             annotationAsPropertyPropertyName: String = "asProperty",
             defaultBaseName: String,
             defaultSuffix: String,
+            defaultAsProperty: Boolean,
         ): TransformAnnotationData {
             val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
@@ -57,15 +59,18 @@ data class TransformAnnotationData(
             val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
 
-            val asProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
+
+            val rawAsProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
                 ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
+
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
             return TransformAnnotationData(
                 annotationDescriptor,
                 baseName,
                 suffix,
-                asProperty,
+                rawAsProperty,
+                rawAsProperty ?: defaultAsProperty,
                 functionName,
             )
         }
@@ -97,6 +102,7 @@ fun Transformer.resolveAnnotationData(
             annotationAsPropertyPropertyName,
             defaultBaseName,
             markAnnotation.defaultSuffix,
+            markAnnotation.defaultAsProperty,
         )
     }
 }
