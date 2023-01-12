@@ -121,12 +121,9 @@ plugins {
 suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -164,12 +161,10 @@ plugins {
 suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()
+    
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -206,12 +201,10 @@ plugins {
 suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()    
+    
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -225,7 +218,7 @@ suspendTransform {
 
 ### Gradle JVM
 
-Gradle JVM must be JDK11+
+**Gradle JVM** must be JDK11+
 
 ### JS platform
 
@@ -399,66 +392,43 @@ suspendTransform {
     includeRuntime = true
     // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
     runtimeConfigurationName = "implementation"
+
+    val customJvmTransformer = Transformer(
+        // mark annotation info, e.g. `@JvmBlocking`
+        markAnnotation = MarkAnnotation(
+            classInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking"), // class info for this annotation
+            baseNameProperty = "baseName",      // The property used to represent the 'base name' in the annotation, e.g. `@JvmBlocking(baseName = ...)`
+            suffixProperty = "suffix",          // The property used to represent the 'suffix' in the annotation, e.g. `@JvmBlocking(suffix = ...)`
+            asPropertyProperty = "asProperty",  // The property used to represent the 'asProperty' in the annotation, e.g. `@JvmBlocking(asProperty = true|false)`
+            defaultSuffix = "Blocking",         // Default value used when property 'suffix' (the value of suffixProperty) does not exist (when not specified by the user) (the compiler plugin cannot detect property defaults directly, so the default value must be specified from here)
+            // e.g. @JvmBlocking(suffix = "Abc"), the suffix is 'Abc', but `@JvmBlocking()`, the suffix is null in compiler plugin, so use the default suffix value.
+            defaultAsProperty = false,          // Default value used when property 'suffix' (the value of suffixProperty) does not exist (Similar to defaultSuffix)
+        ),
+        // the transform function, e.g. 
+        // 👇 `love.forte.plugin.suspendtrans.runtime.$runInBlocking$`
+        // it will be like 
+        // ```
+        // @JvmBlocking suspend fun runXxx() { ... }
+        // fun runXxxBlocking() = `$runInBlocking$` { runXxx() /* suspend  */ } // generated function
+        // ```
+        transformFunctionInfo = FunctionInfo(
+            packageName = "love.forte.plugin.suspendtrans.runtime", 
+            className = null, // null if top-level function
+            functionName = "\$runInBlocking\$"
+        ),
+        transformReturnType = null, // return type, or null if return the return type of origin function, e.g. `ClassInfo("java.util.concurrent", "CompletableFuture")`
+        transformReturnTypeGeneric = false, // if you return like `CompletableFuture<T>`, make it `true`
+        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))), // include into origin function
+        copyAnnotationsToSyntheticFunction = true,
+        copyAnnotationExcludes = listOf(ClassInfo("kotlin.jvm", "JvmSynthetic")), // do not copy from origin function
+        syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo)) // include into synthetic function
+    )
     
-    // jvm platform target config
-    jvm {
-        // jvm blocking annotation. default: @JvmBlocking
-        jvmBlockingMarkAnnotation.apply {
-            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmBlocking"
-            baseNameProperty = "baseName"
-            suffixProperty = "suffix"
-            asPropertyProperty = "asProperty"
-        }
-        
-        // jvm async annotation. default: @JvmAsync
-        jvmAsyncMarkAnnotation.apply {
-            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmAsync"
-            baseNameProperty = "baseName"
-            suffixProperty = "suffix"
-            asPropertyProperty = "asProperty"
-        }
-
-        // jvm blocking function. 
-        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): T
-        jvmBlockingFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInBlocking$"
-        
-        // jvm async function. 
-        // The function signature must satisfy: fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T>
-        jvmAsyncFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInAsync$"
-
-        // annotations that to be included to the synthetic blocking functions
-        syntheticBlockingFunctionIncludeAnnotations = listOf(
-            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-        )
-
-        // annotations that to be included to the synthetic async functions
-        syntheticAsyncFunctionIncludeAnnotations = listOf(
-            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-        )
-
-        // copy the annotations from source function to the synthetic blocking function
-        copyAnnotationsToSyntheticBlockingFunction = true
-        
-        // copy the annotations from source function to the synthetic async function
-        copyAnnotationsToSyntheticAsyncFunction = true
-
-        // if 'copyAnnotationsToSyntheticBlockingFunction == true',
-        // list of annotations to be excluded in the copy process
-        copyAnnotationsToSyntheticBlockingFunctionExcludes = listOf(
-            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-
-        // if 'copyAnnotationsToSyntheticAsyncFunction == true',
-        // list of annotations to be excluded in the copy process
-        copyAnnotationsToSyntheticAsyncFunctionExcludes = listOf(
-            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-    }
+    addJvmTransformers(
+        customJvmTransformer, ...
+    )
     
-    js {
-        // Roughly similar to what is in 'jvm'
-    }
-    
+    // or addJsTransformers(...)
     
 }
 ```

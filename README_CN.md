@@ -92,12 +92,10 @@ plugins {
 suspendTransform {
     enabled = true // 默认: true
     includeRuntime = true // 默认: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()
+
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -121,12 +119,10 @@ plugins {
 suspendTransform {
     enabled = true // 默认: true
     includeRuntime = true // 默认: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()
+
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -164,12 +160,10 @@ plugins {
 suspendTransform {
     enabled = true // 默认: true
     includeRuntime = true // 默认: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()
+
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -206,12 +200,10 @@ plugins {
 suspendTransform {
     enabled = true // 默认: true
     includeRuntime = true // 默认: true
-    jvm {
-        // ...
-    }
-    js {
-        // ...
-    }
+    useDefault()
+
+    // or custom transformers
+    transformers = listOf(...)
 }
 ```
 
@@ -386,6 +378,7 @@ class Bar {
 
 ## 自定义配置
 
+
 ```kotlin
 plugin {
     id("love.forte.plugin.suspend-transform") version "$VERSION"
@@ -393,73 +386,51 @@ plugin {
 
 
 suspendTransform {
-    // 开启插件
+    // enabled suspend transform plugin
     enabled = true
-    // 添加依赖 'love.forte.plugin.suspend-transform:suspend-transform-runtime' 到运行时环境
+    // include 'love.forte.plugin.suspend-transform:suspend-transform-runtime' to the runtime environment
     includeRuntime = true
-    // 添加的依赖 'love.forte.plugin.suspend-transform:suspend-transform-runtime' 的 'configuration name'
+    // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
     runtimeConfigurationName = "implementation"
-    
-    // jvm平台目标配置
-    jvm {
-        // jvm阻塞标记注解。默认: @JvmBlocking
-        jvmBlockingMarkAnnotation.apply {
-            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmBlocking"
-            baseNameProperty = "baseName"
-            suffixProperty = "suffix"
-            asPropertyProperty = "asProperty"
-        }
-        
-        // jvm异步标记注解。默认: @JvmAsync
-        jvmAsyncMarkAnnotation.apply {
-            annotationName = "love.forte.plugin.suspendtrans.annotation.JvmAsync"
-            baseNameProperty = "baseName"
-            suffixProperty = "suffix"
-            asPropertyProperty = "asProperty"
-        }
 
-        // jvm阻塞转化函数
-        // 函数签名必须满足: fun <T> <fun-name>(block: suspend () -> T): T
-        jvmBlockingFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInBlocking$"
-        
-        // jvm异步转化函数
-        // 函数签名必须满足 fun <T> <fun-name>(block: suspend () -> T): CompletableFuture<T>
-        jvmAsyncFunctionName = "love.forte.plugin.suspendtrans.runtime.\$runInAsync$"
+    val customJvmTransformer = Transformer(
+        // mark annotation info, e.g. `@JvmBlocking`
+        markAnnotation = MarkAnnotation(
+            classInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking"), // class info for this annotation
+            baseNameProperty = "baseName",      // The property used to represent the 'base name' in the annotation, e.g. `@JvmBlocking(baseName = ...)`
+            suffixProperty = "suffix",          // The property used to represent the 'suffix' in the annotation, e.g. `@JvmBlocking(suffix = ...)`
+            asPropertyProperty = "asProperty",  // The property used to represent the 'asProperty' in the annotation, e.g. `@JvmBlocking(asProperty = true|false)`
+            defaultSuffix = "Blocking",         // Default value used when property 'suffix' (the value of suffixProperty) does not exist (when not specified by the user) (the compiler plugin cannot detect property defaults directly, so the default value must be specified from here)
+            // e.g. @JvmBlocking(suffix = "Abc"), the suffix is 'Abc', but `@JvmBlocking()`, the suffix is null in compiler plugin, so use the default suffix value.
+            defaultAsProperty = false,          // Default value used when property 'suffix' (the value of suffixProperty) does not exist (Similar to defaultSuffix)
+        ),
+        // the transform function, e.g. 
+        // 👇 `love.forte.plugin.suspendtrans.runtime.$runInBlocking$`
+        // it will be like 
+        // ```
+        // @JvmBlocking suspend fun runXxx() { ... }
+        // fun runXxxBlocking() = `$runInBlocking$` { runXxx() /* suspend  */ } // generated function
+        // ```
+        transformFunctionInfo = FunctionInfo(
+            packageName = "love.forte.plugin.suspendtrans.runtime",
+            className = null, // null if top-level function
+            functionName = "\$runInBlocking\$"
+        ),
+        transformReturnType = null, // return type, or null if return the return type of origin function, e.g. `ClassInfo("java.util.concurrent", "CompletableFuture")`
+        transformReturnTypeGeneric = false, // if you return like `CompletableFuture<T>`, make it `true`
+        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))), // include into origin function
+        copyAnnotationsToSyntheticFunction = true,
+        copyAnnotationExcludes = listOf(ClassInfo("kotlin.jvm", "JvmSynthetic")), // do not copy from origin function
+        syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo)) // include into synthetic function
+    )
 
-        // 需要追加到生成的jvm阻塞函数上的额外注解
-        syntheticBlockingFunctionIncludeAnnotations = listOf(
-            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-        )
+    addJvmTransformers(
+        customJvmTransformer, ...
+    )
 
-        // 需要追加到生成的jvm异步函数上的额外注解
-        syntheticAsyncFunctionIncludeAnnotations = listOf(
-            SuspendTransformConfiguration.IncludeAnnotation("love.forte.plugin.suspendtrans.annotation.Api4J")
-        )
+    // or addJsTransformers(...)
 
-        // 是否需要拷贝源函数上的注解到jvm阻塞函数上
-        copyAnnotationsToSyntheticBlockingFunction = true
-        
-        // 是否需要拷贝源函数上的注解到jvm异步函数上
-        copyAnnotationsToSyntheticAsyncFunction = true
-
-        // 如果需要拷贝注解，配置拷贝过程中需要排除的注解
-        copyAnnotationsToSyntheticBlockingFunctionExcludes = listOf(
-            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-
-        // 如果需要拷贝注解，配置拷贝过程中需要排除的注解
-        copyAnnotationsToSyntheticAsyncFunctionExcludes = listOf(
-            SuspendTransformConfiguration.ExcludeAnnotation("kotlin.jvm.JvmSynthetic")
-        )
-    }
-    
-    js {
-        // 与 'jvm' 中的配置基本类似
-    }
-    
-    
 }
-```
 
 ## 开源协议
 
