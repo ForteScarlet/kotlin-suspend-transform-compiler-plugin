@@ -117,6 +117,11 @@ data class MarkAnnotation @JvmOverloads constructor(
      * 当 [suffixProperty] 不存在时使用的默认后缀
      */
     val defaultSuffix: String = "",
+
+    /**
+     * 当 [asPropertyProperty] 不存在时使用的默认值
+     */
+    val defaultAsProperty: Boolean = false,
 )
 
 

@@ -102,7 +102,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
         ) {
             if (annotationData == null) return
 
-            if (annotationData.asProperty == true && descriptors.valueParameters.isEmpty()) {
+            if (annotationData.asProperty && descriptors.valueParameters.isEmpty()) {
                 syntheticProperties.addSyntheticDescriptors(
                     thisDescriptor,
                     descriptors.transformToProperty(annotationData)
@@ -147,13 +147,14 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                                 ?: transformer.resolveAnnotationData(
                                     originFunction, originFunction.containingDeclaration, originFunction.name.identifier
                                 )
-                                ?: originFunction.findSuspendOverridden()?.let { superFunction ->
-                                    transformer.resolveAnnotationData(
-                                        superFunction,
-                                        superFunction.containingDeclaration,
-                                        superFunction.name.identifier
-                                    )
-                                }
+                                // 不检测'继承'的注解
+                                // ?: originFunction.findSuspendOverridden()?.let { superFunction ->
+                                //     transformer.resolveAnnotationData(
+                                //         superFunction,
+                                //         superFunction.containingDeclaration,
+                                //         superFunction.name.identifier
+                                //     )
+                                // }
                         }
                 }
 
@@ -215,7 +216,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                 originFunction,
                 annotationData.functionName,
                 copyAnnotations(originFunction, transformer),
-                SuspendTransformUserData(originFunction, asProperty = annotationData.asProperty ?: false, transformer),
+                SuspendTransformUserData(originFunction, asProperty = annotationData.asProperty, transformer),
                 transformer
             ).also { it.init() }
         }
