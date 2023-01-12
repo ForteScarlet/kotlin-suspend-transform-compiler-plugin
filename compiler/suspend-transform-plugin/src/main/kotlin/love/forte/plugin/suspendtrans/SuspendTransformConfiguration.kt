@@ -230,7 +230,7 @@ open class SuspendTransformConfiguration {
             transformReturnTypeGeneric = false,
             originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
             copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo),
+            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmBlockingAnnotationInfo.classInfo),
             syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
         )
         //endregion
@@ -257,7 +257,7 @@ open class SuspendTransformConfiguration {
             transformReturnTypeGeneric = true,
             originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
             copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo),
+            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmAsyncAnnotationInfo.classInfo),
             syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
         )
         //endregion
@@ -287,7 +287,7 @@ open class SuspendTransformConfiguration {
             transformReturnTypeGeneric = true,
             originFunctionIncludeAnnotations = listOf(),
             copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(),
+            copyAnnotationExcludes = listOf(jsAsyncAnnotationInfo.classInfo),
             syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jsApi4JsAnnotationInfo))
         )
         //endregion
