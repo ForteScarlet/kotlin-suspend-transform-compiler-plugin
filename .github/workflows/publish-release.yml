@@ -38,11 +38,40 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: Test
+      - name: Test and publish to sonatype
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 7.6
-          arguments: assemble allTests --info --warning-mode all
+          arguments: |
+            assemble 
+            allTests
+            build
+            publishToSonatype
+            closeAndReleaseStagingRepository
+            --info
+            --warning-mode all
+            -x test
+            --build-cache
+            -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+            -Porg.gradle.workers.max=8
+            
+
+  publish-gradle-plugin:
+    name: Publish Gradle Plugin
+    runs-on: ubuntu-latest
+    needs: test-build-publish
+    steps:
+      # 检出仓库代码
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      # Setup java
+      # https://github.com/marketplace/actions/setup-java-jdk
+      - name: Setup Java 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 11
 
       - name: Publish to sonatype
         uses: gradle/gradle-build-action@v2
@@ -50,22 +79,21 @@ jobs:
           gradle-version: 7.6
           arguments: |
             build
-            publishToSonatype
-            closeAndReleaseStagingRepository
             publishPlugins
             --info
             --warning-mode all
             -x test
             --build-cache
-            -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"-Porg.gradle.workers.max=16
+            -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+            -Porg.gradle.workers.max=8
             -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} 
             -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
-            
+  
 
   create-release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: test-build-publish
+    needs: [test-build-publish, publish-gradle-plugin]
     permissions:
       contents: write
     steps:
