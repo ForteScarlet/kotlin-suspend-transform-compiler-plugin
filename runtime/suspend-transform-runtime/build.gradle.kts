@@ -32,6 +32,7 @@ kotlin {
         "macosArm64",
         "iosSimulatorArm64",
         "iosX64",
+
         // Tier 2
 //        "linuxArm64", // 1.7.0+
         "watchosSimulatorArm64",
