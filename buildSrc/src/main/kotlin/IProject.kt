@@ -10,8 +10,10 @@ object IProject : ProjectDetail() {
 
     override val version: Version = version(0, 2, 3)
 
-    override val description: String
-        get() = DESCRIPTION
+    override val homepage: String get() = HOMEPAGE
+
+    override val description: String get() = DESCRIPTION
+
     override val developers: List<Developer> = developers {
         developer {
             id = "forte"
@@ -20,8 +22,8 @@ object IProject : ProjectDetail() {
             url = "https://github.com/ForteScarlet"
         }
     }
-    override val group: String
-        get() = GROUP
+    override val group: String get() = GROUP
+
     override val licenses: List<License> = licenses {
         license {
             name = "MIT License"
