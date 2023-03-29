@@ -8,6 +8,8 @@ plugins {
 }
 
 dependencies {
+    compileOnly(gradleApi())
+    compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("gradle-plugin-api"))
     api(project(":compiler:suspend-transform-plugin"))
 
