@@ -8,8 +8,9 @@ repositories {
     gradlePluginPortal()
 }
 
-val kotlinVersion = "1.8.0"
-val dokkaPluginVersion = "1.7.20"
+val kotlinVersion = "1.8.10"
+val dokkaPluginVersion = "1.8.10"
+val gradleCommon = "0.0.11"
 
 dependencies {
     api(gradleApi())
@@ -24,6 +25,10 @@ dependencies {
     api("io.github.gradle-nexus:publish-plugin:1.1.0")
 
      api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
+
+    implementation("love.forte.gradle.common:gradle-common-core:$gradleCommon")
+    implementation("love.forte.gradle.common:gradle-common-kotlin-multiplatform:$gradleCommon")
+    implementation("love.forte.gradle.common:gradle-common-publication:$gradleCommon")
 }
 
 

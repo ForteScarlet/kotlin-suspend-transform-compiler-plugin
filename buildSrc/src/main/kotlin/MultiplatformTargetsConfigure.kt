@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinTargetPreset
 import org.jetbrains.kotlin.gradle.plugin.KotlinTargetsContainerWithPresets
+import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeTargetPreset
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
 
 private val coroutinesUnsupportedTargets = setOf(
     "androidNativeArm32",
@@ -20,11 +20,11 @@ private val coroutinesUnsupportedTargets = setOf(
 )
 
 fun KotlinMultiplatformExtension.configAllNativeTargets(
-    filter: KotlinNativeTargetPreset.() -> Boolean = { true },
+    filter: AbstractKotlinNativeTargetPreset<*>.() -> Boolean = { true },
     configureEach: KotlinNativeTarget.() -> Unit = { }
 ) {
     presets.all {
-        if (this !is KotlinNativeTargetPreset || !filter(this)) return@all
+        if (this !is AbstractKotlinNativeTargetPreset || !filter(this)) return@all
         configureOrCreate(name, this, configureEach)
     }
 }
