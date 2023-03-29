@@ -8,7 +8,7 @@ object IProject : ProjectDetail() {
     const val DESCRIPTION = "Generate platform-compatible functions for Kotlin suspend functions"
     const val HOMEPAGE = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
 
-    override val version: Version = version(0, 2, 3)
+    override val version: Version = version(0, 2, 4)
 
     override val homepage: String get() = HOMEPAGE
 
