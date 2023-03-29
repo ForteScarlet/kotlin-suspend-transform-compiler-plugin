@@ -33,8 +33,6 @@ kotlin {
             }
     }
 
-    configAllNativeTargets()
-
     sourceSets {
         val commonMain by getting
         val commonTest by getting

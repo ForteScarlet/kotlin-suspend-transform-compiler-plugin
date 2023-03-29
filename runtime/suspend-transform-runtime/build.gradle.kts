@@ -86,13 +86,8 @@ kotlin {
             }
         }
 
-        val nativeMain by creating {
-            dependsOn(commonMain)
-        }
-
-        val nativeTest by creating {
-            dependsOn(commonTest)
-        }
+        val nativeMain by creating { dependsOn(commonMain) }
+        val nativeTest by creating { dependsOn(commonTest) }
 
         configure(mainPresets) { dependsOn(nativeMain) }
         configure(testPresets) { dependsOn(nativeTest) }

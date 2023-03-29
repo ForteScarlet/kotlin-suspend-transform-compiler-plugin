@@ -56,10 +56,8 @@ jobs:
             --info
             --warning-mode all
             -x test
-            -Pkotlin.daemon.jvmargs="-Xmx8G -XX:MaxPermSize=2g -Dfile.encoding=UTF-8"
-            -Porg.gradle.jvmargs="-Xmx8G -XX:MaxPermSize=2g -Dfile.encoding=UTF-8"
-            -Porg.gradle.workers.max=16
-            -Porg.gradle.parallel=true
+            --build-cache
+            -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"-Porg.gradle.workers.max=16
             -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} 
             -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
             
