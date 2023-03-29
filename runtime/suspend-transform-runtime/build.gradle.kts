@@ -80,6 +80,12 @@ kotlin {
             }
         }
 
+        getByName("jvmMain") {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion")
+            }
+        }
+
         val nativeMain by creating {
             dependsOn(commonMain)
         }
