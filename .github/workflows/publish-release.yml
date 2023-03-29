@@ -15,7 +15,7 @@ env:
   RELEASE: true
   CI: true
   IS_CI: true
-  GRADLE_OPTS: "-Xmx8G -XX:MaxPermSize=2G -Dfile.encoding=UTF-8"
+  GRADLE_OPTS: "-Dfile.encoding=UTF-8"
 
 jobs:
   test-build-publish:
@@ -44,8 +44,8 @@ jobs:
           gradle-version: 7.6
           arguments: |
             assemble 
-            allTests
             build
+            allTests
             publishToSonatype
             closeAndReleaseStagingRepository
             --info
@@ -53,7 +53,6 @@ jobs:
             -x test
             --build-cache
             -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
-            -Porg.gradle.workers.max=8
             
 
   publish-gradle-plugin:
@@ -85,7 +84,6 @@ jobs:
             -x test
             --build-cache
             -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
-            -Porg.gradle.workers.max=8
             -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} 
             -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
   
