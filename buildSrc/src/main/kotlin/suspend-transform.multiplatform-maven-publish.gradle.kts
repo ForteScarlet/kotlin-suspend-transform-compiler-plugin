@@ -1,5 +1,7 @@
-import gradle.kotlin.dsl.accessors._59a6e08710bd766406b34ec8c4dcd1fe.signing
-import utils.by
+import love.forte.gradle.common.core.Gpg
+import love.forte.gradle.common.core.project.setup
+import love.forte.gradle.common.core.property.systemProp
+import love.forte.gradle.common.publication.configure.multiplatformConfigPublishing
 
 plugins {
     id("org.jetbrains.dokka")
@@ -7,62 +9,36 @@ plugins {
     `maven-publish`
 }
 
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+    options.encoding = "UTF-8"
+}
+
+setup(IProject)
 
 val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
 val sonatypeContains = sonatypeUserInfoOrNull != null
 
-val jarJavadoc by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-    // from(tasks.findByName("dokkaHtml"))
-}
+val p = project
+multiplatformConfigPublishing {
+    project = IProject
 
-publishing {
-    publications {
-        configureEach {
-            if (this !is MavenPublication) {
-                return@configureEach
-            }
-
-            artifact(jarJavadoc)
-
-            pom {
-                setupPom(project)
-            }
-        }
-
-        repositories {
-            if (sonatypeContains) {
-                if (project.version.toString().contains("SNAPSHOT", true)) {
-                    configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)
-                } else {
-                    configPublishMaven(Sonatype.Central, sonatypeUsername, sonatypePassword)
-                }
-            }
-            mavenLocal()
-        }
+    val jarJavadoc by tasks.registering(Jar::class) {
+        group = "documentation"
+        archiveClassifier.set("javadoc")
+        from(tasks.findByName("dokkaHtml"))
     }
+    artifact(jarJavadoc)
+    isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+    releasesRepository = ReleaseRepository
+    snapshotRepository = SnapshotRepository
+    gpg = Gpg.ofSystemPropOrNull()
+
+    if (systemProp("SIMBOT_LOCAL").toBoolean()) {
+        mainHost = null
+    }
+
 }
 
-
-signing {
-    setupSigning(publishing.publications)
-}
-
-
-inline val Project.sourceSets: SourceSetContainer
-    get() = extensions.getByName("sourceSets") as SourceSetContainer
-
-inline val Project.publishing: PublishingExtension
-    get() = extensions.getByType<PublishingExtension>()
-
-
-fun Project.`kotlin`(configure: Action<org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension>): Unit =
-    (this as ExtensionAware).extensions.configure("kotlin", configure)
-
-fun MavenPublication.jar(taskName: String, config: Action<Jar>) = artifact(tasks.create(taskName, Jar::class, config))
-
-fun MavenPublication.javadocJar(taskName: String, config: Jar.() -> Unit = {}) = jar(taskName) {
-    archiveClassifier by "javadoc"
-    config()
-}

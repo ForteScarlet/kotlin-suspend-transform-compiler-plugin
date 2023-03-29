@@ -18,62 +18,79 @@ kotlin {
     }
     js(IR) {
         nodejs()
-        //binaries.executable()
     }
 
-    configAllNativeTargetsCoroutinesSupported()
+    val mainPresets = mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>()
+    val testPresets = mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>()
 
-//     val nativeTargetSourceNames = targets.flatMapTo(mutableSetOf()) { target ->
-//         if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
-//             val name = target.name
-//             listOf("${name}Main", "${name}Test")
-//         } else {
-//             emptyList()
-//         }
-//     }
-    
+    // K/N target supports
+    // https://kotlinlang.org/docs/native-target-support.html
+    val supportTargets = setOf(
+        // Tier 1
+        "linuxX64",
+        "macosX64",
+        "macosArm64",
+        "iosSimulatorArm64",
+        "iosX64",
+        // Tier 2
+//        "linuxArm64", // 1.7.0+
+        "watchosSimulatorArm64",
+        "watchosX64",
+        "watchosArm32",
+        "watchosArm64",
+        "tvosSimulatorArm64",
+        "tvosX64",
+        "tvosArm64",
+        "iosArm64",
+        // Tier 3
+//        "androidNativeArm32", // 1.7.0+
+//        "androidNativeArm64", // 1.7.0+
+//        "androidNativeX86", // 1.7.0+
+//        "androidNativeX64", // 1.7.0+
+        "mingwX64",
+//        "watchosDeviceArm64", // 1.7.0+
+    )
+
+    targets {
+        presets.filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeTargetPreset<*>>()
+            .filter { it.name in supportTargets }
+            .forEach { presets ->
+                val target = fromPreset(presets, presets.name)
+                val mainSourceSet = target.compilations["main"].kotlinSourceSets.first()
+                val testSourceSet = target.compilations["test"].kotlinSourceSets.first()
+                mainPresets.add(mainSourceSet)
+                testPresets.add(testSourceSet)
+            }
+    }
+
+    val coroutinesVersion = "1.6.4"
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":runtime:suspend-transform-annotation"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
+
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
             }
         }
-        getByName("jsMain") {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.6.4")
-            }
+
+        val nativeMain by creating {
+            dependsOn(commonMain)
         }
-        getByName("jvmMain") {
-            dependencies {
-                compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
-            }
+
+        val nativeTest by creating {
+            dependsOn(commonTest)
         }
-        
-        // val nativeCommonMain = create("nativeCommonMain") {
-        //     dependsOn(commonMain)
-        // }
-        // val nativeCommonTest = create("nativeCommonTest") {
-        //     dependsOn(commonTest)
-        // }
-        
-        // matching { it.name in nativeTargetSourceNames }.all {
-        //     when {
-        //         name.endsWith("Main") -> {
-        //             dependsOn(nativeCommonMain)
-        //         }
-        //
-        //         name.endsWith("Test") -> {
-        //             dependsOn(nativeCommonTest)
-        //         }
-        //     }
-        // }
-        
+
+        configure(mainPresets) { dependsOn(nativeMain) }
+        configure(testPresets) { dependsOn(nativeTest) }
+
     }
-    
+
 }

@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - v**
+  # 手动触发工作流
+  workflow_dispatch:
 
 env:
   GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
@@ -12,12 +14,17 @@ env:
   OSSRH_PASSWORD: ${{ secrets.OSS_PASSWORD }}
   RELEASE: true
   CI: true
+  IS_CI: true
   GRADLE_OPTS: "-Xmx8G -XX:MaxPermSize=2G -Dfile.encoding=UTF-8"
 
 jobs:
   test-build-publish:
     name: Test and build
-    runs-on: ubuntu-latest
+#    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       # 检出仓库代码
       - name: Check out repo
@@ -64,10 +71,6 @@ jobs:
     permissions:
       contents: write
     steps:
-#      # 检出仓库代码
-#      - name: Check Out Repo
-#        uses: actions/checkout@v2
-
         # Create gitHub release
       - name: Create Github Release
         uses: softprops/action-gh-release@v1

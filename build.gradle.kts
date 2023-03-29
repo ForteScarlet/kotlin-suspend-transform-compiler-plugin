@@ -3,12 +3,12 @@ buildscript {
 }
 
 group = IProject.GROUP
-version = IProject.VERSION
+version = IProject.version.toString()
 description = IProject.DESCRIPTION
 
 allprojects {
     group = IProject.GROUP
-    version = IProject.VERSION
+    version = IProject.version.toString()
     description = IProject.DESCRIPTION
 
     repositories {
