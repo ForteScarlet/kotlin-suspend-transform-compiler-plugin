@@ -8,7 +8,7 @@ plugins {
     id("com.github.gmazzo.buildconfig")
     //id("com.bnorm.power.kotlin-power-assert")
     id("suspend-transform.jvm-maven-publish")
-    id("com.bennyhuo.kotlin.plugin.embeddable.test") version "1.7.10.0"
+//    id("com.bennyhuo.kotlin.plugin.embeddable.test") version "1.7.10.0"
 }
 
 //testWithEmbedded0()
@@ -17,7 +17,7 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 
 //    compileOnly(kotlin("compiler-embeddable"))
 
