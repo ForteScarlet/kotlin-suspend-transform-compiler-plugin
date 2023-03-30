@@ -1,6 +1,6 @@
+import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.core.repository.Repositories
 import love.forte.gradle.common.publication.configure.nexusPublishConfig
-import utils.by
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin")
@@ -10,9 +10,11 @@ plugins {
 //
 //val versionValue = if (isRelease()) Version.VERSION else "${Version.VERSION}-SNAPSHOT"
 
-group = "love.forte.plugin.suspend-transform"
-version = "0.0.1"
-description = "Generate platform-compatible functions for Kotlin suspend functions"
+//group = "love.forte.plugin.suspend-transform"
+//version = "0.0.1"
+//description = "Generate platform-compatible functions for Kotlin suspend functions"
+
+setup(IProject)
 
 val isPublishConfigurable = isPublishConfigurable()
 
