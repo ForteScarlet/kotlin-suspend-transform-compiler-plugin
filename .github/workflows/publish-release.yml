@@ -55,7 +55,7 @@ jobs:
             -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
             -Porg.gradle.daemon=false
         env:
-          PLUGIN_AUTO: false
+          PLUGIN_AUTO: ${{ matrix.os == 'ubuntu-latest' }}
 
   publish-gradle-plugin:
     name: Publish Gradle Plugin

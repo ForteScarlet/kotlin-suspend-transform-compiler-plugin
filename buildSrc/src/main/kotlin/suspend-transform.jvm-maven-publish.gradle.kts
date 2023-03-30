@@ -2,6 +2,8 @@ import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.publication.configure.jvmConfigPublishing
 import love.forte.gradle.common.publication.configure.setupPom
+import utils.isCi
+import utils.isLinux
 
 plugins {
     id("org.jetbrains.dokka")
@@ -14,29 +16,31 @@ setup(IProject)
 //val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
 //val sonatypeContains = sonatypeUserInfoOrNull != null
+if (!isCi() || isLinux) {
+    jvmConfigPublishing {
+        project = IProject
+        val jarSources by tasks.registering(Jar::class) {
+            archiveClassifier.set("sources")
+            from(sourceSets["main"].allSource)
+        }
 
-jvmConfigPublishing {
-    project = IProject
-    val jarSources by tasks.registering(Jar::class) {
-        archiveClassifier.set("sources")
-        from(sourceSets["main"].allSource)
+        val jarJavadoc by tasks.registering(Jar::class) {
+            dependsOn(tasks.dokkaJavadoc)
+            from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+            archiveClassifier.set("javadoc")
+        }
+
+        artifact(jarSources)
+        artifact(jarJavadoc)
+
+        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+        releasesRepository = ReleaseRepository
+        snapshotRepository = SnapshotRepository
+        gpg = Gpg.ofSystemPropOrNull()
+
     }
-
-    val jarJavadoc by tasks.registering(Jar::class) {
-        dependsOn(tasks.dokkaJavadoc)
-        from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
-        archiveClassifier.set("javadoc")
-    }
-
-    artifact(jarSources)
-    artifact(jarJavadoc)
-
-    isSnapshot = project.version.toString().contains("SNAPSHOT", true)
-    releasesRepository = ReleaseRepository
-    snapshotRepository = SnapshotRepository
-    gpg = Gpg.ofSystemPropOrNull()
-
 }
+
 
 publishing.publications.configureEach {
     if (this is MavenPublication) {
@@ -45,6 +49,7 @@ publishing.publications.configureEach {
         }
     }
 }
+
 
 //publishing {
 //    publications {
