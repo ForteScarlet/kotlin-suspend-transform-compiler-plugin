@@ -1,4 +1,4 @@
-import utils.isCi
+import utils.isAutomatedGradlePluginPublishing
 
 plugins {
     kotlin("jvm")
@@ -51,7 +51,7 @@ gradlePlugin {
             implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
         }
     }
-    this.isAutomatedPublishing = isCi()
+    this.isAutomatedPublishing = isAutomatedGradlePluginPublishing()
     // repo?
 }
 
@@ -59,7 +59,7 @@ gradlePlugin {
 //    repositories {
 //        mavenLocal()
 //        gradlePluginPortal {
-//            this.name = "Gradle Central Plugin Repository"
+//            this.name = "GradleCentralPluginRepository"
 //        }
 //    }
 //}

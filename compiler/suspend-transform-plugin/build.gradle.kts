@@ -6,9 +6,7 @@ plugins {
     kotlin("kapt")
     kotlin("plugin.serialization")
     id("com.github.gmazzo.buildconfig")
-    //id("com.bnorm.power.kotlin-power-assert")
     id("suspend-transform.jvm-maven-publish")
-//    id("com.bennyhuo.kotlin.plugin.embeddable.test") version "1.7.10.0"
 }
 
 //testWithEmbedded0()

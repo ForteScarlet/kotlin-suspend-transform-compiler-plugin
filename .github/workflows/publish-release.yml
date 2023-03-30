@@ -54,7 +54,8 @@ jobs:
             --build-cache
             -Porg.gradle.jvmargs="-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
             -Porg.gradle.daemon=false
-
+        env:
+          PLUGIN_AUTO: false
 
   publish-gradle-plugin:
     name: Publish Gradle Plugin
@@ -88,7 +89,8 @@ jobs:
             -Porg.gradle.daemon=false
             -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} 
             -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
-  
+        env:
+          PLUGIN_AUTO: true
 
   create-release:
     name: Create release

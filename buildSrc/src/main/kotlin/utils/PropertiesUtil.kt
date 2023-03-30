@@ -33,3 +33,7 @@ fun isRelease(): Boolean = systemProperty("RELEASE").toBoolean()
  * 是否在CI中
  */
 fun isCi(): Boolean = systemProperty("CI").toBoolean()
+/**
+ * 是否自动配置gradle的发布
+ */
+fun isAutomatedGradlePluginPublishing(): Boolean = isCi() && systemProperty("PLUGIN_AUTO").toBoolean()
