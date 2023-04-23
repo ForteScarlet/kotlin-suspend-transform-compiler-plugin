@@ -34,7 +34,7 @@ kotlin {
         "iosX64",
 
         // Tier 2
-//        "linuxArm64", // 1.7.0+
+        "linuxArm64",
         "watchosSimulatorArm64",
         "watchosX64",
         "watchosArm32",
@@ -43,13 +43,14 @@ kotlin {
         "tvosX64",
         "tvosArm64",
         "iosArm64",
+
         // Tier 3
-//        "androidNativeArm32", // 1.7.0+
-//        "androidNativeArm64", // 1.7.0+
-//        "androidNativeX86", // 1.7.0+
-//        "androidNativeX64", // 1.7.0+
+        "androidNativeArm32",
+        "androidNativeArm64",
+        "androidNativeX86",
+        "androidNativeX64",
         "mingwX64",
-//        "watchosDeviceArm64", // 1.7.0+
+        "watchosDeviceArm64",
     )
 
     targets {
@@ -70,20 +71,20 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":runtime:suspend-transform-annotation"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
 
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
 
         getByName("jvmMain") {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion")
+                implementation(libs.kotlinx.coroutines.jdk8)
             }
         }
 
