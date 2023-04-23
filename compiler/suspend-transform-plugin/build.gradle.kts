@@ -14,13 +14,13 @@ plugins {
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("compiler"))
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    compileOnly(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.serialization.json)
 
 //    compileOnly(kotlin("compiler-embeddable"))
 
-    kapt("com.google.auto.service:auto-service:1.0.1")
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0.1")
+    kapt(libs.google.auto.service)
+    compileOnly(libs.google.auto.service.annotations)
 
     testImplementation(kotlin("stdlib"))
     testImplementation(kotlin("test-junit"))
@@ -35,7 +35,7 @@ dependencies {
 //    testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
 //    testImplementation("com.bennyhuo.kotlin:kotlin-compile-testing-extensions:1.7.10.2-SNAPSHOT")
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    testImplementation(libs.kotlinx.coroutines.core)
     // testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 }
 
