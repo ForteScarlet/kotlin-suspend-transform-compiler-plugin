@@ -1,20 +1,18 @@
+import love.forte.gradle.common.core.project.setup
+
 buildscript {
     extra["kotlin_plugin_id"] = "love.forte.plugin.suspend-transform"
 }
 
-group = IProject.GROUP
-version = IProject.version.toString()
-description = IProject.DESCRIPTION
+setup(IProject)
 
 allprojects {
-    group = IProject.GROUP
-    version = IProject.version.toString()
-    description = IProject.DESCRIPTION
+    setup(IProject)
 
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        mavenLocal()
+        //mavenLocal()
         //maven {
         //    url = URI("")
         //}
@@ -22,6 +20,7 @@ allprojects {
     this.tasks.withType<JavaCompile> {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
+        options.encoding = "UTF-8"
     }
     this.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"

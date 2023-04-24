@@ -14,7 +14,7 @@ import love.forte.gradle.common.core.repository.Repositories
 import love.forte.gradle.common.core.repository.SimpleCredentials
 import org.slf4j.LoggerFactory
 
-val logger = LoggerFactory.getLogger("Sonatype Userinfo")
+val logger = LoggerFactory.getLogger("R.sonatype.userinfo")
 
 
 private val sonatypeUserInfo0 by lazy {

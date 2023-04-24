@@ -9,13 +9,14 @@ plugins {
     `maven-publish`
 }
 
+setup(IProject)
+
 tasks.withType<JavaCompile> {
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }
 
-setup(IProject)
 
 val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
@@ -37,8 +38,8 @@ multiplatformConfigPublishing {
     gpg = Gpg.ofSystemPropOrNull()
 
     if (systemProp("SIMBOT_LOCAL").toBoolean()) {
+        logger.info("Is 'SIMBOT_LOCAL', mainHost set as null")
         mainHost = null
     }
 
 }
-

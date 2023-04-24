@@ -1,69 +1,92 @@
+import love.forte.gradle.common.core.Gpg
+import love.forte.gradle.common.core.project.setup
+import love.forte.gradle.common.publication.configure.jvmConfigPublishing
+import love.forte.gradle.common.publication.configure.setupPom
+import utils.isCi
+import utils.isLinux
+
 plugins {
     id("org.jetbrains.dokka")
     signing
     `maven-publish`
 }
 
-// val dokkaJar by tasks.creating(Jar::class) {
-//     group = DOCUMENTATION_GROUP
-//     description = "Assembles Kotlin docs with Dokka"
-//     archiveClassifier.set("javadoc")
-//     from(tasks["dokkaHtml"])
-// }
+setup(IProject)
 
+//val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
-val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
-
-val sonatypeContains = sonatypeUserInfoOrNull != null
-
-val jarJavadoc by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-    // from(tasks.findByName("dokkaHtml"))
-}
-
-val jarSources by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets["main"].allSource)
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("suspendTransformJvmDist") {
-            from(components["java"])
-            artifact(jarSources)
-            artifact(jarJavadoc)
-
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = project.version.toString()
+//val sonatypeContains = sonatypeUserInfoOrNull != null
+if (!isCi() || isLinux) {
+    jvmConfigPublishing {
+        project = IProject
+        val jarSources by tasks.registering(Jar::class) {
+            archiveClassifier.set("sources")
+            from(sourceSets["main"].allSource)
         }
 
-        configureEach {
-            if (this is MavenPublication) {
-                pom {
-                    setupPom(project)
-                }
-            }
+        val jarJavadoc by tasks.registering(Jar::class) {
+            dependsOn(tasks.dokkaJavadoc)
+            from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+            archiveClassifier.set("javadoc")
         }
 
-        repositories {
-            mavenCentral()
-            if (sonatypeContains) {
-                if (project.version.toString().contains("SNAPSHOT", true)) {
-                    configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)
-                } else {
-                    configPublishMaven(Sonatype.Central, sonatypeUsername, sonatypePassword)
-                }
-            }
-            mavenLocal()
+        artifact(jarSources)
+        artifact(jarJavadoc)
+
+        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+        releasesRepository = ReleaseRepository
+        snapshotRepository = SnapshotRepository
+        gpg = Gpg.ofSystemPropOrNull()
+
+    }
+}
+
+
+publishing.publications.configureEach {
+    if (this is MavenPublication) {
+        pom {
+            setupPom(project.name, IProject)
         }
     }
 }
 
 
-signing {
-    setupSigning(publishing.publications)
-}
+//publishing {
+//    publications {
+//        create<MavenPublication>("suspendTransformJvmDist") {
+//            from(components["java"])
+//            artifact(jarSources)
+//            artifact(jarJavadoc)
+//
+//            groupId = project.group.toString()
+//            artifactId = project.name
+//            version = project.version.toString()
+//        }
+//
+//        configureEach {
+//            if (this is MavenPublication) {
+//                pom {
+//                    setupPom(project)
+//                }
+//            }
+//        }
+//
+//        repositories {
+//            mavenCentral()
+//            if (sonatypeContains) {
+//                if (project.version.toString().contains("SNAPSHOT", true)) {
+//                    configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)
+//                } else {
+//                    configPublishMaven(Sonatype.Central, sonatypeUsername, sonatypePassword)
+//                }
+//            }
+//            mavenLocal()
+//        }
+//    }
+//}
+//signing {
+//    setupSigning(publishing.publications)
+//}
 
 
 inline val Project.sourceSets: SourceSetContainer
