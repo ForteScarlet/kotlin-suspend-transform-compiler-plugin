@@ -10,11 +10,11 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
+import org.jetbrains.kotlin.js.descriptorUtils.getKotlinTypeFqName
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isCommon
-import org.jetbrains.kotlin.platform.js.isJs
+import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
@@ -193,19 +193,13 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
 
         fun check(): Boolean {
             val platform = classDescriptor.platform
-            if (platform.isJvm() && targetPlatform == TargetPlatform.JVM) {
-                return true
-            }
 
-            if (platform.isJs() && targetPlatform == TargetPlatform.JS) {
-                return true
+            return when {
+                platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
+                platform.isJs() && targetPlatform == TargetPlatform.JS -> true
+                platform.isCommon() && targetPlatform == TargetPlatform.COMMON -> true
+                else -> false
             }
-
-            if (platform.isCommon() && targetPlatform == TargetPlatform.COMMON) {
-                return true
-            }
-
-            return false
         }
 
         platform.isCommon()
@@ -318,9 +312,10 @@ private fun SimpleFunctionDescriptor.toGeneratedByDescriptorInfo(): List<StringV
         add(d.name.sv)
         d.allParameters.forEach {
             add(it.name.sv)
-            add(it.type.getJetTypeFqName(true).sv)
+//            add(it.type.getJetTypeFqName(true).sv)
+            add(it.type.getKotlinTypeFqName(true).sv)
         }
-        add(d.returnType?.getJetTypeFqName(true)?.sv ?: "?".sv)
+        add(d.returnType?.getKotlinTypeFqName(true)?.sv ?: "?".sv)
     }
 
 }
