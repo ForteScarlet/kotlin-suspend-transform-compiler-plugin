@@ -1,5 +1,5 @@
 [versions]
-kotlinx-coroutines = "1.7.0-RC"
+kotlinx-coroutines = "1.7.0"
 kotlinx-serialization = "1.5.0"
 google-auto-service = "1.0.1"
 
