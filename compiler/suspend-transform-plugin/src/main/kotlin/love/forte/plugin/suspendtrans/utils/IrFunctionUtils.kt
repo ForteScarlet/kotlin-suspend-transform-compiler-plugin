@@ -104,20 +104,20 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
                         
                         val arguments = fields.mapTo(LinkedList()) { it } // preserve order
                         
-                        fun IrField.irGetField(): IrGetFieldImpl {
-                            return irGetField(irGet(this@functionInvoke.dispatchReceiverParameter!!), this)
+                        fun IrField.irGetField0(): IrGetFieldImpl {
+                            return irGetField(receiver = irGet(this@functionInvoke.dispatchReceiverParameter!!), field = this)
                         }
                         
                         if (originFunction.dispatchReceiverParameter != null) {
-                            this@call.dispatchReceiver = arguments.pop().irGetField()
+                            this@call.dispatchReceiver = arguments.pop().irGetField0()
                         }
                         if (originFunction.extensionReceiverParameter != null) {
-                            this@call.extensionReceiver = arguments.pop().irGetField()
+                            this@call.extensionReceiver = arguments.pop().irGetField0()
                         }
                         
                         // this@call.putValueArgument(0, irGet(scopeParam))
                         for ((index, irField) in arguments.withIndex()) {
-                            this@call.putValueArgument(index, irField.irGetField())
+                            this@call.putValueArgument(index, irField.irGetField0())
                         }
                     }
                 }
