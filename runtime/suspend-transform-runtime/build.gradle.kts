@@ -65,8 +65,6 @@ kotlin {
             }
     }
 
-    val coroutinesVersion = "1.6.4"
-
     sourceSets {
         val commonMain by getting {
             dependencies {
