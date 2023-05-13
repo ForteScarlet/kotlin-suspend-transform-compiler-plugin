@@ -1,3 +1,5 @@
+import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+
 plugins {
     `java-library`
     kotlin("jvm")
@@ -13,7 +15,7 @@ plugins {
      }
      dependencies {
          //this.implementation()
-         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.3.1")
+         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.3.2")
      }
  }
 
@@ -39,4 +41,7 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
 }
 
-
+extensions.getByType<SuspendTransformGradleExtension>().apply {
+    println(this)
+    this.useJvmDefault()
+}
