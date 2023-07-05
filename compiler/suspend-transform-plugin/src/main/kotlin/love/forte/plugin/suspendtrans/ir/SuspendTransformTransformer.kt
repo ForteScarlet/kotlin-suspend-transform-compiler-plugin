@@ -1,6 +1,9 @@
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.SuspendTransformUserData
+import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
+import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
@@ -9,16 +12,20 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irReturn
-import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.builders.*
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
@@ -92,7 +99,8 @@ class SuspendTransformTransformer(
 
     private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
         val userData = descriptor.getUserData(SuspendTransformUserDataKey) ?: return null
-        val callableFunction = pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
+        val callableFunction =
+            pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
                 ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
 
         val generatedOriginFunction = resolveFunctionBody(declaration, userData.originFunction, callableFunction)
@@ -112,7 +120,7 @@ class SuspendTransformTransformer(
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val syntheticFunctionIncludes =  userData.transformer.originFunctionIncludeAnnotations
+            val syntheticFunctionIncludes = userData.transformer.originFunctionIncludeAnnotations
 
             syntheticFunctionIncludes.forEach { include ->
                 val classId = include.classInfo.toClassId()
@@ -213,9 +221,26 @@ private fun generateTransformBodyForFunction(
                 if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
                     function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
                         context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+//                            irGet(dispatchReceiverParameter)
+//                            irAs(irGet(dispatchReceiverParameter), coroutineScopeRef).safeAs<>()
                             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                                 // put 'this' to second arg
                                 putValueArgument(1, irGet(dispatchReceiverParameter))
+                            } else {
+                                // TODO scope safe cast
+                                val scopeType = coroutineScopeRef.defaultType
+//                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
+
+                                val irSafeAs = IrTypeOperatorCallImpl(
+                                    startOffset,
+                                    endOffset,
+                                    scopeType,
+                                    IrTypeOperator.SAFE_CAST,
+                                    scopeType,
+                                    irGet(dispatchReceiverParameter)
+                                )
+
+                                putValueArgument(1, irSafeAs)
                             }
                         }
                     }
