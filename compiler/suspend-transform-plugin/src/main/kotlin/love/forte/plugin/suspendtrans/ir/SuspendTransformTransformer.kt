@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
@@ -229,18 +230,22 @@ private fun generateTransformBodyForFunction(
                             } else {
                                 // TODO scope safe cast
                                 val scopeType = coroutineScopeRef.defaultType
+
+                                if (getValueArgument(1)?.type?.isNullable() == true) {
+                                    val irSafeAs = IrTypeOperatorCallImpl(
+                                        startOffset,
+                                        endOffset,
+                                        scopeType,
+                                        IrTypeOperator.SAFE_CAST,
+                                        scopeType,
+                                        irGet(dispatchReceiverParameter)
+                                    )
+
+                                    putValueArgument(1, irSafeAs)
+                                }
+
 //                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
 
-                                val irSafeAs = IrTypeOperatorCallImpl(
-                                    startOffset,
-                                    endOffset,
-                                    scopeType,
-                                    IrTypeOperator.SAFE_CAST,
-                                    scopeType,
-                                    irGet(dispatchReceiverParameter)
-                                )
-
-                                putValueArgument(1, irSafeAs)
                             }
                         }
                     }
