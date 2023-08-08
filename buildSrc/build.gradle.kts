@@ -9,7 +9,7 @@ repositories {
 }
 
 val kotlinVersion = "1.8.21"
-val dokkaPluginVersion = "1.8.10"
+val dokkaPluginVersion = "1.8.20"
 val gradleCommon = "0.0.11"
 
 dependencies {

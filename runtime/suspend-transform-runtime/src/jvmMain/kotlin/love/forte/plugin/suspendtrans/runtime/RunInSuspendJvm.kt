@@ -74,9 +74,9 @@ private val transformer: FutureTransformer =
 @Suppress("FunctionName")
 public fun <T> `$runInAsync$`(
     block: suspend () -> T,
-    scope: CoroutineScope = `$CoroutineScope4J$`
+    scope: CoroutineScope? = null //`$CoroutineScope4J$`
 ): CompletableFuture<T> {
-    return transformer.trans(scope, block)
+    return transformer.trans(scope ?: `$CoroutineScope4J$`, block)
 }
 
 

@@ -13,18 +13,13 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.builders.*
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.isNullable
-import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
-import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
@@ -214,45 +209,107 @@ private fun generateTransformBodyForFunction(
             //println(transformTargetFunctionCall.owner.valueParameters)
             val owner = transformTargetFunctionCall.owner
 
+            // CoroutineScope
             if (owner.valueParameters.size > 1) {
-                val secondType = owner.valueParameters[1].type
-                val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
-                val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
-                val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
-                if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
-                    function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-                        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
-//                            irGet(dispatchReceiverParameter)
-//                            irAs(irGet(dispatchReceiverParameter), coroutineScopeRef).safeAs<>()
-                            if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
-                                // put 'this' to second arg
-                                putValueArgument(1, irGet(dispatchReceiverParameter))
-                            } else {
-                                // TODO scope safe cast
-                                val scopeType = coroutineScopeRef.defaultType
-
-                                if (getValueArgument(1)?.type?.isNullable() == true) {
-                                    val irSafeAs = IrTypeOperatorCallImpl(
-                                        startOffset,
-                                        endOffset,
-                                        scopeType,
-                                        IrTypeOperator.SAFE_CAST,
-                                        scopeType,
-                                        irGet(dispatchReceiverParameter)
-                                    )
-
-                                    putValueArgument(1, irSafeAs)
-                                }
-
-//                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
-
-                            }
-                        }
+                owner.valueParameters.forEachIndexed { index, valueParameter ->
+                    if (index == 0) {
+                        return@forEachIndexed
                     }
+
+                    val type = valueParameter.type
+                    tryResolveCoroutineScopeValueParameter(type, context, function, owner, this@irBlockBody, index)
                 }
+
+//                val secondType = owner.valueParameters[1].type
+//                val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
+//                val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
+//                val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
+//                if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
+//                    function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
+//                        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+////                            irGet(dispatchReceiverParameter)
+////                            irAs(irGet(dispatchReceiverParameter), coroutineScopeRef).safeAs<>()
+//                            if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
+//                                // put 'this' to second arg
+//                                putValueArgument(1, irGet(dispatchReceiverParameter))
+//                            } else {
+//                                // scope safe cast
+//                                val scopeType = coroutineScopeRef.defaultType
+//
+//                                val scopeParameter = owner.valueParameters.getOrNull(1)
+//
+//                                if (scopeParameter?.type?.isNullable() == true) {
+//                                    val irSafeAs = IrTypeOperatorCallImpl(
+//                                        startOffset,
+//                                        endOffset,
+//                                        scopeType,
+//                                        IrTypeOperator.SAFE_CAST,
+//                                        scopeType,
+//                                        irGet(dispatchReceiverParameter)
+//                                    )
+//
+//                                    putValueArgument(1, irSafeAs)
+//                                }
+////                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
+//                            }
+//                        }
+//                    }
+//                }
 
             }
 
         })
+    }
+}
+
+private val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
+private val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
+private val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
+
+/**
+ * 解析类型为 CoroutineScope 的参数。
+ * 如果当前参数类型为 CoroutineScope:
+ * - 如果当前 dispatcher 即为 CoroutineScope 类型，将其填充
+ * - 如果当前 dispatcher 不是 CoroutineScope 类型，但是此参数可以为 null，则使用 safe-cast 将 dispatcher 转化为 CoroutineScope ( `dispatcher as? CoroutineScope` )
+ * - 其他情况忽略此参数（适用于此参数有默认值的情况）
+ */
+private fun IrCall.tryResolveCoroutineScopeValueParameter(
+    type: IrType,
+    context: IrPluginContext,
+    function: IrFunction,
+    owner: IrSimpleFunction,
+    builderWithScope: IrBuilderWithScope,
+    index: Int
+) {
+    if (type.isClassType(coroutineScopeTypeNameUnsafe)) {
+        function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
+            context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+//                            irGet(dispatchReceiverParameter)
+//                            irAs(irGet(dispatchReceiverParameter), coroutineScopeRef).safeAs<>()
+                if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
+                    // put 'this' to second arg
+                    putValueArgument(index, builderWithScope.irGet(dispatchReceiverParameter))
+                } else {
+                    // scope safe cast
+                    val scopeType = coroutineScopeRef.defaultType
+
+                    val scopeParameter = owner.valueParameters.getOrNull(1)
+
+                    if (scopeParameter?.type?.isNullable() == true) {
+                        val irSafeAs = IrTypeOperatorCallImpl(
+                            startOffset,
+                            endOffset,
+                            scopeType,
+                            IrTypeOperator.SAFE_CAST,
+                            scopeType,
+                            builderWithScope.irGet(dispatchReceiverParameter)
+                        )
+
+                        putValueArgument(index, irSafeAs)
+                    }
+//                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
+                }
+            }
+        }
     }
 }
