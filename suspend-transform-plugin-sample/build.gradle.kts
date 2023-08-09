@@ -8,6 +8,7 @@ plugins {
     // id(project(":suspend-transform-plugin-gradle"))
 }
 
+
  buildscript {
      this@buildscript.repositories {
          mavenLocal()
@@ -15,7 +16,7 @@ plugins {
      }
      dependencies {
          //this.implementation()
-         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.3.2")
+         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.4.0")
      }
  }
 
@@ -24,9 +25,10 @@ plugins {
 //    sourceCompatibility = "11"
 //    targetCompatibility = "11"
 //}
-//withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//    kotlinOptions.jvmTarget = "11"
-//}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
+}
 
 repositories {
     mavenLocal()
@@ -36,9 +38,10 @@ apply(plugin = "love.forte.plugin.suspend-transform")
 
 dependencies {
     api(kotlin("stdlib"))
-//    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:0.3.2")
-//    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:0.3.2")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+//    val pluginVersion = "0.4.0"
+//    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
+//    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {

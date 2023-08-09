@@ -1,6 +1,9 @@
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.SuspendTransformUserData
+import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
+import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
@@ -9,16 +12,16 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
-import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
@@ -92,7 +95,8 @@ class SuspendTransformTransformer(
 
     private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
         val userData = descriptor.getUserData(SuspendTransformUserDataKey) ?: return null
-        val callableFunction = pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
+        val callableFunction =
+            pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
                 ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
 
         val generatedOriginFunction = resolveFunctionBody(declaration, userData.originFunction, callableFunction)
@@ -112,7 +116,7 @@ class SuspendTransformTransformer(
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val syntheticFunctionIncludes =  userData.transformer.originFunctionIncludeAnnotations
+            val syntheticFunctionIncludes = userData.transformer.originFunctionIncludeAnnotations
 
             syntheticFunctionIncludes.forEach { include ->
                 val classId = include.classInfo.toClassId()
@@ -205,24 +209,69 @@ private fun generateTransformBodyForFunction(
             //println(transformTargetFunctionCall.owner.valueParameters)
             val owner = transformTargetFunctionCall.owner
 
-            if (owner.valueParameters.size > 1) {
-                val secondType = owner.valueParameters[1].type
-                val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
-                val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
-                val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
-                if (secondType.isClassType(coroutineScopeTypeNameUnsafe)) {
-                    function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-                        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
-                            if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
-                                // put 'this' to second arg
-                                putValueArgument(1, irGet(dispatchReceiverParameter))
-                            }
-                        }
-                    }
-                }
+            // CoroutineScope
+            val ownerValueParameters = owner.valueParameters
 
+            if (ownerValueParameters.size > 1) {
+                for (index in 1..ownerValueParameters.lastIndex) {
+                    val valueParameter = ownerValueParameters[index]
+                    val type = valueParameter.type
+                    tryResolveCoroutineScopeValueParameter(type, context, function, owner, this@irBlockBody, index)
+                }
             }
 
         })
+    }
+}
+
+private val coroutineScopeTypeName = "kotlinx.coroutines.CoroutineScope".fqn
+private val coroutineScopeTypeClassId = ClassId.topLevel("kotlinx.coroutines.CoroutineScope".fqn)
+private val coroutineScopeTypeNameUnsafe = coroutineScopeTypeName.toUnsafe()
+
+/**
+ * 解析类型为 CoroutineScope 的参数。
+ * 如果当前参数类型为 CoroutineScope:
+ * - 如果当前 receiver 即为 CoroutineScope 类型，将其填充
+ * - 如果当前 receiver 不是 CoroutineScope 类型，但是此参数可以为 null，
+ *   则使用 safe-cast 将 receiver 转化为 CoroutineScope ( `dispatcher as? CoroutineScope` )
+ * - 其他情况忽略此参数（适用于此参数有默认值的情况）
+ */
+private fun IrCall.tryResolveCoroutineScopeValueParameter(
+    type: IrType,
+    context: IrPluginContext,
+    function: IrFunction,
+    owner: IrSimpleFunction,
+    builderWithScope: IrBuilderWithScope,
+    index: Int
+) {
+    if (!type.isClassType(coroutineScopeTypeNameUnsafe)) {
+        return
+    }
+
+    function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
+        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+            if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
+                // put 'this' to the arg
+                putValueArgument(index, builderWithScope.irGet(dispatchReceiverParameter))
+            } else {
+                val scopeType = coroutineScopeRef.defaultType
+
+                val scopeParameter = owner.valueParameters.getOrNull(1)
+
+                if (scopeParameter?.type?.isNullable() == true) {
+                    val irSafeAs = IrTypeOperatorCallImpl(
+                        startOffset,
+                        endOffset,
+                        scopeType,
+                        IrTypeOperator.SAFE_CAST,
+                        scopeType,
+                        builderWithScope.irGet(dispatchReceiverParameter)
+                    )
+
+                    putValueArgument(index, irSafeAs)
+                }
+//                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
+            }
+        }
     }
 }
