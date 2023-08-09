@@ -100,7 +100,7 @@ public expect annotation class JvmAsync(
      * 只有函数没有参数时有效。
      *
      */
-    actual val asProperty: Boolean = false
+    val asProperty: Boolean = false
 )
 
 
