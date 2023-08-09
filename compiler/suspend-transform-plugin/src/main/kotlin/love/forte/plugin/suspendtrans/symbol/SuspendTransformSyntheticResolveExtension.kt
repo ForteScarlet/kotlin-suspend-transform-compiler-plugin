@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeAttributes
 import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.types.error.ErrorModuleDescriptor.platform
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -201,8 +200,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                 else -> false
             }
         }
-
-        platform.isCommon()
 
         if (check()) {
             return SimpleSuspendTransformFunctionDescriptor(

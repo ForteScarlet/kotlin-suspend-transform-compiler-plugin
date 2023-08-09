@@ -12,7 +12,7 @@ allprojects {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        //mavenLocal()
+        mavenLocal()
         //maven {
         //    url = URI("")
         //}
