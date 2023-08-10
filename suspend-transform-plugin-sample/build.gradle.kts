@@ -16,7 +16,7 @@ plugins {
      }
      dependencies {
          //this.implementation()
-         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.4.0")
+         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.5.0")
      }
  }
 
