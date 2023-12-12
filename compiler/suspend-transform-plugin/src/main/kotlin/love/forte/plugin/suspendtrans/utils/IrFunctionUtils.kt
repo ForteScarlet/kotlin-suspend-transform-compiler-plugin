@@ -165,8 +165,8 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
             see https://youtrack.jetbrains.com/issue/KT-53993/IR-kotlin.NotImplementedError-An-operation-is-not-implemented-IrClassImpl-is-not-supported-yet-here#focus=Comments-27-8622204.0-0
         */
 
-        isFun = true
-        //isInner = true
+//        isFun = true
+        isInner = true
         visibility = DescriptorVisibilities.LOCAL
     }.apply clazz@{
         this.parent = parent

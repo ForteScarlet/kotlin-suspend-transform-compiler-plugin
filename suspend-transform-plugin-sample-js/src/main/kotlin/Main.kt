@@ -1,18 +1,20 @@
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.await
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.promise
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.Promise
 
 suspend fun main() {
-    runInAsync(block = SuspendFun()).await()
+//    runInAsync(block = SuspendFun()).await()
+    println(ForteScarlet().stringToInt("1"))
+    println(ForteScarlet().stringToIntAsync("1"))
 }
 
 private val scope = CoroutineScope(EmptyCoroutineContext)
 
 fun <T> runInAsync(block: suspend () -> T): Promise<T> {
-    return scope.promise { block() }
+    val b1 = block::invoke
+    return scope.promise { b1() }
 }
 
 class SuspendFun : (suspend () -> String) {
