@@ -40,7 +40,7 @@ fun IrSimpleFunction.asProperty(): IrProperty {
         parent = parentClassOrFile
         getter = baseFunction
     }
-    
+
     return property
 }
 
@@ -59,17 +59,26 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
     return IrFactoryImpl.buildClass {
         name = SpecialNames.NO_NAME_PROVIDED
         kind = ClassKind.CLASS
-        // isInner = true
+        /*
+            Those three lines are required, especially `visibility` and `isInner`
+            All the local classes should have it
+
+            see https://youtrack.jetbrains.com/issue/KT-53993/IR-kotlin.NotImplementedError-An-operation-is-not-implemented-IrClassImpl-is-not-supported-yet-here#focus=Comments-27-8622204.0-0
+        */
+
+        isFun = true
+        //isInner = true
+        visibility = DescriptorVisibilities.LOCAL
     }.apply clazz@{
         this.parent = parent
         superTypes = listOf(lambdaType)
-        
+
         val fields = originFunction.paramsAndReceiversAsParamsList().map {
             addField(it.name.identifierOrMappedSpecialName.synthesizedName, it.type)
         }
-        
+
         createImplicitParameterDeclarationWithWrappedDescriptor()
-        
+
         addConstructor {
             isPrimary = true
         }.apply constructor@{
@@ -79,42 +88,147 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
                     type = irField.type
                 }
             }
-            
+
             this@constructor.body = createIrBuilder(symbol).irBlockBody {
                 +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
-                
+
                 for ((irField, irValueParam) in newParams) {
                     +irSetField(irGet(this@clazz.thisReceiver!!), irField, irGet(irValueParam))
                 }
+
+
             }
         }
-        
+
         val irClass = this
-        
+
         addFunction("invoke", lambdaType.arguments.last().typeOrNull!!, isSuspend = true).apply functionInvoke@{
             this.overriddenSymbols =
-                listOf(irClass.superTypes[0].getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
-            
+//                listOf(irClass.superTypes[0].getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
+                listOf(lambdaType.getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
+
             // this.createDispatchReceiverParameter()
             this.body = createIrBuilder(symbol).run {
                 // don't use expr body, coroutine codegen can't generate for it.
                 irBlockBody {
                     +irCall(originFunction).apply call@{
                         // set arguments
-                        
+
                         val arguments = fields.mapTo(LinkedList()) { it } // preserve order
-                        
+
                         fun IrField.irGetField0(): IrGetFieldImpl {
-                            return irGetField(receiver = irGet(this@functionInvoke.dispatchReceiverParameter!!), field = this)
+                            return irGetField(
+                                receiver = irGet(this@functionInvoke.dispatchReceiverParameter!!),
+                                field = this
+                            )
                         }
-                        
+
                         if (originFunction.dispatchReceiverParameter != null) {
                             this@call.dispatchReceiver = arguments.pop().irGetField0()
                         }
                         if (originFunction.extensionReceiverParameter != null) {
                             this@call.extensionReceiver = arguments.pop().irGetField0()
                         }
-                        
+
+                        // this@call.putValueArgument(0, irGet(scopeParam))
+                        for ((index, irField) in arguments.withIndex()) {
+                            this@call.putValueArgument(index, irField.irGetField0())
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Generates a suspend lambda.
+ *
+ * - extends `suspend () -> Unit`.
+ * - takes dispatch and extension receivers as param, followed by normal value params, to the constructor of this object
+ */
+fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
+    parent: IrDeclarationParent,
+    lambdaType: IrSimpleType,
+    originFunction: IrFunction,
+): IrClass {
+
+
+    return IrFactoryImpl.buildClass {
+        name = SpecialNames.NO_NAME_PROVIDED
+        kind = ClassKind.CLASS
+
+        /*
+            Those three lines are required, especially `visibility` and `isInner`
+            All the local classes should have it
+
+            see https://youtrack.jetbrains.com/issue/KT-53993/IR-kotlin.NotImplementedError-An-operation-is-not-implemented-IrClassImpl-is-not-supported-yet-here#focus=Comments-27-8622204.0-0
+        */
+
+        isFun = true
+        //isInner = true
+        visibility = DescriptorVisibilities.LOCAL
+    }.apply clazz@{
+        this.parent = parent
+        superTypes = listOf(lambdaType)
+
+        val fields = originFunction.paramsAndReceiversAsParamsList().map {
+            addField(it.name.identifierOrMappedSpecialName.synthesizedName, it.type)
+        }
+
+        createImplicitParameterDeclarationWithWrappedDescriptor()
+
+        addConstructor {
+            isPrimary = true
+        }.apply constructor@{
+            val newParams = fields.associateWith { irField ->
+                this@constructor.addValueParameter {
+                    name = irField.name
+                    type = irField.type
+                }
+            }
+
+            this@constructor.body = createIrBuilder(symbol).irBlockBody {
+                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
+
+                for ((irField, irValueParam) in newParams) {
+                    +irSetField(irGet(this@clazz.thisReceiver!!), irField, irGet(irValueParam))
+                }
+
+
+            }
+        }
+
+        val irClass = this
+
+        addFunction("invoke", lambdaType.arguments.last().typeOrNull!!, isSuspend = true).apply functionInvoke@{
+            this.overriddenSymbols =
+//                listOf(irClass.superTypes[0].getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
+                listOf(lambdaType.getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
+
+            // this.createDispatchReceiverParameter()
+            this.body = createIrBuilder(symbol).run {
+                // don't use expr body, coroutine codegen can't generate for it.
+                irBlockBody {
+                    +irCall(originFunction).apply call@{
+                        // set arguments
+
+                        val arguments = fields.mapTo(LinkedList()) { it } // preserve order
+
+                        fun IrField.irGetField0(): IrGetFieldImpl {
+                            return irGetField(
+                                receiver = irGet(this@functionInvoke.dispatchReceiverParameter!!),
+                                field = this
+                            )
+                        }
+
+                        if (originFunction.dispatchReceiverParameter != null) {
+                            this@call.dispatchReceiver = arguments.pop().irGetField0()
+                        }
+                        if (originFunction.extensionReceiverParameter != null) {
+                            this@call.extensionReceiver = arguments.pop().irGetField0()
+                        }
+
                         // this@call.putValueArgument(0, irGet(scopeParam))
                         for ((index, irField) in arguments.withIndex()) {
                             this@call.putValueArgument(index, irField.irGetField0())

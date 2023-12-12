@@ -6,7 +6,6 @@ import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -108,7 +107,6 @@ class SuspendTransformTransformer(
         return generatedOriginFunction
     }
 
-    @OptIn(FirIncompatiblePluginAPI::class)
     private fun postProcessGenerateOriginFunction(function: IrFunction, userData: SuspendTransformUserData) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
@@ -192,7 +190,7 @@ private fun generateTransformBodyForFunction(
 
     return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambda = context.createSuspendLambdaWithCoroutineScope(
-            parent = function,
+            parent = originFunction.parent,
             // suspend () -> ?
             lambdaType = context.symbols.suspendFunctionN(0).typeWith(originFunction.returnType),
             originFunction = originFunction

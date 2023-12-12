@@ -2,22 +2,18 @@ import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
 
 plugins {
     kotlin("js")
-//    id("love.forte.plugin.suspend-transform")
-    // id("suspend-transform.jvm-maven-publish")
-    // id(project(":suspend-transform-plugin-gradle"))
 }
 
 
- buildscript {
-     this@buildscript.repositories {
-         mavenLocal()
-         mavenCentral()
-     }
-     dependencies {
-         //this.implementation()
-         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.5.1")
-     }
- }
+buildscript {
+    this@buildscript.repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.5.1-local-test-2")
+    }
+}
 
 
 kotlin {
@@ -42,6 +38,5 @@ dependencies {
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {
-    println(this)
     useJsDefault()
 }

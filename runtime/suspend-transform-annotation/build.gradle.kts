@@ -5,6 +5,7 @@ plugins {
 
 kotlin {
     explicitApi()
+    applyDefaultHierarchyTemplate()
 
     jvm {
         compilations.all {
@@ -20,27 +21,45 @@ kotlin {
     js(IR) {
         nodejs()
     }
-    val mainPresets = mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>()
-    val testPresets = mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>()
 
-    targets {
-        presets
-            .filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeTargetPreset<*>>()
-            .forEach { presets ->
-                val target = fromPreset(presets, presets.name)
-                mainPresets.add(target.compilations["main"].kotlinSourceSets.first())
-                testPresets.add(target.compilations["test"].kotlinSourceSets.first())
-            }
-    }
+    // tier1
+    linuxX64()
+    macosX64()
+    macosArm64()
+    iosSimulatorArm64()
+    iosX64()
 
-    sourceSets {
-        val commonMain by getting
-        val commonTest by getting
+    // tier2
+    linuxArm64()
+    watchosSimulatorArm64()
+    watchosX64()
+    watchosArm32()
+    watchosArm64()
+    tvosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    iosArm64()
 
-        val nativeMain by creating { dependsOn(commonMain) }
-        val nativeTest by creating { dependsOn(commonTest) }
+    // tier3
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX86()
+    androidNativeX64()
+    mingwX64()
+    watchosDeviceArm64()
 
-        configure(mainPresets) { dependsOn(nativeMain) }
-        configure(testPresets) { dependsOn(nativeTest) }
-    }
+//    withKotlinTargets { target ->
+//        targets.findByName(target.name)?.compilations?.all {
+//            // 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. You can use -Xexpect-actual-classes flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+//            kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+//        }
+//    }
 }
+
+
+//fun Project.withKotlinTargets(fn: (KotlinTarget) -> Unit) {
+//    extensions.findByType(KotlinTargetsContainer::class.java)?.let { kotlinExtension ->
+//        // find all compilations given sourceSet belongs to
+//        kotlinExtension.targets.all { target -> fn(target) }
+//    }
+//}

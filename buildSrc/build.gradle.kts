@@ -24,7 +24,7 @@ dependencies {
     api("gradle.plugin.com.bnorm.power:kotlin-power-assert-gradle:0.12.0")
     api("io.github.gradle-nexus:publish-plugin:1.1.0")
 
-     api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
+    api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
 
     implementation("love.forte.gradle.common:gradle-common-core:$gradleCommon")
     implementation("love.forte.gradle.common:gradle-common-kotlin-multiplatform:$gradleCommon")
