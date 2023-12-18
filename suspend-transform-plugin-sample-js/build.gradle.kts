@@ -11,7 +11,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.5.1-local-test-3")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.5.1-local-test-4")
     }
 }
 
@@ -19,7 +19,13 @@ buildscript {
 kotlin {
     js(IR) {
         nodejs()
+        useEsModules()
         binaries.executable()
+        compilations.all {
+            kotlinOptions {
+                useEsClasses = true
+            }
+        }
     }
 }
 

@@ -141,103 +141,45 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
     }
 }
 
-/**
- * Generates a suspend lambda.
- *
- * - extends `suspend () -> Unit`.
- * - takes dispatch and extension receivers as param, followed by normal value params, to the constructor of this object
- */
 fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
-    parent: IrDeclarationParent,
-    lambdaType: IrSimpleType,
     originFunction: IrFunction,
-): IrClass {
-
-
-    return IrFactoryImpl.buildClass {
+    function: IrFunction,
+    blockBodyBuilder: IrBlockBodyBuilder
+): IrSimpleFunction {
+    val func = IrFactoryImpl.buildFun {
         name = SpecialNames.NO_NAME_PROVIDED
-        kind = ClassKind.CLASS
-
-        /*
-            Those three lines are required, especially `visibility` and `isInner`
-            All the local classes should have it
-
-            see https://youtrack.jetbrains.com/issue/KT-53993/IR-kotlin.NotImplementedError-An-operation-is-not-implemented-IrClassImpl-is-not-supported-yet-here#focus=Comments-27-8622204.0-0
-        */
-
-//        isFun = true
-        isInner = true
         visibility = DescriptorVisibilities.LOCAL
-    }.apply clazz@{
-        this.parent = parent
-        superTypes = listOf(lambdaType)
+        isSuspend = true
+        returnType = function.returnType
+    }
 
-        val fields = originFunction.paramsAndReceiversAsParamsList().map {
-            addField(it.name.identifierOrMappedSpecialName.synthesizedName, it.type)
-        }
-
-        createImplicitParameterDeclarationWithWrappedDescriptor()
-
-        addConstructor {
-            isPrimary = true
-        }.apply constructor@{
-            val newParams = fields.associateWith { irField ->
-                this@constructor.addValueParameter {
-                    name = irField.name
-                    type = irField.type
-                }
-            }
-
-            this@constructor.body = createIrBuilder(symbol).irBlockBody {
-                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
-
-                for ((irField, irValueParam) in newParams) {
-                    +irSetField(irGet(this@clazz.thisReceiver!!), irField, irGet(irValueParam))
-                }
+    with(func) {
+        parent = function
+        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
 
 
-            }
-        }
+        body = createIrBuilder(symbol).run {
+            // don't use expr body, coroutine codegen can't generate for it.
+            irBlockBody {
+                +irCall(originFunction).apply call@{
+                    // set arguments
+                    function.dispatchReceiverParameter?.also {
+                        this@call.dispatchReceiver = irGet(it)
+                    }
 
-        val irClass = this
+                    function.extensionReceiverParameter?.also {
+                        this@call.extensionReceiver = irGet(it)
+                    }
 
-        addFunction("invoke", lambdaType.arguments.last().typeOrNull!!, isSuspend = true).apply functionInvoke@{
-            this.overriddenSymbols =
-//                listOf(irClass.superTypes[0].getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
-                listOf(lambdaType.getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)
-
-            // this.createDispatchReceiverParameter()
-            this.body = createIrBuilder(symbol).run {
-                // don't use expr body, coroutine codegen can't generate for it.
-                irBlockBody {
-                    +irCall(originFunction).apply call@{
-                        // set arguments
-
-                        val arguments = fields.mapTo(LinkedList()) { it } // preserve order
-
-                        fun IrField.irGetField0(): IrGetFieldImpl {
-                            return irGetField(
-                                receiver = irGet(this@functionInvoke.dispatchReceiverParameter!!),
-                                field = this
-                            )
-                        }
-
-                        if (originFunction.dispatchReceiverParameter != null) {
-                            this@call.dispatchReceiver = arguments.pop().irGetField0()
-                        }
-                        if (originFunction.extensionReceiverParameter != null) {
-                            this@call.extensionReceiver = arguments.pop().irGetField0()
-                        }
-
-                        // this@call.putValueArgument(0, irGet(scopeParam))
-                        for ((index, irField) in arguments.withIndex()) {
-                            this@call.putValueArgument(index, irField.irGetField0())
-                        }
+                    for ((index, parameter) in function.valueParameters.withIndex()) {
+                        this@call.putValueArgument(index, irGet(parameter))
                     }
                 }
             }
         }
     }
+
+    return func
 }
 
 fun IrFunction.paramsAndReceiversAsParamsList(): List<IrValueParameter> {

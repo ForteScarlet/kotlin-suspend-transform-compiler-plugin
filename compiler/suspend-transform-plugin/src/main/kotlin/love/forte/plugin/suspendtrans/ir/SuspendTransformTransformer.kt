@@ -15,7 +15,9 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
@@ -162,7 +164,8 @@ class SuspendTransformTransformer(
             val originFunction = originFunctions.first()
 
             function.body = null
-            function.body = generateTransformBodyForFunction(
+//            function.body = generateTransformBodyForFunction(
+            function.body = generateTransformBodyForFunctionLambda(
                 pluginContext,
                 function,
                 originFunction,
@@ -205,6 +208,55 @@ private fun generateTransformBodyForFunction(
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             //println("transformTargetFunctionCall.owner: ${transformTargetFunctionCall.owner}")
             //println(transformTargetFunctionCall.owner.valueParameters)
+            val owner = transformTargetFunctionCall.owner
+
+            // CoroutineScope
+            val ownerValueParameters = owner.valueParameters
+
+            if (ownerValueParameters.size > 1) {
+                for (index in 1..ownerValueParameters.lastIndex) {
+                    val valueParameter = ownerValueParameters[index]
+                    val type = valueParameter.type
+                    tryResolveCoroutineScopeValueParameter(type, context, function, owner, this@irBlockBody, index)
+                }
+            }
+
+        })
+    }
+}
+
+/**
+ * new
+ *
+ */
+private fun generateTransformBodyForFunctionLambda(
+    context: IrPluginContext,
+    function: IrFunction,
+    originFunction: IrFunction,
+    transformTargetFunctionCall: IrSimpleFunctionSymbol,
+): IrBody {
+    val originValueParameters = originFunction.valueParameters
+    function.valueParameters.forEachIndexed { index, parameter ->
+        val originFunctionValueParameter = originValueParameters[index]
+        parameter.defaultValue = originFunctionValueParameter.defaultValue
+    }
+
+
+    return context.createIrBuilder(function.symbol).irBlockBody {
+        val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
+            originFunction = originFunction,
+            function = function,
+            this
+        ).also { +it }
+
+        val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
+
+        val ex = IrFunctionExpressionImpl(-1, -1, lambdaType, suspendLambdaFunc, IrStatementOrigin.LAMBDA)
+        +ex
+
+        +irReturn(irCall(transformTargetFunctionCall).apply {
+            putValueArgument(0, ex)
+            // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             val owner = transformTargetFunctionCall.owner
 
             // CoroutineScope
