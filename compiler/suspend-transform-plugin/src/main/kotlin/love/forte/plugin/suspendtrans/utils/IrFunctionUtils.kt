@@ -5,11 +5,14 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
+import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
+import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.typeOrNull
@@ -146,22 +149,39 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
     function: IrFunction,
     blockBodyBuilder: IrBlockBodyBuilder
 ): IrSimpleFunction {
-    val func = IrFactoryImpl.buildFun {
-        name = SpecialNames.NO_NAME_PROVIDED
-        visibility = DescriptorVisibilities.LOCAL
-        isSuspend = true
-        returnType = function.returnType
-    }
+    val func = IrFunctionImpl(
+        startOffset = -1,
+        endOffset = -1,
+        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
+        name = SpecialNames.NO_NAME_PROVIDED,
+        visibility = DescriptorVisibilities.LOCAL,
+        isInline = false,
+        isExpect = false,
+        returnType = function.returnType,
+        modality = Modality.FINAL,
+        symbol = IrSimpleFunctionSymbolImpl(),
+        isSuspend = true,
+        isTailrec = false,
+        isOperator = false,
+        isInfix = false,
+        isExternal = false,
+    )
+
+//    val func1 = IrFactoryImpl.buildFun {
+//        name = SpecialNames.NO_NAME_PROVIDED
+//        visibility = DescriptorVisibilities.LOCAL
+//        isSuspend = true
+//        returnType = function.returnType
+//    }
 
     with(func) {
         parent = function
-        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
-
+//        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
 
         body = createIrBuilder(symbol).run {
             // don't use expr body, coroutine codegen can't generate for it.
             irBlockBody {
-                +irCall(originFunction).apply call@{
+                +irReturn(irCall(originFunction).apply call@{
                     // set arguments
                     function.dispatchReceiverParameter?.also {
                         this@call.dispatchReceiver = irGet(it)
@@ -174,7 +194,7 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
                     for ((index, parameter) in function.valueParameters.withIndex()) {
                         this@call.putValueArgument(index, irGet(parameter))
                     }
-                }
+                })
             }
         }
     }
