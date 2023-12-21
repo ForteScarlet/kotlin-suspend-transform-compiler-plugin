@@ -1,7 +1,10 @@
 @file:OptIn(ExperimentalJsExport::class)
 
+import wasmtrans.JsPromise
+
+
 abstract class IForteScarlet {
-    //    @JsPromise
+    @JsPromise
     abstract suspend fun stringToInt(value: String): Int
 }
 
@@ -11,7 +14,7 @@ abstract class IForteScarlet {
  * @author ForteScarlet
  */
 class ForteScarlet : IForteScarlet() {
-    //    @JsPromise
+    @JsPromise
     @JsExport.Ignore
     override suspend fun stringToInt(value: String): Int {
         return value.toInt()

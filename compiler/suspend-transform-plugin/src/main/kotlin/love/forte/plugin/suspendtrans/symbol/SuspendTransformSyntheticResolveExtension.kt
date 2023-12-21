@@ -15,7 +15,9 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
@@ -146,14 +148,14 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                                 ?: transformer.resolveAnnotationData(
                                     originFunction, originFunction.containingDeclaration, originFunction.name.identifier
                                 )
-                                // 不检测'继承'的注解
-                                // ?: originFunction.findSuspendOverridden()?.let { superFunction ->
-                                //     transformer.resolveAnnotationData(
-                                //         superFunction,
-                                //         superFunction.containingDeclaration,
-                                //         superFunction.name.identifier
-                                //     )
-                                // }
+                            // 不检测'继承'的注解
+                            // ?: originFunction.findSuspendOverridden()?.let { superFunction ->
+                            //     transformer.resolveAnnotationData(
+                            //         superFunction,
+                            //         superFunction.containingDeclaration,
+                            //         superFunction.name.identifier
+                            //     )
+                            // }
                         }
                 }
 
@@ -196,6 +198,8 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             return when {
                 platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
                 platform.isJs() && targetPlatform == TargetPlatform.JS -> true
+                platform.isWasm() && targetPlatform == TargetPlatform.WASM -> true
+                platform.isNative() && targetPlatform == TargetPlatform.NATIVE -> true
                 platform.isCommon() && targetPlatform == TargetPlatform.COMMON -> true
                 else -> false
             }

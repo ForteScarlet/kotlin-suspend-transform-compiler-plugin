@@ -2,6 +2,10 @@
 kotlinx-coroutines = "1.7.0"
 kotlinx-serialization = "1.5.0"
 google-auto-service = "1.0.1"
+kotlin = "1.9.21"
+compose = "1.5.4"
+compose-compiler = "1.5.6"
+compose-plugin = "1.6.0-alpha01"
 
 [libraries]
 
@@ -31,3 +35,14 @@ kotlinx-serialization-properties = { group = "org.jetbrains.kotlinx", name = "ko
 google-auto-service = { group = "com.google.auto.service", name = "auto-service", version.ref = "google-auto-service" }
 google-auto-service-annotations = { group = "com.google.auto.service", name = "auto-service-annotations", version.ref = "google-auto-service" }
 
+# compose
+compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
+compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
+
+[plugins]
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+#kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization" }

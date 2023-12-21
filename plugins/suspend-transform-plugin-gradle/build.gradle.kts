@@ -1,11 +1,15 @@
-import utils.isAutomatedGradlePluginPublishing
+import love.forte.gradle.common.core.project.setup
+import utils.isCi
 
 plugins {
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
     id("suspend-transform.jvm-maven-publish")
-    id("suspend-transform.gradle-publish")
+    `java-gradle-plugin`
+    id("com.gradle.plugin-publish")
 }
+
+setup(IProject)
 
 dependencies {
     compileOnly(gradleApi())
@@ -42,18 +46,25 @@ buildConfig {
 
 }
 
-gradlePlugin {
-    plugins {
-        create("suspendTransform") {
-            id = (rootProject.extra["kotlin_plugin_id"] as String)
-            displayName = "Kotlin suspend function transformer"
-            description = "Kotlin suspend function transformer"
-            implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+//if (!isAutomatedGradlePluginPublishing()) {
+if (isCi()) {
+    @Suppress("UnstableApiUsage")
+    gradlePlugin {
+        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
+        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
+        plugins {
+            create("suspendTransform") {
+                id = (rootProject.extra["kotlin_plugin_id"] as String)
+                displayName = "Kotlin suspend function transformer"
+                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
+                description = IProject.DESCRIPTION
+            }
         }
+        //isAutomatedPublishing = true
     }
-    this.isAutomatedPublishing = isAutomatedGradlePluginPublishing()
-    // repo?
 }
+
 
 //publishing {
 //    repositories {
