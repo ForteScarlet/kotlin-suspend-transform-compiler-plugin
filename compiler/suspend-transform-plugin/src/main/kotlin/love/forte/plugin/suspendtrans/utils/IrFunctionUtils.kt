@@ -10,9 +10,7 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.typeOrNull
@@ -59,7 +57,7 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
     lambdaType: IrSimpleType,
     originFunction: IrFunction,
 ): IrClass {
-    return IrFactoryImpl.buildClass {
+    return irFactory.buildClass {
         name = SpecialNames.NO_NAME_PROVIDED
         kind = ClassKind.CLASS
         /*
@@ -149,35 +147,15 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
     function: IrFunction,
     blockBodyBuilder: IrBlockBodyBuilder
 ): IrSimpleFunction {
-    val func = IrFunctionImpl(
-        startOffset = -1,
-        endOffset = -1,
-        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
-        name = SpecialNames.NO_NAME_PROVIDED,
-        visibility = DescriptorVisibilities.LOCAL,
-        isInline = false,
-        isExpect = false,
-        returnType = function.returnType,
-        modality = Modality.FINAL,
-        symbol = IrSimpleFunctionSymbolImpl(),
-        isSuspend = true,
-        isTailrec = false,
-        isOperator = false,
-        isInfix = false,
-        isExternal = false,
-    )
-
-//    val func1 = IrFactoryImpl.buildFun {
-//        name = SpecialNames.NO_NAME_PROVIDED
-//        visibility = DescriptorVisibilities.LOCAL
-//        isSuspend = true
-//        returnType = function.returnType
-//    }
-
-    with(func) {
+    return irFactory.buildFun {
+        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+        name = SpecialNames.NO_NAME_PROVIDED
+        visibility = DescriptorVisibilities.LOCAL
+        returnType = function.returnType
+        modality = Modality.FINAL
+        isSuspend = true
+    }.apply {
         parent = function
-//        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
-
         body = createIrBuilder(symbol).run {
             // don't use expr body, coroutine codegen can't generate for it.
             irBlockBody {
@@ -198,8 +176,6 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
             }
         }
     }
-
-    return func
 }
 
 fun IrFunction.paramsAndReceiversAsParamsList(): List<IrValueParameter> {

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -241,21 +242,17 @@ private fun generateTransformBodyForFunctionLambda(
         parameter.defaultValue = originFunctionValueParameter.defaultValue
     }
 
-
     return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
             originFunction = originFunction,
             function = function,
             this
-        ).also { +it }
+        )
 
         val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
 
-        val ex = IrFunctionExpressionImpl(-1, -1, lambdaType, suspendLambdaFunc, IrStatementOrigin.LAMBDA)
-        +ex
-
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(0, ex)
+            putValueArgument(0, IrFunctionExpressionImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, lambdaType, suspendLambdaFunc, IrStatementOrigin.LAMBDA))
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             val owner = transformTargetFunctionCall.owner
 
