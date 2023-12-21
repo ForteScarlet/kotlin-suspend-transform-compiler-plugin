@@ -1,5 +1,3 @@
-import kotlinx.coroutines.*
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.Promise
 
 suspend fun main() {

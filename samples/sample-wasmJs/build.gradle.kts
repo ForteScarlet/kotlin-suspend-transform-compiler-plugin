@@ -2,11 +2,11 @@ import love.forte.plugin.suspendtrans.ClassInfo
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.TargetPlatform
 import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    kotlin("js")
+    kotlin("multiplatform")
 }
-
 
 buildscript {
     this@buildscript.repositories {
@@ -18,36 +18,32 @@ buildscript {
     }
 }
 
-
-kotlin {
-    js(IR) {
-        nodejs()
-        useEsModules()
-        generateTypeScriptDefinitions()
-        binaries.executable()
-        compilations.all {
-            kotlinOptions {
-                useEsClasses = true
-            }
-        }
-    }
-}
-
 repositories {
     mavenLocal()
 }
 
 apply(plugin = "love.forte.plugin.suspend-transform")
 
-dependencies {
-    implementation(kotlin("stdlib"))
-//    val pluginVersion = "0.4.0"
-//    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
-//    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+kotlin {
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        generateTypeScriptDefinitions()
+        binaries.executable()
+    }
+
+    sourceSets {
+        named("wasmJsMain") {
+            dependencies {
+                implementation(kotlin("stdlib"))
+            }
+        }
+    }
 }
 
-extensions.getByType<SuspendTransformGradleExtension>().apply {
+extensions.configure<SuspendTransformGradleExtension> {
+    includeRuntime = false
+    includeAnnotation = false
+
     transformers[TargetPlatform.JS] = mutableListOf(
         SuspendTransformConfiguration.jsPromiseTransformer.copy(
             copyAnnotationExcludes = listOf(
@@ -55,5 +51,5 @@ extensions.getByType<SuspendTransformGradleExtension>().apply {
             )
         )
     )
-
 }
+

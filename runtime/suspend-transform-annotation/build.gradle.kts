@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
     kotlin("multiplatform")
     id("suspend-transform.multiplatform-maven-publish")
@@ -47,6 +49,10 @@ kotlin {
     androidNativeX64()
     mingwX64()
     watchosDeviceArm64()
+
+    // wasm
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs()
 
 //    withKotlinTargets { target ->
 //        targets.findByName(target.name)?.compilations?.all {

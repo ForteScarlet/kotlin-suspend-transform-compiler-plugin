@@ -8,6 +8,7 @@ include(":runtime:suspend-transform-runtime")
 
 include(":plugins:suspend-transform-plugin-gradle")
 
-include(":suspend-transform-plugin-sample")
-include(":suspend-transform-plugin-sample-js")
+include(":samples:sample-jvm")
+include(":samples:sample-js")
+include(":samples:sample-wasmJs")
 // include(":plugins:ide:suspend-transform-plugin-idea")

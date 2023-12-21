@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
     `kotlin-dsl-precompiled-script-plugins`
@@ -31,6 +33,8 @@ dependencies {
     implementation("love.forte.gradle.common:gradle-common-publication:$gradleCommon")
 }
 
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
 
 // tasks.test {
 //     useJUnitPlatform()
