@@ -64,6 +64,7 @@ buildConfig {
 if (isMainPublishable()) {
     @Suppress("UnstableApiUsage")
     gradlePlugin {
+        isAutomatedPublishing = false
         website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
         vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
         plugins {
@@ -103,6 +104,10 @@ if (isMainPublishable()) {
                 setupPom(project.name, IProject)
             }
         }
+    }
+} else {
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        enabled = false
     }
 }
 
