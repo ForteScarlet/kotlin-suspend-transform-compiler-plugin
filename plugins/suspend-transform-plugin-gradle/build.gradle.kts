@@ -4,8 +4,7 @@ import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import utils.isCi
-import utils.isLinux
+import utils.isMainPublishable
 
 plugins {
     `java-library`
@@ -62,7 +61,7 @@ buildConfig {
 }
 
 //if (!isAutomatedGradlePluginPublishing()) {
-if (!isCi() || isLinux) {
+if (isMainPublishable()) {
     @Suppress("UnstableApiUsage")
     gradlePlugin {
         website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
@@ -84,7 +83,7 @@ tasks.withType<KotlinCompile> {
 }
 
 val gpgValue = Gpg.ofSystemPropOrNull()
-if (!isCi() || isLinux) {
+if (isMainPublishable()) {
     publishing {
         repositories {
             mavenLocal()

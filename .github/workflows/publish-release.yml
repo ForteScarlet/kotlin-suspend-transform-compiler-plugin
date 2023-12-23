@@ -15,6 +15,7 @@ env:
   RELEASE: true
   CI: true
   IS_CI: true
+  SIMBOT_LOCAL: false
   GRADLE_OPTS: "-Dfile.encoding=UTF-8"
 
 jobs:

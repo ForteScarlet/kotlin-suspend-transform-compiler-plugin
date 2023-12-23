@@ -2,8 +2,7 @@ import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.publication.configure.jvmConfigPublishing
 import love.forte.gradle.common.publication.configure.publishingExtension
-import utils.isCi
-import utils.isLinux
+import utils.isMainPublishable
 
 plugins {
     id("signing")
@@ -21,11 +20,10 @@ val gpgValue = Gpg.ofSystemPropOrNull()
 
 val p = project
 
-if (!isCi() || isLinux) {
+if (isMainPublishable()) {
     jvmConfigPublishing {
         project = IProject
         isSnapshot = project.version.toString().contains("SNAPSHOT", true)
-        publicationName = "kstcpDist"
 
         val jarSources = tasks.register("${p.name}SourceJar", Jar::class) {
             archiveClassifier.set("sources")
@@ -63,6 +61,7 @@ signing {
         sign(publishingExtension.publications)
     }
 }
+
 // TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
 val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
 tasks.withType<PublishToMavenRepository>().configureEach {
