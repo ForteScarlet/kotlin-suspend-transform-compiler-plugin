@@ -1,7 +1,8 @@
 import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.core.property.systemProp
-import love.forte.gradle.common.publication.configure.*
+import love.forte.gradle.common.publication.configure.MavenMultiplatformPublishingConfigExtensions
+import love.forte.gradle.common.publication.configure.multiplatformConfigPublishing
 
 plugins {
     id("org.jetbrains.dokka")
@@ -60,22 +61,23 @@ val config = MavenMultiplatformPublishingConfigExtensions().apply {
         mainHost = null
     }
 
-    mainHostSupportedTargets += setOf("wasm_js")
+    publicationsFromMainHost += setOf("wasm", "wasm32", "wasm_js")
+    mainHostSupportedTargets += setOf("wasm", "wasm32", "wasm_js")
 }
 
-publishing {
-    commonConfigPublishingRepositories(config)
-    publications {
-        withType<MavenPublication> {
-            commonConfigMavenPublication(project, config)
-        }
-    }
-    commonPublicationSignConfig(config)
-
-    if (config.mainHost != null) {
-
-    }
-}
+//publishing {
+//    commonConfigPublishingRepositories(config)
+//    publications {
+//        withType<MavenPublication> {
+//            commonConfigMavenPublication(project, config)
+//        }
+//    }
+//    commonPublicationSignConfig(config)
+//
+//    if (config.mainHost != null) {
+//
+//    }
+//}
 
 
 
