@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.KotlinTargetsContainer
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -21,6 +22,7 @@ kotlin {
     }
 
     js(IR) {
+        browser()
         nodejs()
     }
 
@@ -52,14 +54,21 @@ kotlin {
 
     // wasm
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs()
+    wasmJs {
+        browser()
+        nodejs()
+    }
 
-//    withKotlinTargets { target ->
-//        targets.findByName(target.name)?.compilations?.all {
-//            // 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. You can use -Xexpect-actual-classes flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
-//            kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
-//        }
-//    }
+    extensions.findByType(KotlinTargetsContainer::class.java)?.also { kotlinExtension ->
+        // find all compilations given sourceSet belongs to
+        kotlinExtension.targets
+            .all {
+                targets.findByName(name)?.compilations?.all {
+                    kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+                }
+            }
+    }
+
 }
 
 

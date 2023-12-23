@@ -21,8 +21,8 @@ kotlin {
     }
 
     js(IR) {
+        browser()
         nodejs()
-        binaries.library()
     }
 
     // K/N target supports
@@ -56,7 +56,10 @@ kotlin {
 
     // wasm
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs()
+    wasmJs {
+        browser()
+        nodejs()
+    }
 
     sourceSets {
         commonMain.dependencies {

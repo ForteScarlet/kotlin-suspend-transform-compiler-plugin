@@ -11,19 +11,23 @@ repositories {
 val kotlinVersion = "1.9.21"
 val dokkaPluginVersion = "1.9.10"
 val gradleCommon = "0.0.11"
+val nexusPublishPlugin = "1.3.0"
+val buildConfig = "3.1.0"
 
 dependencies {
     api(gradleApi())
     api(kotlin("gradle-plugin", kotlinVersion))
     api(kotlin("serialization", kotlinVersion))
     api("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaPluginVersion")
-    
+
+    // see https://docs.gradle.org/current/userguide/publishing_gradle_plugins.html
     api("com.gradle.publish:plugin-publish-plugin:1.2.1")
-//    api("com.gradle.publish:plugin-publish-plugin:0.12.0")
-    api("com.github.gmazzo:gradle-buildconfig-plugin:3.1.0")
+    // see https://github.com/gmazzo/gradle-buildconfig-plugin
+    api("com.github.gmazzo:gradle-buildconfig-plugin:$buildConfig")
     // see https://github.com/bnorm/kotlin-power-assert#compatibility
     api("gradle.plugin.com.bnorm.power:kotlin-power-assert-gradle:0.12.0")
-    api("io.github.gradle-nexus:publish-plugin:1.1.0")
+    // see https://github.com/gradle-nexus/publish-plugin
+    api("io.github.gradle-nexus:publish-plugin:$nexusPublishPlugin")
 
     api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
 

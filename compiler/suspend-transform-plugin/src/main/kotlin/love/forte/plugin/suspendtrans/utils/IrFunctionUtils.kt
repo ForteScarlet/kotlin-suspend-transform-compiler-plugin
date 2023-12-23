@@ -101,8 +101,6 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
             }
         }
 
-        val irClass = this
-
         addFunction("invoke", lambdaType.arguments.last().typeOrNull!!, isSuspend = true).apply functionInvoke@{
             this.overriddenSymbols =
 //                listOf(irClass.superTypes[0].getClass()!!.functionsSequence.single { it.name.identifier == "invoke" && it.isOverridable }.symbol)

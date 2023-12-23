@@ -1,7 +1,7 @@
 import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.publication.configure.jvmConfigPublishing
-import love.forte.gradle.common.publication.configure.setupPom
+import love.forte.gradle.common.publication.configure.publishingExtension
 import utils.isCi
 import utils.isLinux
 
@@ -16,77 +16,81 @@ setup(IProject)
 //val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
 //val sonatypeContains = sonatypeUserInfoOrNull != null
+val gpgValue = Gpg.ofSystemPropOrNull()
+
+// see https://github.com/gradle/gradle/issues/26091#issuecomment-1681343496
+
+//tasks.named<Jar>("javadocJar") {
+//    println("JavadocJar: $this")
+//    val dokkaHtml = tasks.dokkaHtml
+//    dependsOn(dokkaHtml)
+//    from(dokkaHtml.flatMap { it.outputDirectory })
+//}
+
+//(tasks.findByName("javadocJar") as? Jar)?.also { javadocJar ->
+//    println("JavadocJar: $javadocJar")
+//    val dokkaHtml = tasks.dokkaHtml
+//    javadocJar.dependsOn(dokkaHtml)
+//    javadocJar.from(dokkaHtml.flatMap { it.outputDirectory })
+//}
+
+val p = project
+
 if (!isCi() || isLinux) {
     jvmConfigPublishing {
         project = IProject
-        val jarSources by tasks.registering(Jar::class) {
+        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+        publicationName = "kstcpDist"
+
+        val jarSources = tasks.register("${p.name}SourceJar", Jar::class) {
             archiveClassifier.set("sources")
             from(sourceSets["main"].allSource)
         }
 
-        val jarJavadoc by tasks.registering(Jar::class) {
-            dependsOn(tasks.dokkaJavadoc)
-            from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+        val jarJavadoc = tasks.register("${p.name}JavadocJar", Jar::class) {
+            dependsOn(tasks.dokkaHtml)
+            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
             archiveClassifier.set("javadoc")
+        }
+
+        tasks.withType<GenerateModuleMetadata> {
+            dependsOn(jarSources)
+            dependsOn(jarJavadoc)
         }
 
         artifact(jarSources)
         artifact(jarJavadoc)
 
-        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
         releasesRepository = ReleaseRepository
         snapshotRepository = SnapshotRepository
-        gpg = Gpg.ofSystemPropOrNull()
 
+        gpg = gpgValue
     }
+
 }
 
 
-publishing.publications.configureEach {
-    if (this is MavenPublication) {
-        pom {
-            setupPom(project.name, IProject)
-        }
+signing {
+    isRequired = gpgValue != null
+    if (gpgValue != null) {
+        val (keyId, secretKey, password) = gpgValue
+        useInMemoryPgpKeys(keyId, secretKey, password)
+        sign(publishingExtension.publications)
     }
 }
-
-
-//publishing {
-//    publications {
-//        create<MavenPublication>("suspendTransformJvmDist") {
-//            from(components["java"])
-//            artifact(jarSources)
-//            artifact(jarJavadoc)
-//
-//            groupId = project.group.toString()
-//            artifactId = project.name
-//            version = project.version.toString()
-//        }
-//
-//        configureEach {
-//            if (this is MavenPublication) {
-//                pom {
-//                    setupPom(project)
-//                }
-//            }
-//        }
-//
-//        repositories {
-//            mavenCentral()
-//            if (sonatypeContains) {
-//                if (project.version.toString().contains("SNAPSHOT", true)) {
-//                    configPublishMaven(Sonatype.Snapshot, sonatypeUsername, sonatypePassword)
-//                } else {
-//                    configPublishMaven(Sonatype.Central, sonatypeUsername, sonatypePassword)
-//                }
-//            }
-//            mavenLocal()
-//        }
-//    }
+// TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
+val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
+tasks.withType<PublishToMavenRepository>().configureEach {
+    mustRunAfter(signingTasks)
+}
+// see https://github.com/gradle/gradle/issues/26091#issuecomment-1722947958
+//region Fix Gradle warning about signing tasks using publishing task outputs without explicit dependencies
+// https://github.com/gradle/gradle/issues/26091
+//tasks.withType<AbstractPublishToMaven>().configureEach {
+//    val signingTasks = tasks.withType<Sign>()
+//    mustRunAfter(signingTasks)
 //}
-//signing {
-//    setupSigning(publishing.publications)
-//}
+//endregion
 
 
 inline val Project.sourceSets: SourceSetContainer

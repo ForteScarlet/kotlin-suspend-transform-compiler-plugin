@@ -2,10 +2,11 @@ import love.forte.gradle.common.core.project.setup
 import utils.isCi
 
 plugins {
+    `java-library`
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
+//    `java-gradle-plugin`
     id("suspend-transform.jvm-maven-publish")
-    `java-gradle-plugin`
     id("com.gradle.plugin-publish")
 }
 
@@ -61,16 +62,6 @@ if (isCi()) {
                 description = IProject.DESCRIPTION
             }
         }
-        //isAutomatedPublishing = true
     }
 }
 
-
-//publishing {
-//    repositories {
-//        mavenLocal()
-//        gradlePluginPortal {
-//            this.name = "GradleCentralPluginRepository"
-//        }
-//    }
-//}
