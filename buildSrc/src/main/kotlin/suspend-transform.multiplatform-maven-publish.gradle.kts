@@ -1,7 +1,6 @@
 import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.core.property.systemProp
-import love.forte.gradle.common.publication.configure.MavenMultiplatformPublishingConfigExtensions
 import love.forte.gradle.common.publication.configure.multiplatformConfigPublishing
 
 plugins {
@@ -42,42 +41,10 @@ multiplatformConfigPublishing {
         mainHost = null
     }
 
-}
-
-val config = MavenMultiplatformPublishingConfigExtensions().apply {
-    project = IProject
-    val jarJavadoc by tasks.registering(Jar::class) {
-        group = "documentation"
-        archiveClassifier.set("javadoc")
-    }
-    artifact(jarJavadoc)
-    isSnapshot = project.version.toString().contains("SNAPSHOT", true)
-    releasesRepository = ReleaseRepository
-    snapshotRepository = SnapshotRepository
-    gpg = Gpg.ofSystemPropOrNull()
-
-    if (systemProp("SIMBOT_LOCAL").toBoolean()) {
-        logger.info("Is 'SIMBOT_LOCAL', mainHost set as null")
-        mainHost = null
-    }
-
     publicationsFromMainHost += setOf("wasm", "wasm32", "wasm_js")
     mainHostSupportedTargets += setOf("wasm", "wasm32", "wasm_js")
 }
 
-//publishing {
-//    commonConfigPublishingRepositories(config)
-//    publications {
-//        withType<MavenPublication> {
-//            commonConfigMavenPublication(project, config)
-//        }
-//    }
-//    commonPublicationSignConfig(config)
-//
-//    if (config.mainHost != null) {
-//
-//    }
-//}
 
 
 
