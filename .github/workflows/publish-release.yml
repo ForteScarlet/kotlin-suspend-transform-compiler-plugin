@@ -41,7 +41,7 @@ jobs:
       - name: Test and publish to sonatype
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: 8.5
           arguments: |
             assemble 
             build
@@ -77,7 +77,7 @@ jobs:
       - name: Publish to sonatype
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: 8.5
           arguments: |
             build
             publishPlugins
