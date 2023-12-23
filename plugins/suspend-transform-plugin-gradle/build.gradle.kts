@@ -95,31 +95,12 @@ publishing {
     }
 
     publications {
-        create<MavenPublication>("GradlePluginMavenPublication") {
-            from(components.getByName("java"))
+//        create<MavenPublication>("GradlePluginMavenPublication") {
+//            from(components.getByName("java"))
+//        }
 
-            // Maybe configured by plugin 'com.gradle.plugin-publish'
-
-
-//            val jarSources by tasks.registering(Jar::class) {
-//                archiveClassifier.set("sources")
-//                from(sourceSets["main"].allSource)
-//            }
-//
-//            val jarJavadoc by tasks.registering(Jar::class) {
-//                archiveClassifier.set("javadoc")
-//            }
-//            tasks.withType<GenerateModuleMetadata> {
-//                dependsOn(jarSources)
-//                dependsOn(jarJavadoc)
-//            }
-//            artifact(jarSources)
-//            artifact(jarJavadoc)
-
-//            setArtifacts(listOf(jarSources, jarJavadoc))
-
+        withType<MavenPublication> {
             setupPom(project.name, IProject)
-
         }
     }
 }

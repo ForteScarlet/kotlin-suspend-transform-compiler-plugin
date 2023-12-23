@@ -99,11 +99,13 @@ jobs:
     permissions:
       contents: write
     steps:
+        # https://github.com/softprops/action-gh-release
         # Create gitHub release
       - name: Create Github Release
         uses: softprops/action-gh-release@v1
         with:
           token: ${{ secrets.FORTE_TOKEN }}
+          draft: true
 #          body_path: .changelog/${{ github.ref_name }}.md
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'preview') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
