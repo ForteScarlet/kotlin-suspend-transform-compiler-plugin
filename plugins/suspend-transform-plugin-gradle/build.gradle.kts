@@ -64,7 +64,6 @@ buildConfig {
 if (isMainPublishable()) {
     @Suppress("UnstableApiUsage")
     gradlePlugin {
-        isAutomatedPublishing = false
         website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
         vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
         plugins {
