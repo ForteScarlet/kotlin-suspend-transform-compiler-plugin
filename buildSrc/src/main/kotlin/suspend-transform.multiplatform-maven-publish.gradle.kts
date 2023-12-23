@@ -1,7 +1,7 @@
 import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.core.property.systemProp
-import love.forte.gradle.common.publication.configure.multiplatformConfigPublishing
+import love.forte.gradle.common.publication.configure.*
 
 plugins {
     id("org.jetbrains.dokka")
@@ -42,6 +42,43 @@ multiplatformConfigPublishing {
     }
 
 }
+
+val config = MavenMultiplatformPublishingConfigExtensions().apply {
+    project = IProject
+    val jarJavadoc by tasks.registering(Jar::class) {
+        group = "documentation"
+        archiveClassifier.set("javadoc")
+    }
+    artifact(jarJavadoc)
+    isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+    releasesRepository = ReleaseRepository
+    snapshotRepository = SnapshotRepository
+    gpg = Gpg.ofSystemPropOrNull()
+
+    if (systemProp("SIMBOT_LOCAL").toBoolean()) {
+        logger.info("Is 'SIMBOT_LOCAL', mainHost set as null")
+        mainHost = null
+    }
+
+    mainHostSupportedTargets += setOf("wasm_js")
+}
+
+publishing {
+    commonConfigPublishingRepositories(config)
+    publications {
+        withType<MavenPublication> {
+            commonConfigMavenPublication(project, config)
+        }
+    }
+    commonPublicationSignConfig(config)
+
+    if (config.mainHost != null) {
+
+    }
+}
+
+
+
 
 // TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
 val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
