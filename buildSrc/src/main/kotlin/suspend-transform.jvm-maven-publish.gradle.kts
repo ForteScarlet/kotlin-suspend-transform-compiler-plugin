@@ -6,9 +6,8 @@ import utils.isCi
 import utils.isLinux
 
 plugins {
-    id("org.jetbrains.dokka")
-    signing
-    `maven-publish`
+    id("signing")
+    id("maven-publish")
 }
 
 setup(IProject)
@@ -19,20 +18,6 @@ setup(IProject)
 val gpgValue = Gpg.ofSystemPropOrNull()
 
 // see https://github.com/gradle/gradle/issues/26091#issuecomment-1681343496
-
-//tasks.named<Jar>("javadocJar") {
-//    println("JavadocJar: $this")
-//    val dokkaHtml = tasks.dokkaHtml
-//    dependsOn(dokkaHtml)
-//    from(dokkaHtml.flatMap { it.outputDirectory })
-//}
-
-//(tasks.findByName("javadocJar") as? Jar)?.also { javadocJar ->
-//    println("JavadocJar: $javadocJar")
-//    val dokkaHtml = tasks.dokkaHtml
-//    javadocJar.dependsOn(dokkaHtml)
-//    javadocJar.from(dokkaHtml.flatMap { it.outputDirectory })
-//}
 
 val p = project
 
@@ -48,8 +33,8 @@ if (!isCi() || isLinux) {
         }
 
         val jarJavadoc = tasks.register("${p.name}JavadocJar", Jar::class) {
-            dependsOn(tasks.dokkaHtml)
-            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+//            dependsOn(tasks.dokkaHtml)
+//            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
             archiveClassifier.set("javadoc")
         }
 
@@ -95,3 +80,6 @@ tasks.withType<PublishToMavenRepository>().configureEach {
 
 inline val Project.sourceSets: SourceSetContainer
     get() = extensions.getByName("sourceSets") as SourceSetContainer
+
+internal val TaskContainer.dokkaHtml: TaskProvider<org.jetbrains.dokka.gradle.DokkaTask>
+    get() = named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml")

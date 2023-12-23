@@ -29,7 +29,6 @@ multiplatformConfigPublishing {
     val jarJavadoc by tasks.registering(Jar::class) {
         group = "documentation"
         archiveClassifier.set("javadoc")
-        from(tasks.findByName("dokkaHtml"))
     }
     artifact(jarJavadoc)
     isSnapshot = project.version.toString().contains("SNAPSHOT", true)

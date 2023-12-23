@@ -1,16 +1,28 @@
+import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.core.project.setup
-import utils.isCi
+import love.forte.gradle.common.publication.configure.configPublishMaven
+import love.forte.gradle.common.publication.configure.publishingExtension
+import love.forte.gradle.common.publication.configure.setupPom
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-library`
     kotlin("jvm")
+    id("suspend-transform.dokka-module")
     id("com.github.gmazzo.buildconfig")
 //    `java-gradle-plugin`
-    id("suspend-transform.jvm-maven-publish")
+    signing
+    `maven-publish`
     id("com.gradle.plugin-publish")
+//    id("suspend-transform.jvm-maven-publish")
 }
 
 setup(IProject)
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
 
 dependencies {
     compileOnly(gradleApi())
@@ -48,20 +60,78 @@ buildConfig {
 }
 
 //if (!isAutomatedGradlePluginPublishing()) {
-if (isCi()) {
-    @Suppress("UnstableApiUsage")
-    gradlePlugin {
-        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
-        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
-        plugins {
-            create("suspendTransform") {
-                id = (rootProject.extra["kotlin_plugin_id"] as String)
-                displayName = "Kotlin suspend function transformer"
-                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
-                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
-                description = IProject.DESCRIPTION
-            }
+//if (isCi()) {
+//    @Suppress("UnstableApiUsage")
+//    gradlePlugin {
+//        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
+//        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
+//        plugins {
+//            create("suspendTransform") {
+//                id = (rootProject.extra["kotlin_plugin_id"] as String)
+//                displayName = "Kotlin suspend function transformer"
+//                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+//                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
+//                description = IProject.DESCRIPTION
+//            }
+//        }
+//    }
+//}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+
+val gpgValue = Gpg.ofSystemPropOrNull()
+
+publishing {
+    repositories {
+        mavenLocal()
+        if (project.version.toString().contains("SNAPSHOT", true)) {
+            configPublishMaven(SnapshotRepository)
+        } else {
+            configPublishMaven(ReleaseRepository)
         }
+    }
+
+    publications {
+        create<MavenPublication>("GradlePluginMavenPublication") {
+            from(components.getByName("java"))
+
+            // Maybe configured by plugin 'com.gradle.plugin-publish'
+
+
+//            val jarSources by tasks.registering(Jar::class) {
+//                archiveClassifier.set("sources")
+//                from(sourceSets["main"].allSource)
+//            }
+//
+//            val jarJavadoc by tasks.registering(Jar::class) {
+//                archiveClassifier.set("javadoc")
+//            }
+//            tasks.withType<GenerateModuleMetadata> {
+//                dependsOn(jarSources)
+//                dependsOn(jarJavadoc)
+//            }
+//            artifact(jarSources)
+//            artifact(jarJavadoc)
+
+//            setArtifacts(listOf(jarSources, jarJavadoc))
+
+            setupPom(project.name, IProject)
+
+        }
+
+
     }
 }
 
+
+signing {
+    isRequired = gpgValue != null
+    if (gpgValue != null) {
+        val (keyId, secretKey, password) = gpgValue
+        useInMemoryPgpKeys(keyId, secretKey, password)
+        sign(publishingExtension.publications)
+    }
+}
