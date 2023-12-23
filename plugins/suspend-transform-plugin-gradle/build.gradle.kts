@@ -121,11 +121,8 @@ publishing {
             setupPom(project.name, IProject)
 
         }
-
-
     }
 }
-
 
 signing {
     isRequired = gpgValue != null
@@ -134,4 +131,10 @@ signing {
         useInMemoryPgpKeys(keyId, secretKey, password)
         sign(publishingExtension.publications)
     }
+}
+
+// TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
+val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
+tasks.withType<PublishToMavenRepository>().configureEach {
+    mustRunAfter(signingTasks)
 }
