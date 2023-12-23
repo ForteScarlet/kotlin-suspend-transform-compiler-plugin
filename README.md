@@ -252,10 +252,6 @@ suspendTransform {
 
 </details>
 
-### Maven
-
-Unsupported.
-
 ## Cautions
 
 ### Gradle JVM

@@ -251,10 +251,6 @@ suspendTransform {
 
 </details>
 
-### Maven
-
-不支持。
-
 ## 注意事项
 
 ### Gradle JVM
