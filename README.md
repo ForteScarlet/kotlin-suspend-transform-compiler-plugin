@@ -44,6 +44,7 @@ class Foo {
 ```
 
 ### JS
+
 ```kotlin
 class Foo {
     @JsPromise
@@ -67,7 +68,48 @@ class Foo {
 }
 ```
 
-> JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+> ~~JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)~~
+>
+> JS has been supported since 0.6.0! See the process at [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993), and the final winning shot at [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)!
+
+### WasmJS
+
+> Since `v0.6.0`, In experiments, immature and unstable
+
+```kotlin
+class Foo {
+    @JsPromise
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+
+//// some custom types or functions... 
+
+fun <T> runInAsync(block: suspend () -> T): AsyncResult<T> = AsyncResult(block)
+
+class AsyncResult<T>(val block: suspend () -> T) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun toPromise(): Promise<JsAny?> {
+        return GlobalScope.promise { block() }
+    }
+}
+```
+
+compiled 👇
+
+```kotlin
+class Foo {
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
+    fun waitAndGetAsync(): AsyncResult<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+    // AsyncResult is a custom type
+}
+```
 
 ## Usage
 ### Gradle
@@ -212,17 +254,13 @@ suspendTransform {
 
 ### Maven
 
-> Not supported yet.
+Unsupported.
 
 ## Cautions
 
 ### Gradle JVM
 
 **Gradle JVM** must be JDK11+
-
-### JS platform
-
-JS platform target not supported yet. see: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
 ## Effect
 
