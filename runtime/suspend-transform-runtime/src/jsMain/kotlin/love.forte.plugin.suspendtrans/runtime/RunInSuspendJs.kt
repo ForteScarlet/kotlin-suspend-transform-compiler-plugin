@@ -1,7 +1,6 @@
 package love.forte.plugin.suspendtrans.runtime
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.promise
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -13,9 +12,13 @@ private val CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4
 
 
 @Suppress("FunctionName")
-@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
-public fun <T> `$runInAsync$`(
-    block: suspend () -> T,
+//@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
+public fun <T, F : suspend () -> T> `$runInAsync$`(
+    block: F,
+    scope: CoroutineScope? = null
 ): Promise<T> {
-    return CoroutineScope4Js.promise(start = CoroutineStart.UNDISPATCHED) { block() }
+    println("block: $block")
+    println("block.asDynamic().invoke: " + block.asDynamic().invoke)
+    println("block::class: " + block::class)
+    return (scope ?: CoroutineScope4Js).promise { block.invoke() }
 }

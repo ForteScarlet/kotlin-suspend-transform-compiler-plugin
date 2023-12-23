@@ -18,7 +18,7 @@ data class ClassInfo @JvmOverloads constructor(
 
 @Serializable
 enum class TargetPlatform {
-    COMMON, JVM, JS
+    COMMON, JVM, JS, WASM, NATIVE
 }
 
 /**
@@ -60,6 +60,8 @@ data class Transformer(
      * 转化后的返回值类型, 为null时代表与原函数一致。
      */
     val transformReturnType: ClassInfo?,
+
+    // TODO TypeGeneric for suspend function return type and transform function return type?
 
     /**
      * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。

@@ -15,6 +15,7 @@ env:
   RELEASE: true
   CI: true
   IS_CI: true
+  SIMBOT_LOCAL: false
   GRADLE_OPTS: "-Dfile.encoding=UTF-8"
 
 jobs:
@@ -41,7 +42,7 @@ jobs:
       - name: Test and publish to sonatype
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: 8.5
           arguments: |
             assemble 
             build
@@ -74,10 +75,10 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: Publish to sonatype
+      - name: Publish to gradle
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: 8.5
           arguments: |
             build
             publishPlugins
@@ -99,11 +100,13 @@ jobs:
     permissions:
       contents: write
     steps:
+        # https://github.com/softprops/action-gh-release
         # Create gitHub release
       - name: Create Github Release
         uses: softprops/action-gh-release@v1
         with:
           token: ${{ secrets.FORTE_TOKEN }}
+          draft: true
 #          body_path: .changelog/${{ github.ref_name }}.md
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'preview') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

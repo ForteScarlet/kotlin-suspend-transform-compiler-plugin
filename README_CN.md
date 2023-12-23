@@ -67,7 +67,49 @@ class Foo {
 }
 ```
 
-> JS 目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+> ~~JS 目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)~~
+> 
+> JS 平台从 `v0.6.0` 版本开始得到支持。 参考 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993) 了解过程, 以及从 [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39) 查阅制胜一击!
+
+### WasmJS
+
+> 从 `v0.6.0` 开始支持，实验中，不成熟、不稳定。
+
+```kotlin
+class Foo {
+    @JsPromise
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+
+//// some custom types or functions... 
+
+fun <T> runInAsync(block: suspend () -> T): AsyncResult<T> = AsyncResult(block)
+
+class AsyncResult<T>(val block: suspend () -> T) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun toPromise(): Promise<JsAny?> {
+        return GlobalScope.promise { block() }
+    }
+}
+```
+
+compiled 👇
+
+```kotlin
+class Foo {
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
+    fun waitAndGetAsync(): AsyncResult<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+    // AsyncResult is a custom type
+}
+```
+
 
 ## 使用
 ### Gradle
@@ -209,19 +251,11 @@ suspendTransform {
 
 </details>
 
-### Maven
-
-> 尚不支持。
-
 ## 注意事项
 
 ### Gradle JVM
 
 Gradle JVM 必须满足 JDK11+
-
-### JS平台
-
-JS目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 
 ## 效果
 

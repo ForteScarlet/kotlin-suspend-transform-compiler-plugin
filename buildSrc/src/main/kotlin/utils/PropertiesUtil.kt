@@ -40,3 +40,10 @@ fun isCi(): Boolean = systemProperty("CI").toBoolean()
 fun isAutomatedGradlePluginPublishing(): Boolean = isCi() && systemProperty("PLUGIN_AUTO").toBoolean()
 
 val isLinux: Boolean = systemProperty("os.name")?.contains("linux", true) ?: false
+
+/**
+ * 如果在 CI 中，则必须是 linux 平台才运作。
+ * 如果不在 CI 中，始终运作。
+ *
+ */
+fun isMainPublishable(): Boolean = !isCi() || (isCi() && isLinux)

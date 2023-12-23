@@ -1,10 +1,28 @@
-import utils.isAutomatedGradlePluginPublishing
+import love.forte.gradle.common.core.Gpg
+import love.forte.gradle.common.core.project.setup
+import love.forte.gradle.common.publication.configure.configPublishMaven
+import love.forte.gradle.common.publication.configure.publishingExtension
+import love.forte.gradle.common.publication.configure.setupPom
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import utils.isMainPublishable
 
 plugins {
+    `java-library`
     kotlin("jvm")
+    id("suspend-transform.dokka-module")
     id("com.github.gmazzo.buildconfig")
-    id("suspend-transform.jvm-maven-publish")
-    id("suspend-transform.gradle-publish")
+//    `java-gradle-plugin`
+    signing
+    `maven-publish`
+    id("com.gradle.plugin-publish")
+//    id("suspend-transform.jvm-maven-publish")
+}
+
+setup(IProject)
+
+repositories {
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -42,24 +60,68 @@ buildConfig {
 
 }
 
-gradlePlugin {
-    plugins {
-        create("suspendTransform") {
-            id = (rootProject.extra["kotlin_plugin_id"] as String)
-            displayName = "Kotlin suspend function transformer"
-            description = "Kotlin suspend function transformer"
-            implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+//if (!isAutomatedGradlePluginPublishing()) {
+if (isMainPublishable()) {
+    @Suppress("UnstableApiUsage")
+    gradlePlugin {
+        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
+        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
+        plugins {
+            create("suspendTransform") {
+                id = (rootProject.extra["kotlin_plugin_id"] as String)
+                displayName = "Kotlin suspend function transformer"
+                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
+                description = IProject.DESCRIPTION
+            }
         }
     }
-    this.isAutomatedPublishing = isAutomatedGradlePluginPublishing()
-    // repo?
 }
 
-//publishing {
-//    repositories {
-//        mavenLocal()
-//        gradlePluginPortal {
-//            this.name = "GradleCentralPluginRepository"
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+val gpgValue = Gpg.ofSystemPropOrNull()
+if (isMainPublishable()) {
+    publishing {
+        repositories {
+            mavenLocal()
+            if (project.version.toString().contains("SNAPSHOT", true)) {
+                configPublishMaven(SnapshotRepository)
+            } else {
+                configPublishMaven(ReleaseRepository)
+            }
+        }
+
+        publications {
+//        create<MavenPublication>("GradlePluginMavenPublication") {
+//            from(components.getByName("java"))
 //        }
-//    }
-//}
+
+            withType<MavenPublication> {
+                setupPom(project.name, IProject)
+            }
+        }
+    }
+} else {
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        enabled = false
+    }
+}
+
+
+signing {
+    isRequired = gpgValue != null
+    if (gpgValue != null) {
+        val (keyId, secretKey, password) = gpgValue
+        useInMemoryPgpKeys(keyId, secretKey, password)
+        sign(publishingExtension.publications)
+    }
+}
+
+// TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
+val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
+tasks.withType<PublishToMavenRepository>().configureEach {
+    mustRunAfter(signingTasks)
+}

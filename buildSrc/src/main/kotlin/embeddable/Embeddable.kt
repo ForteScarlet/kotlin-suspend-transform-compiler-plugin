@@ -18,7 +18,7 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.File
+import java.util.*
 
 const val kotlinEmbeddableRootPackage = "org.jetbrains.kotlin"
 
@@ -84,7 +84,8 @@ private fun Project.compilerShadowJar(taskName: String, body: ShadowJar.() -> Un
 
     return tasks.register<ShadowJar>(taskName) {
         group = "shadow"
-        destinationDirectory.set(project.file(File(buildDir, "libs")))
+//        destinationDirectory.set(project.file(File(layout.buildDirectory, "libs")))
+        destinationDirectory.set(layout.buildDirectory.dir("libs"))
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         from(embeddedConfig)
         from(javaPluginExtension.sourceSets.getByName("main").output)
@@ -121,14 +122,14 @@ fun Project.testWithEmbedded() {
 
     // filter classes dir from compileJava
     val excludedCompiledFiles = tasks.withType<AbstractCompile>().filter {
-        "test" !in it.name.toLowerCase()
+        "test" !in it.name.lowercase(Locale.getDefault())
     }.map {
         it.destinationDirectory.get().asFile
     }.toMutableSet()
 
     // filter classes dir from compileKotlin
     excludedCompiledFiles += tasks.withType<KotlinCompile>().filter {
-        "test" !in it.name.toLowerCase()
+        "test" !in it.name.lowercase(Locale.getDefault())
     }.map {
         it.destinationDirectory.get().asFile
     }

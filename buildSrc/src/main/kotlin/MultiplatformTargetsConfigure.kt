@@ -1,11 +1,3 @@
-import org.gradle.api.InvalidUserCodeException
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetPreset
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetsContainerWithPresets
-import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeTargetPreset
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
 private val coroutinesUnsupportedTargets = setOf(
     "androidNativeArm32",
     "androidNativeArm64",
@@ -19,50 +11,3 @@ private val coroutinesUnsupportedTargets = setOf(
     "wasm32",
 )
 
-fun KotlinMultiplatformExtension.configAllNativeTargets(
-    filter: AbstractKotlinNativeTargetPreset<*>.() -> Boolean = { true },
-    configureEach: KotlinNativeTarget.() -> Unit = { }
-) {
-    presets.all {
-        if (this !is AbstractKotlinNativeTargetPreset || !filter(this)) return@all
-        configureOrCreate(name, this, configureEach)
-    }
-}
-
-fun KotlinMultiplatformExtension.configAllNativeTargetsCoroutinesSupported(configureEach: KotlinNativeTarget.() -> Unit = { }) {
-    configAllNativeTargets(filter = { name !in coroutinesUnsupportedTargets }, configureEach = configureEach)
-}
-
-internal fun KotlinTarget.isProducedFromPreset(kotlinTargetPreset: KotlinTargetPreset<*>): Boolean =
-    preset == kotlinTargetPreset
-
-internal fun <T : KotlinTarget> KotlinTargetsContainerWithPresets.configureOrCreate(
-    targetName: String,
-    targetPreset: KotlinTargetPreset<T>,
-    configure: T.() -> Unit
-): T {
-    val existingTarget = targets.findByName(targetName)
-    when {
-        existingTarget?.isProducedFromPreset(targetPreset) ?: false -> {
-            @Suppress("UNCHECKED_CAST")
-            configure(existingTarget as T)
-            return existingTarget
-        }
-
-        existingTarget == null -> {
-            val newTarget = targetPreset.createTarget(targetName)
-            targets.add(newTarget)
-            configure(newTarget)
-            return newTarget
-        }
-
-        else -> {
-            throw InvalidUserCodeException(
-                "The target '$targetName' already exists, but it was not created with the '${targetPreset.name}' preset. " +
-                        "To configure it, access it by name in `kotlin.targets`" +
-                        (" or use the preset function '${existingTarget.preset?.name}'."
-                            .takeIf { existingTarget.preset != null } ?: ".")
-            )
-        }
-    }
-}

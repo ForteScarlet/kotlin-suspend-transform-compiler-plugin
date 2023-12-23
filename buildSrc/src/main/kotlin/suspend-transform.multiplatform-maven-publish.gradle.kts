@@ -29,7 +29,6 @@ multiplatformConfigPublishing {
     val jarJavadoc by tasks.registering(Jar::class) {
         group = "documentation"
         archiveClassifier.set("javadoc")
-        from(tasks.findByName("dokkaHtml"))
     }
     artifact(jarJavadoc)
     isSnapshot = project.version.toString().contains("SNAPSHOT", true)
@@ -42,4 +41,16 @@ multiplatformConfigPublishing {
         mainHost = null
     }
 
+    publicationsFromMainHost += setOf("wasm", "wasm32", "wasm_js")
+    mainHostSupportedTargets += setOf("wasm", "wasm32", "wasm_js")
+}
+
+
+
+
+
+// TODO see https://github.com/gradle-nexus/publish-plugin/issues/208#issuecomment-1465029831
+val signingTasks: TaskCollection<Sign> = tasks.withType<Sign>()
+tasks.withType<PublishToMavenRepository>().configureEach {
+    mustRunAfter(signingTasks)
 }
