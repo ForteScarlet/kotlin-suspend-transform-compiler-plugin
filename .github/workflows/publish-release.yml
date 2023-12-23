@@ -74,7 +74,7 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: Publish to sonatype
+      - name: Publish to gradle
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: 8.5

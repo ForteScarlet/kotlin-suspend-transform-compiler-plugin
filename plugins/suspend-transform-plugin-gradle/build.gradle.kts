@@ -4,6 +4,8 @@ import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import utils.isCi
+import utils.isLinux
 
 plugins {
     `java-library`
@@ -60,50 +62,51 @@ buildConfig {
 }
 
 //if (!isAutomatedGradlePluginPublishing()) {
-//if (isCi()) {
-//    @Suppress("UnstableApiUsage")
-//    gradlePlugin {
-//        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
-//        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
-//        plugins {
-//            create("suspendTransform") {
-//                id = (rootProject.extra["kotlin_plugin_id"] as String)
-//                displayName = "Kotlin suspend function transformer"
-//                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
-//                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
-//                description = IProject.DESCRIPTION
-//            }
-//        }
-//    }
-//}
+if (!isCi() || isLinux) {
+    @Suppress("UnstableApiUsage")
+    gradlePlugin {
+        website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
+        vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
+        plugins {
+            create("suspendTransform") {
+                id = (rootProject.extra["kotlin_plugin_id"] as String)
+                displayName = "Kotlin suspend function transformer"
+                implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
+                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
+                description = IProject.DESCRIPTION
+            }
+        }
+    }
+}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-
 val gpgValue = Gpg.ofSystemPropOrNull()
-
-publishing {
-    repositories {
-        mavenLocal()
-        if (project.version.toString().contains("SNAPSHOT", true)) {
-            configPublishMaven(SnapshotRepository)
-        } else {
-            configPublishMaven(ReleaseRepository)
+if (!isCi() || isLinux) {
+    publishing {
+        repositories {
+            mavenLocal()
+            if (project.version.toString().contains("SNAPSHOT", true)) {
+                configPublishMaven(SnapshotRepository)
+            } else {
+                configPublishMaven(ReleaseRepository)
+            }
         }
-    }
 
-    publications {
+        publications {
 //        create<MavenPublication>("GradlePluginMavenPublication") {
 //            from(components.getByName("java"))
 //        }
 
-        withType<MavenPublication> {
-            setupPom(project.name, IProject)
+            withType<MavenPublication> {
+                setupPom(project.name, IProject)
+            }
         }
     }
 }
+
 
 signing {
     isRequired = gpgValue != null
