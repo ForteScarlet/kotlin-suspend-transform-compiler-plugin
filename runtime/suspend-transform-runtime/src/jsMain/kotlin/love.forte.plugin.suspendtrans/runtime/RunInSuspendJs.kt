@@ -12,13 +12,10 @@ private val CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4
 
 
 @Suppress("FunctionName")
-//@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
+@Deprecated("Just for compile plugin.", level = DeprecationLevel.HIDDEN)
 public fun <T, F : suspend () -> T> `$runInAsync$`(
     block: F,
     scope: CoroutineScope? = null
 ): Promise<T> {
-    println("block: $block")
-    println("block.asDynamic().invoke: " + block.asDynamic().invoke)
-    println("block::class: " + block::class)
     return (scope ?: CoroutineScope4Js).promise { block.invoke() }
 }
