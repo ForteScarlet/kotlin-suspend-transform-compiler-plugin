@@ -1,12 +1,12 @@
 package love.forte.plugin.suspendtrans.runtime
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.promise
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.Promise
 
-private val CoroutineContext4Js: CoroutineContext = EmptyCoroutineContext
+private val CoroutineContext4Js: CoroutineContext = Dispatchers.Default
 
 private val CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4Js)
 
