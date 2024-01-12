@@ -34,10 +34,11 @@ dependencies {
 }
 
 buildConfig {
+    className("SuspendTransPluginConstants")
     useKotlinOutput {
-        internalVisibility = true
+        internalVisibility = false
     }
-    withoutPackage()
+    packageName("love.forte.plugin.suspendtrans.gradle")
 
     val project = project(":compiler:suspend-transform-plugin-embeddable")
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")

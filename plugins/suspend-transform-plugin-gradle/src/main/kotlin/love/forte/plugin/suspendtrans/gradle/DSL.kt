@@ -2,8 +2,8 @@
 
 package love.forte.plugin.suspendtrans.gradle
 
-import BuildConfig.KOTLIN_PLUGIN_ID
-import BuildConfig.PLUGIN_VERSION
+import love.forte.plugin.suspendtrans.gradle.SuspendTransPluginConstants.KOTLIN_PLUGIN_ID
+import love.forte.plugin.suspendtrans.gradle.SuspendTransPluginConstants.PLUGIN_VERSION
 
 
 val org.gradle.plugin.use.PluginDependenciesSpec.`suspend-transform`: org.gradle.plugin.use.PluginDependencySpec
