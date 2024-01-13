@@ -467,6 +467,10 @@ suspendTransform {
 }
 ```
 
+## Useful Links
+[Kotlin Suspend Interface reversal](https://github.com/ForteScarlet/kotlin-suspend-interface-reversal)
+: Generate platform-compatible extension types for interfaces or abstract classes that contain suspend functions, based on KSP.
+
 ## License
 
 see [LICENSE](LICENSE) .

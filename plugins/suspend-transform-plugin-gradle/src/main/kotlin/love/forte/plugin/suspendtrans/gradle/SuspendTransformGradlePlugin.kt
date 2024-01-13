@@ -1,6 +1,5 @@
 package love.forte.plugin.suspendtrans.gradle
 
-import BuildConfig
 import love.forte.plugin.suspendtrans.CliOptions
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -22,13 +21,13 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         return kotlinCompilation.target.project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
     }
 
-    override fun getCompilerPluginId(): String = BuildConfig.KOTLIN_PLUGIN_ID
+    override fun getCompilerPluginId(): String = SuspendTransPluginConstants.KOTLIN_PLUGIN_ID
 
     override fun getPluginArtifact(): SubpluginArtifact {
         return SubpluginArtifact(
-            groupId = BuildConfig.KOTLIN_PLUGIN_GROUP,
-            artifactId = BuildConfig.KOTLIN_PLUGIN_NAME,
-            version = BuildConfig.KOTLIN_PLUGIN_VERSION
+            groupId = SuspendTransPluginConstants.KOTLIN_PLUGIN_GROUP,
+            artifactId = SuspendTransPluginConstants.KOTLIN_PLUGIN_NAME,
+            version = SuspendTransPluginConstants.KOTLIN_PLUGIN_VERSION
         )
     }
 
@@ -42,12 +41,12 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
 //        val dependencies = project.dependencies
 //        dependencies.add(
 //            "compileOnly",
-//            "${BuildConfig.ANNOTATION_GROUP}:${BuildConfig.ANNOTATION_NAME}:${BuildConfig.ANNOTATION_VERSION}"
+//            "${SuspendTransPluginConstants.ANNOTATION_GROUP}:${SuspendTransPluginConstants.ANNOTATION_NAME}:${SuspendTransPluginConstants.ANNOTATION_VERSION}"
 //        )
 //        if (extension.includeRuntime) {
 //            dependencies.add(
 //                extension.runtimeConfigurationName,
-//                "${BuildConfig.RUNTIME_GROUP}:${BuildConfig.RUNTIME_NAME}:${BuildConfig.RUNTIME_VERSION}"
+//                "${SuspendTransPluginConstants.RUNTIME_GROUP}:${SuspendTransPluginConstants.RUNTIME_NAME}:${SuspendTransPluginConstants.RUNTIME_VERSION}"
 //            )
 //        }
 
@@ -71,18 +70,23 @@ private fun Project.configureDependencies() {
     fun Project.include(platform: Platform, conf: SuspendTransformGradleExtension) {
         if (conf.includeAnnotation) {
             val notation = getDependencyNotation(
-                BuildConfig.ANNOTATION_GROUP,
-                BuildConfig.ANNOTATION_NAME,
+                SuspendTransPluginConstants.ANNOTATION_GROUP,
+                SuspendTransPluginConstants.ANNOTATION_NAME,
                 platform,
                 conf.annotationDependencyVersion
             )
-            dependencies.add(conf.annotationConfigurationName, notation)
+            if (platform == Platform.JVM) {
+                dependencies.add(conf.annotationConfigurationName, notation)
+            } else {
+                // JS, native 似乎不支持其他的 name，例如 compileOnly
+                dependencies.add("implementation", notation)
+            }
             dependencies.add("testImplementation", notation)
         }
         if (conf.includeRuntime) {
             val notation = getDependencyNotation(
-                BuildConfig.RUNTIME_GROUP,
-                BuildConfig.RUNTIME_NAME,
+                SuspendTransPluginConstants.RUNTIME_GROUP,
+                SuspendTransPluginConstants.RUNTIME_NAME,
                 platform,
                 conf.runtimeDependencyVersion
             )
@@ -129,45 +133,48 @@ fun Project.withPluginWhenEvaluatedConf(
 
 fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtension) {
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
-        val mainSourceSets = project.extensions.getByType(KotlinMultiplatformExtension::class.java).sourceSets
-            .getByName(KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME)
-        val testSourceSets = project.extensions.getByType(KotlinMultiplatformExtension::class.java).sourceSets
-            .getByName(KotlinSourceSet.COMMON_TEST_SOURCE_SET_NAME)
+        val multiplatformExtensions = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
 
+        val commonMainSourceSets =
+            multiplatformExtensions.sourceSets.getByName(KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME)
+        val commonTestSourceSets =
+            multiplatformExtensions.sourceSets.getByName(KotlinSourceSet.COMMON_TEST_SOURCE_SET_NAME)
 
         if (conf.includeAnnotation) {
             val notation = getDependencyNotation(
-                BuildConfig.ANNOTATION_GROUP,
-                BuildConfig.ANNOTATION_NAME,
+                SuspendTransPluginConstants.ANNOTATION_GROUP,
+                SuspendTransPluginConstants.ANNOTATION_NAME,
                 Platform.MULTIPLATFORM,
                 conf.annotationDependencyVersion
             )
-            dependencies.add(mainSourceSets.compileOnlyConfigurationName, notation)
-            dependencies.add(testSourceSets.implementationConfigurationName, notation)
+            dependencies.add(commonMainSourceSets.compileOnlyConfigurationName, notation)
+            dependencies.add(commonTestSourceSets.implementationConfigurationName, notation)
         }
 
         if (conf.includeRuntime) {
             val notation = getDependencyNotation(
-                BuildConfig.RUNTIME_GROUP,
-                BuildConfig.RUNTIME_NAME,
+                SuspendTransPluginConstants.RUNTIME_GROUP,
+                SuspendTransPluginConstants.RUNTIME_NAME,
                 Platform.MULTIPLATFORM,
                 conf.annotationDependencyVersion
             )
-            dependencies.add(mainSourceSets.implementationConfigurationName, notation)
-            dependencies.add(testSourceSets.implementationConfigurationName, notation)
+            dependencies.add(commonMainSourceSets.implementationConfigurationName, notation)
+            dependencies.add(commonTestSourceSets.implementationConfigurationName, notation)
         }
 
         // For each source set that is only used in Native compilations, add an implementation dependency so that it
         // gets published and is properly consumed as a transitive dependency:
         sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
-            val isSharedNativeSourceSet = compilations.all {
+            val isSharedSourceSet = compilations.all {
                 it.platformType == KotlinPlatformType.common || it.platformType == KotlinPlatformType.native
+                        || it.platformType == KotlinPlatformType.js || it.platformType == KotlinPlatformType.wasm
             }
-            if (isSharedNativeSourceSet) {
+
+            if (isSharedSourceSet) {
                 if (conf.includeAnnotation) {
                     val notation = getDependencyNotation(
-                        BuildConfig.ANNOTATION_GROUP,
-                        BuildConfig.ANNOTATION_NAME,
+                        SuspendTransPluginConstants.ANNOTATION_GROUP,
+                        SuspendTransPluginConstants.ANNOTATION_NAME,
                         Platform.MULTIPLATFORM,
                         conf.annotationDependencyVersion
                     )
@@ -177,8 +184,8 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
 
                 if (conf.includeRuntime) {
                     val notation = getDependencyNotation(
-                        BuildConfig.RUNTIME_GROUP,
-                        BuildConfig.RUNTIME_NAME,
+                        SuspendTransPluginConstants.RUNTIME_GROUP,
+                        SuspendTransPluginConstants.RUNTIME_NAME,
                         Platform.MULTIPLATFORM,
                         conf.annotationDependencyVersion
                     )
@@ -215,8 +222,8 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                 }
 
                 val notation = getDependencyNotation(
-                    BuildConfig.ANNOTATION_GROUP,
-                    BuildConfig.ANNOTATION_NAME,
+                    SuspendTransPluginConstants.ANNOTATION_GROUP,
+                    SuspendTransPluginConstants.ANNOTATION_NAME,
                     platform,
                     conf.annotationDependencyVersion
                 )
@@ -227,8 +234,8 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                 val configurationName = sourceSet.implementationConfigurationName
 
                 val notation = getDependencyNotation(
-                    BuildConfig.RUNTIME_GROUP,
-                    BuildConfig.RUNTIME_NAME,
+                    SuspendTransPluginConstants.RUNTIME_GROUP,
+                    SuspendTransPluginConstants.RUNTIME_NAME,
                     platform,
                     conf.runtimeDependencyVersion
                 )

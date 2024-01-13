@@ -465,6 +465,11 @@ suspendTransform {
     // or addJsTransformers(...)
 
 }
+```
+
+## 友情连接
+[Kotlin Suspend Interface reversal](https://github.com/ForteScarlet/kotlin-suspend-interface-reversal)
+: 基于 KSP，为包含挂起函数的接口或抽象类生成与平台兼容的扩展类型。
 
 ## 开源协议
 
