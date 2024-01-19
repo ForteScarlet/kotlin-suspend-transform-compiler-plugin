@@ -8,7 +8,7 @@ repositories {
     gradlePluginPortal()
 }
 
-val kotlinVersion = "1.9.21"
+val kotlinVersion = "2.0.0-Beta3"
 val dokkaPluginVersion = "1.9.10"
 val gradleCommon = "0.2.0"
 val nexusPublishPlugin = "1.3.0"

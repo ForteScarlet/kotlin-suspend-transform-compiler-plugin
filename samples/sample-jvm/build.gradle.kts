@@ -9,16 +9,16 @@ plugins {
 }
 
 
- buildscript {
-     this@buildscript.repositories {
-         mavenLocal()
-         mavenCentral()
-     }
-     dependencies {
-         //this.implementation()
-         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.6.0-local-test-1")
-     }
- }
+buildscript {
+    this@buildscript.repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        //this.implementation()
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev1")
+    }
+}
 
 
 //withType<JavaCompile> {
@@ -41,7 +41,8 @@ dependencies {
 //    val pluginVersion = "0.4.0"
 //    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
 //    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+//    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.")
+    api(libs.kotlinx.coroutines.core)
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.typeOrNull
@@ -52,6 +53,7 @@ fun IrSimpleFunction.asProperty(): IrProperty {
  * - extends `suspend () -> Unit`.
  * - takes dispatch and extension receivers as param, followed by normal value params, to the constructor of this object
  */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
     parent: IrDeclarationParent,
     lambdaType: IrSimpleType,
@@ -142,8 +144,7 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
 
 fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
     originFunction: IrFunction,
-    function: IrFunction,
-    blockBodyBuilder: IrBlockBodyBuilder
+    function: IrFunction
 ): IrSimpleFunction {
     return irFactory.buildFun {
         origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
@@ -196,5 +197,6 @@ val Name.identifierOrMappedSpecialName: String
     }
 
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 val IrDeclarationContainer.functionsSequence: Sequence<IrSimpleFunction>
     get() = declarations.asSequence().filterIsInstance<IrSimpleFunction>()

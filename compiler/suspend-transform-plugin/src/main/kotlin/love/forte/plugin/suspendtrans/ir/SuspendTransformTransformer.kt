@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -35,49 +36,6 @@ class SuspendTransformTransformer(
     private val configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-//    private inline val isJvm: Boolean get() = pluginContext.platform?.isJvm() == true
-//    private inline val isJs: Boolean get() = pluginContext.platform?.isJs() == true
-
-    //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
-//    private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
-//    private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
-
-//    private val jvmRunBlockingCallableId: CallableId = jvmRunBlockingFunctionName?.callableId
-//        ?: configuration.jvm.jvmBlockingFunctionInfo.let { blocking ->
-//            CallableId(blocking.packageName.fqn, blocking.className?.fqn, Name.identifier(blocking.functionName))
-//        }
-//    private val jvmRunAsyncCallableId: CallableId = jvmRunAsyncFunctionName?.callableId
-//        ?: configuration.jvm.jvmAsyncFunctionInfo.let { async ->
-//            CallableId(async.packageName.fqn, async.className?.fqn, Name.identifier(async.functionName))
-//        }
-//
-//    private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
-//    private val jsRunAsyncCallableId = jsRunAsyncFunctionName?.callableId
-//        ?: configuration.js.jsPromiseFunctionInfo.let { promise ->
-//            CallableId(promise.packageName.fqn, promise.className?.fqn, Name.identifier(promise.functionName))
-//        }
-//
-//    private val jvmOriginIncludeAnnotations =
-//        configuration.jvm.originFunctionIncludeAnnotations?.toList() ?: emptyList()
-//    private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
-//
-//    private val jvmRunBlockingFunctionOrNull =
-////        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
-//        pluginContext.referenceFunctions(jvmRunBlockingCallableId).firstOrNull()
-//
-//    private val jvmRunBlockingFunction
-//        get() = jvmRunBlockingFunctionOrNull
-//            ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
-//
-//    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncCallableId).firstOrNull()
-//
-//    private val jvmRunAsyncFunction
-//        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
-//
-//    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncCallableId).firstOrNull()
-//
-//    private val jsRunAsyncFunction
-//        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
@@ -131,7 +89,7 @@ class SuspendTransformTransformer(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    @OptIn(UnsafeDuringIrConstructionAPI::class, ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBody(
         function: IrFunction,
         originFunctionDescriptor: SimpleFunctionDescriptor,
@@ -139,6 +97,7 @@ class SuspendTransformTransformer(
     ): IrFunction? {
         val parent = function.parent
         if (parent is IrDeclarationContainer) {
+//            parent.findDeclaration<> {  }
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
                 .filter { f -> f.descriptor == originFunctionDescriptor }
 
@@ -146,7 +105,7 @@ class SuspendTransformTransformer(
                 // maybe override function
                 /*
                     interface A {
-                       @JvmBlocking suspend fun a(): Int
+                        @JvmBlocking suspend fun a(): Int
                     }
 
                     interface B : A {
@@ -165,7 +124,6 @@ class SuspendTransformTransformer(
             val originFunction = originFunctions.first()
 
             function.body = null
-//            function.body = generateTransformBodyForFunction(
             function.body = generateTransformBodyForFunctionLambda(
                 pluginContext,
                 function,
@@ -179,6 +137,7 @@ class SuspendTransformTransformer(
 }
 
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun generateTransformBodyForFunction(
     context: IrPluginContext,
     function: IrFunction,
@@ -230,6 +189,7 @@ private fun generateTransformBodyForFunction(
  * new
  *
  */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun generateTransformBodyForFunctionLambda(
     context: IrPluginContext,
     function: IrFunction,
@@ -245,8 +205,7 @@ private fun generateTransformBodyForFunctionLambda(
     return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
             originFunction = originFunction,
-            function = function,
-            this
+            function = function
         )
 
         val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)

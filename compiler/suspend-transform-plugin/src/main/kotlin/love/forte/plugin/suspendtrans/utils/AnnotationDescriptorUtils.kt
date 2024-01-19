@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.irConstructorCall
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
@@ -18,6 +19,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 fun IrBuilderWithScope.irAnnotationConstructor(
     clazz: IrClassSymbol,
 ): IrConstructorCall {

@@ -37,3 +37,9 @@ class ForteScarlet : CoroutineScope, IForteScarlet() {
 //    }
 
 }
+
+//fun main() {
+//    for (method in ForteScarlet::class.java.declaredMethods) {
+//        println(method)
+//    }
+//}
