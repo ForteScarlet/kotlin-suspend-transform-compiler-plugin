@@ -73,6 +73,7 @@ class Foo {
 
 ### WasmJS
 
+> [!warning]
 > 从 `v0.6.0` 开始支持，实验中，不成熟、不稳定。
 
 ```kotlin
@@ -256,6 +257,13 @@ suspendTransform {
 ### Gradle JVM
 
 Gradle JVM 必须满足 JDK11+
+
+### K2
+
+K2 编译器从 `v0.7.0` 开始支持。
+
+> [!warning]
+> 实验中。
 
 ## 效果
 

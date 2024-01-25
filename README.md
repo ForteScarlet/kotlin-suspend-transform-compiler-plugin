@@ -74,6 +74,7 @@ class Foo {
 
 ### WasmJS
 
+> [!warning]
 > Since `v0.6.0`, In experiments, immature and unstable
 
 ```kotlin
@@ -257,6 +258,13 @@ suspendTransform {
 ### Gradle JVM
 
 **Gradle JVM** must be JDK11+
+
+### K2
+
+K2 is supported since `v0.7.0`.
+
+> [!warning]
+> In experiments.
 
 ## Effect
 
