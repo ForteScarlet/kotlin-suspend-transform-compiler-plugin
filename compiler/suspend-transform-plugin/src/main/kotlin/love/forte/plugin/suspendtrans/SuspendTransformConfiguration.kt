@@ -13,7 +13,8 @@ data class FunctionInfo(
 data class ClassInfo @JvmOverloads constructor(
     var packageName: String,
     var className: String,
-    var local: Boolean = false
+    var local: Boolean = false,
+    var nullable: Boolean = false,
 )
 
 @Serializable

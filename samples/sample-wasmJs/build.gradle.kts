@@ -23,7 +23,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.6.0-local-test-1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev1")
     }
 }
 
@@ -54,7 +54,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            val composev = "1.6.0-alpha01"
 //            implementation("androidx.compose.ui:ui:$composev")
 //            implementation("androidx.compose.ui:ui-tooling:$composev")
 //            implementation("androidx.compose.ui:ui-tooling-preview:$composev")

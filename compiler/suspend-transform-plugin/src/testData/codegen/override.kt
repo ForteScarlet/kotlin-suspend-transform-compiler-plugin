@@ -1,3 +1,5 @@
+// FIR_DUMP
+// DUMP_IR
 // SOURCE
 // FILE: Main.kt [MainKt#main]
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
@@ -13,9 +15,7 @@ interface Foo : IFoo {
     @JvmBlocking
     @JvmAsync
     suspend fun run(): Bar
-
-    suspend fun run(name: String): Bar
-
+    suspend fun run(name:String): Tar = Tar()
     override suspend fun run(n: Int): Bar
 }
 
@@ -24,7 +24,6 @@ class FooImpl : Foo {
     override suspend fun run(name:String): Tar = Tar()
     override suspend fun run(n: Int): Bar = Tar()
 }
-
 
 open class Bar
 class Tar : Bar()

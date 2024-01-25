@@ -2,6 +2,8 @@ package love.forte.plugin.suspendtrans.utils
 
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationArgumentVisitor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.constants.*
@@ -86,5 +88,24 @@ abstract class AbstractNullableAnnotationArgumentVoidDataVisitor<R> : AbstractAn
             override fun visitBooleanValue(value: Boolean): Boolean = value
         }
     }
+}
+
+abstract class AbstractFirAnnotationArgumentVoidDataVisitor<R> : FirVisitor<R, Nothing?>() {
+
+    companion object {
+        val nullableString = object : AbstractFirAnnotationArgumentVoidDataVisitor<String?>() {
+            override fun visitElement(element: FirElement, data: Nothing?): String? {
+                println("Visited element: $element")
+                return null
+            }
+        }
+        val nullableBoolean = object : AbstractFirAnnotationArgumentVoidDataVisitor<Boolean?>() {
+            override fun visitElement(element: FirElement, data: Nothing?): Boolean? {
+                println("Visited element: $element")
+                return null
+            }
+        }
+    }
+
 }
 

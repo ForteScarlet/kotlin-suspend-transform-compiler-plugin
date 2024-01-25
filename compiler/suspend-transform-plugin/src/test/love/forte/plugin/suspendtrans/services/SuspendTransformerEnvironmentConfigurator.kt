@@ -1,0 +1,61 @@
+package love.forte.plugin.suspendtrans.services
+
+import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.test.model.TestModule
+import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
+import org.jetbrains.kotlin.test.services.TestServices
+import org.jetbrains.kotlin.utils.PathUtil
+import java.io.File
+
+/**
+ * Inject SuspendTransform plugin into test environment
+ */
+class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
+
+    @OptIn(ExperimentalCompilerApi::class)
+    override fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerExtensions(
+        module: TestModule,
+        configuration: CompilerConfiguration
+    ) {
+        // register plugin
+        SuspendTransformComponentRegistrar.register(this, SuspendTransformConfiguration().apply {
+            useDefault()
+        })
+    }
+
+    override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
+        // register runtimes
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.runtime.RunInSuspendJvmKt")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmAsync")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmBlocking")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+    }
+
+    private fun getRuntimeJarFile(className: String): File? {
+        try {
+            val clazz = Class.forName(className)
+            return PathUtil.getResourcePathForClass(clazz)
+        } catch (e: ClassNotFoundException) {
+            System.err.println("Runtime jar '$className' not found!")
+//            assert(false) { "Runtime jar '$className' not found!" }
+        }
+        return null
+    }
+
+}

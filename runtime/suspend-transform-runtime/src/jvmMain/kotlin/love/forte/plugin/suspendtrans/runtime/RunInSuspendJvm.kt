@@ -19,7 +19,9 @@ private val `$CoroutineScope4J$`: CoroutineScope = CoroutineScope(`$CoroutineCon
 @Suppress("FunctionName")
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Throws(InterruptedException::class)
-public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(`$CoroutineContext4J$`) { block() }
+public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(`$CoroutineContext4J$`) {
+    block()
+}
 
 
 private val classLoader: ClassLoader
@@ -75,9 +77,7 @@ private val transformer: FutureTransformer =
 public fun <T> `$runInAsync$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
-): CompletableFuture<T> {
-    return transformer.trans(scope ?: `$CoroutineScope4J$`, block)
-}
+): CompletableFuture<T> = transformer.trans(scope ?: `$CoroutineScope4J$`, block)
 
 
 

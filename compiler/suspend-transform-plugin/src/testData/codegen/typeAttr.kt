@@ -1,3 +1,5 @@
+// FIR_DUMP
+// DUMP_IR
 // SOURCE
 // FILE: Main.kt [MainKt#main]
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
