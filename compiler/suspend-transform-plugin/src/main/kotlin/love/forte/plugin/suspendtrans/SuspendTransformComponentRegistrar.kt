@@ -1,8 +1,8 @@
 package love.forte.plugin.suspendtrans
 
 import com.google.auto.service.AutoService
+import love.forte.plugin.suspendtrans.fir.SuspendTransformFirExtensionRegistrar
 import love.forte.plugin.suspendtrans.ir.SuspendTransformIrGenerationExtension
-import love.forte.plugin.suspendtrans.k2.fir.SuspendTransformFirExtensionRegistrar
 import love.forte.plugin.suspendtrans.symbol.SuspendTransformSyntheticResolveExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -30,7 +30,7 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
             val suspendTransformConfiguration =/* defaultConfiguration ?: */
                 configuration.resolveToSuspendTransformConfiguration()
 
-            register(storage, configuration)
+            register(storage, suspendTransformConfiguration)
         }
 
         fun register(storage: ExtensionStorage, configuration: SuspendTransformConfiguration) {

@@ -1,28 +1,31 @@
-package love.forte.plugin.suspendtrans.k2.fir
+package love.forte.plugin.suspendtrans.fir
 
-import love.forte.plugin.suspendtrans.MarkAnnotation
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.TargetPlatform
-import love.forte.plugin.suspendtrans.fqn
+import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.utils.CopyAnnotationsData
 import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
+import love.forte.plugin.suspendtrans.utils.toClassId
+import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.collectUpperBounds
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.copy
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
 import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.builder.buildSimpleFunctionCopy
-import org.jetbrains.kotlin.fir.declarations.getAnnotationsByClassId
-import org.jetbrains.kotlin.fir.declarations.origin
-import org.jetbrains.kotlin.fir.declarations.resolvePhase
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
+import org.jetbrains.kotlin.fir.declarations.utils.modality
+import org.jetbrains.kotlin.fir.expressions.FirAnnotation
+import org.jetbrains.kotlin.fir.expressions.FirExpression
+import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
-import org.jetbrains.kotlin.fir.resolve.fqName
+import org.jetbrains.kotlin.fir.plugin.createConeType
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
@@ -30,6 +33,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
+import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -39,8 +44,9 @@ import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
+import org.jetbrains.kotlin.types.ConstantValueKind
+import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext.argumentsCount
 import java.util.concurrent.ConcurrentHashMap
-
 
 /**
  *
@@ -59,6 +65,7 @@ class SuspendTransformFirTransformer(
 
     private data class FunData(
         val annotationData: TransformAnnotationData,
+        val transformer: Transformer
     )
 
     private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
@@ -94,15 +101,38 @@ class SuspendTransformFirTransformer(
 
                 val originFunc = func.fir
 
+                val (functionAnnotations, _) = copyAnnotations(originFunc, funData)
+
                 val newFun = buildSimpleFunctionCopy(originFunc) {
                     name = callableId.callableName
-                    symbol = FirNamedFunctionSymbol(callableId)
+                    val newFunSymbol = FirNamedFunctionSymbol(callableId)
+                    symbol = newFunSymbol
                     status = originFunc.status.copy(
                         isSuspend = false,
-                        modality = if (originFunc.status.isOverride) Modality.OPEN else originFunc.status.modality,
+                        modality = originFunc.syntheticModifier
                     )
-                    origin = SuspendTransformPluginKey.origin
+
+                    annotations.clear()
+                    annotations.addAll(functionAnnotations)
+                    body = null
+
+                    val returnType = resolveReturnType(originFunc, funData)
+
+                    returnTypeRef = returnType
+
+                    origin = SuspendTransformPluginKey(
+                        data = SuspendTransformUserDataFir(
+                            originSymbol = symbol.asOriginSymbol(
+                                typeParameters = typeParameters,
+                                valueParameters = valueParameters,
+                                returnType.coneTypeOrNull?.classId
+                            ),
+                            asProperty = false,
+                            transformer = funData.transformer
+                        )
+                    ).origin
                 }
+
 
                 funList.add(newFun.symbol)
             }
@@ -128,6 +158,9 @@ class SuspendTransformFirTransformer(
                 // generate
                 val original = func.fir
 
+                val (functionAnnotations, propertyAnnotations) =
+                    copyAnnotations(original, funData)
+
                 val p = buildProperty {
                     name = callableId.callableName
                     symbol = FirPropertySymbol(callableId)
@@ -138,21 +171,41 @@ class SuspendTransformFirTransformer(
                     attributes = original.attributes.copy()
                     status = original.status.copy(
                         isSuspend = false,
-                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
+//                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
+                        modality = original.syntheticModifier,
                     )
                     returnTypeRef = original.returnTypeRef
                     deprecationsProvider = original.deprecationsProvider
                     containerSource = original.containerSource
                     dispatchReceiverType = original.dispatchReceiverType
                     contextReceivers.addAll(original.contextReceivers)
-                    annotations.addAll(original.annotations) // TODO
+                    // annotations
+                    annotations.addAll(propertyAnnotations)
                     typeParameters.addAll(original.typeParameters)
                     getter = buildPropertyAccessor {
                         symbol = FirPropertyAccessorSymbol()
                         source = original.source
                         resolvePhase = original.resolvePhase
                         moduleData = original.moduleData
-                        origin = original.origin
+                        // annotations
+                        annotations.addAll(functionAnnotations)
+
+                        val returnType = resolveReturnType(original, funData)
+
+                        returnTypeRef = returnType
+
+                        origin = SuspendTransformPluginKey(
+                            data = SuspendTransformUserDataFir(
+                                originSymbol = symbol.asOriginSymbol(
+                                    typeParameters = typeParameters,
+                                    valueParameters = valueParameters,
+                                    returnType.coneTypeOrNull?.classId
+                                ),
+                                asProperty = true,
+                                transformer = funData.transformer
+                            )
+                        ).origin
+
                         attributes = original.attributes.copy()
                         status = original.status
                         returnTypeRef = original.returnTypeRef
@@ -180,10 +233,10 @@ class SuspendTransformFirTransformer(
         for (value in suspendTransformConfiguration.transformers.values) {
             for (transformer in value) {
                 val afq = transformer.markAnnotation.fqName
-                if (predicate == null) {
-                    predicate = metaAnnotated(setOf(afq), false)
+                predicate = if (predicate == null) {
+                    annotated(afq)
                 } else {
-                    predicate = predicate or metaAnnotated(setOf(afq), false)
+                    predicate or annotated(afq)
                 }
             }
         }
@@ -196,28 +249,6 @@ class SuspendTransformFirTransformer(
      * otherwise, the annotation remains unresolved
      */
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-
-
-//        val serializable = suspendTransformConfiguration.transformers.values
-//            .asSequence()
-//            .flatMap {
-//                it.map { t ->
-//                    DeclarationPredicate.create { annotated(t.markAnnotation.fqName) }
-//                }
-//            }
-//            .reduce { a, b -> a.or(b) }
-
-//        val serializable =
-//            LookupPredicate.create {
-//                val annotationFqNames = suspendTransformConfiguration.transformers.values.flatMapTo(mutableSetOf()) {
-//                    it.map { t ->
-//                        t.markAnnotation.fqName
-//                    }
-//                }
-//
-//                annotated(annotationFqNames)
-//            }
-
         register(annotationPredicates)
     }
 
@@ -226,7 +257,6 @@ class SuspendTransformFirTransformer(
         declaredScope: FirClassDeclaredMemberScope?
     ): Map<Name, Map<FirNamedFunctionSymbol, FunData>>? {
         if (declaredScope == null) return null
-
 
         fun check(targetPlatform: TargetPlatform): Boolean {
             val platform = classSymbol.moduleData.platform
@@ -264,10 +294,6 @@ class SuspendTransformFirTransformer(
                             ).firstOrNull()
                             ?: continue
 
-                        println("!!${functionName}.anno: ${anno.fqName(session)}")
-                        println("!!${functionName}.anno.mapping: ${anno.argumentMapping.mapping}")
-                        println()
-
                         // TODO 读不到注解的参数？
 
                         val annoData = TransformAnnotationData.of(
@@ -280,16 +306,147 @@ class SuspendTransformFirTransformer(
                             defaultAsProperty = markAnnotation.defaultAsProperty,
                         )
 
-                        println("AnnoData: $annoData")
-
                         map.computeIfAbsent(Name.identifier(annoData.functionName)) { ConcurrentHashMap() }[func] =
-                            FunData(annoData)
+                            FunData(annoData, transformer)
                     }
                 }
         }
 
         return map
     }
+
+    private fun resolveReturnType(original: FirSimpleFunction, funData: FunData): FirTypeRef {
+        val originalReturnTypeRef = original.returnTypeRef
+        val transformer = funData.transformer
+        val returnType = transformer.transformReturnType
+            ?: return originalReturnTypeRef
+
+        var typeArguments: Array<ConeTypeProjection> = emptyArray()
+
+        if (transformer.transformReturnTypeGeneric) {
+            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(originalReturnTypeRef.coneType))
+        }
+
+        val resultConeType = returnType.toClassId().createConeType(
+            session = session,
+            typeArguments,
+            nullable = returnType.nullable
+        )
+
+        return buildResolvedTypeRef {
+            type = resultConeType
+        }
+    }
+
+
+    /**
+     * @return function annotations `to` property annotations.
+     */
+    private fun copyAnnotations(
+        original: FirSimpleFunction, funData: FunData,
+    ): Pair<List<FirAnnotation>, List<FirAnnotation>> {
+        val transformer = funData.transformer
+
+        val (copyFunction, excludes, includes) = CopyAnnotationsData(
+            transformer.copyAnnotationsToSyntheticFunction,
+            transformer.copyAnnotationExcludes.map { it.toClassId() },
+            transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
+        )
+
+        val annotationList = mutableListOf<FirAnnotation>()
+
+        with(annotationList) {
+            if (copyFunction) {
+                val notCompileAnnotationsCopied = original.annotations.filterNot {
+                    val annotationClassId = it.toAnnotationClassId(session) ?: return@filterNot true
+                    excludes.any { ex -> annotationClassId == ex }
+                }
+
+                addAll(notCompileAnnotationsCopied)
+            }
+
+            // try add @Generated(by = ...)
+            runCatching {
+//                val generatedAnnotation = buildAnnotation {
+//                    annotationTypeRef = buildResolvedTypeRef {
+//                        type = generatedAnnotationClassId.createConeType(session)
+//                    }
+//                    argumentMapping = buildAnnotationArgumentMapping {
+//                        includeGeneratedArguments(original)
+//                    }
+//                }
+//                add(generatedAnnotation)
+            }.getOrElse { e ->
+                // Where is log?
+                e.printStackTrace()
+            }
+
+            // add includes
+            includes.forEach { include ->
+                val classId = include.classId
+                println("!!!include: $include")
+                println("!!!include: $classId")
+                val includeAnnotation = buildAnnotation {
+                    argumentMapping = buildAnnotationArgumentMapping()
+                    annotationTypeRef = buildResolvedTypeRef {
+                        type = classId.createConeType(session)
+                    }
+                }
+                add(includeAnnotation)
+            }
+        }
+
+        return annotationList to emptyList()
+    }
+
+
+    private fun FirAnnotationArgumentMappingBuilder.includeGeneratedArguments(function: FirSimpleFunction) {
+        fun MutableList<FirExpression>.addString(value: String) {
+            val expression = buildConstExpression(
+                source = null,
+                kind = ConstantValueKind.String,
+                value = value,
+                setType = false
+            )
+            add(expression)
+        }
+
+        fun ConeKotlinType.typeString(): String {
+            return buildString {
+                append(classId?.asFqNameString())
+                collectUpperBounds()
+                    .takeIf { it.isNotEmpty() }
+                    ?.also { upperBounds ->
+                        upperBounds.joinTo(this, "&") { type ->
+                            type.classId?.asFqNameString() ?: "?NULL?"
+                        }
+                    }
+                if (kotlin.runCatching { argumentsCount() }.getOrElse { 0 } > 0) {
+                    typeArguments.joinTo(this, ", ", "<", ">") { argument ->
+                        argument.type?.classId?.asFqNameString() ?: "?NULL?"
+                    }
+                }
+            }
+        }
+
+        with(mapping) {
+            put(Name.identifier("by"), buildArrayLiteral {
+                argumentList = buildArgumentList {
+                    with(arguments) {
+                        addString(function.name.asString())
+                        function.valueParameters.forEach { vp ->
+                            addString(vp.name.asString())
+                            vp.returnTypeRef.coneTypeOrNull?.also { coneType ->
+                                addString(coneType.typeString())
+                            }
+                        }
+                        addString(function.returnTypeRef.coneTypeOrNull?.typeString() ?: "?")
+                    }
+                }
+            })
+        }
+    }
+
 }
 
 
@@ -302,4 +459,11 @@ private val MarkAnnotation.classId: ClassId
 private val MarkAnnotation.fqName: FqName
     get() {
         return FqName(classInfo.packageName + "." + classInfo.className)
+    }
+
+private val FirSimpleFunction.syntheticModifier: Modality?
+    get() = when {
+        status.isOverride -> Modality.OPEN
+        modality == Modality.ABSTRACT -> Modality.OPEN
+        else -> status.modality
     }

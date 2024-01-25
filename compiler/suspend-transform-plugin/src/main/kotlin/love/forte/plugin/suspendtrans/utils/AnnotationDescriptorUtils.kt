@@ -30,11 +30,20 @@ fun IrBuilderWithScope.irAnnotationConstructor(
 
 fun Iterable<AnnotationDescriptor>.filterNotCompileAnnotations(): List<AnnotationDescriptor> = filterNot {
     val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
-
+//
     annotationFqNameUnsafe == toJvmAsyncAnnotationName.toUnsafe()
             || annotationFqNameUnsafe == toJvmBlockingAnnotationName.toUnsafe()
             || annotationFqNameUnsafe == toJsPromiseAnnotationName.toUnsafe()
 }
+
+//fun Iterable<FirAnnotation>.filterNotCompileAnnotations(session: FirSession): List<FirAnnotation> = filterNot {
+//    val annotationFqName = it.fqName(session) ?: return@filterNot true
+//    val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
+
+//    annotationFqName == toJvmAsyncAnnotationName.toUnsafe()
+//            || annotationFqName == toJvmBlockingAnnotationName.toUnsafe()
+//            || annotationFqName == toJsPromiseAnnotationName.toUnsafe()
+//}
 
 data class TransformAnnotationData(
     //val annotationDescriptor: AnnotationDescriptor,

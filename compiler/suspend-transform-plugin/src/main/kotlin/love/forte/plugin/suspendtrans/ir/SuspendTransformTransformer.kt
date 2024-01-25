@@ -1,14 +1,12 @@
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.SuspendTransformUserData
-import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
-import love.forte.plugin.suspendtrans.fqn
+import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.k2.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.wasm.ir2wasm.getSourceLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -22,10 +20,13 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.IrMessageLogger
+import org.jetbrains.kotlin.ir.util.fileEntry
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.wasm.ir.source.location.SourceLocation
 
 /**
  *
@@ -36,13 +37,18 @@ class SuspendTransformTransformer(
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
 
+    // TODO What should be used in K2?
+    private val reporter = kotlin.runCatching {
+        // error: "This API is not supported for K2"
+        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
+    }.getOrNull()
+
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         resolveFunctionBodyByDescriptor(declaration, declaration.descriptor)
 
         return super.visitFunctionNew(declaration)
     }
-
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitPropertyNew(declaration: IrProperty): IrStatement {
@@ -52,31 +58,69 @@ class SuspendTransformTransformer(
         return super.visitPropertyNew(declaration)
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
-        val userData = descriptor.getUserData(SuspendTransformUserDataKey) ?: return null
-        val callableFunction =
-            pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
-                ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
+        // K2
+        val pluginKey = (declaration.origin as? IrDeclarationOrigin.GeneratedByPlugin)
+            ?.pluginKey as? SuspendTransformPluginKey
 
-        val generatedOriginFunction = resolveFunctionBody(declaration, userData.originFunction, callableFunction)
+        // K1 ?
+        val userData = descriptor.getUserData(SuspendTransformUserDataKey)
 
-        if (generatedOriginFunction != null) {
-            postProcessGenerateOriginFunction(generatedOriginFunction, userData)
+        val generatedOriginFunction: IrFunction? = when {
+            pluginKey != null -> {
+                val callableFunction =
+                    pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                        .firstOrNull()
+                        ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
+
+                resolveFunctionBody(
+                    declaration,
+                    { f -> pluginKey.data.originSymbol.checkSame(f).also { println("Check result: $it: ($f(${f.name}) same ${pluginKey.data.originSymbol})") } },
+                    callableFunction
+                )?.also { generatedOriginFunction ->
+                    postProcessGenerateOriginFunction(
+                        generatedOriginFunction,
+                        pluginKey.data.transformer.originFunctionIncludeAnnotations
+                    )
+                }
+            }
+
+            userData != null -> {
+                val callableFunction =
+                    pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId())
+                        .firstOrNull()
+                        ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
+
+                resolveFunctionBody(
+                    declaration,
+                    { f -> f.descriptor == userData.originFunction },
+                    callableFunction
+                )?.also { generatedOriginFunction ->
+                    postProcessGenerateOriginFunction(
+                        generatedOriginFunction,
+                        userData.transformer.originFunctionIncludeAnnotations
+                    )
+                }
+            }
+
+            else -> return null
         }
 
         return generatedOriginFunction
     }
 
-    private fun postProcessGenerateOriginFunction(function: IrFunction, userData: SuspendTransformUserData) {
+    private fun postProcessGenerateOriginFunction(
+        function: IrFunction,
+        originFunctionIncludeAnnotations: List<IncludeAnnotation>
+    ) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
             fun hasAnnotation(name: FqName): Boolean =
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val syntheticFunctionIncludes = userData.transformer.originFunctionIncludeAnnotations
-
-            syntheticFunctionIncludes.forEach { include ->
+            originFunctionIncludeAnnotations.forEach { include ->
                 val classId = include.classInfo.toClassId()
                 val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
                 if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
@@ -91,46 +135,55 @@ class SuspendTransformTransformer(
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBody(
         function: IrFunction,
-        originFunctionDescriptor: SimpleFunctionDescriptor,
+        checkIsOriginFunction: (IrFunction) -> Boolean,
         transformTargetFunctionCall: IrSimpleFunctionSymbol,
     ): IrFunction? {
         val parent = function.parent
-        println("!!!resolveFunctionBody.function: $function")
-        println("!!!resolveFunctionBody.function.parent: ${function.parent}")
         if (parent is IrDeclarationContainer) {
-//            parent.findDeclaration<> {  }
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
-                .filter { f -> f.descriptor == originFunctionDescriptor }
+                .filter { checkIsOriginFunction(it) }
 
             if (originFunctions.size != 1) {
-                // maybe override function
-                /*
-                    interface A {
-                        @JvmBlocking suspend fun a(): Int
+                val message =
+                    "Transform function $function (${function.name}) 's originFunctions.size should be 1, but ${originFunctions.size} (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
+
+                val location = when (val sourceLocation =
+                    function.getSourceLocation(runCatching { function.fileEntry }.getOrNull())) {
+                    is SourceLocation.Location -> {
+                        IrMessageLogger.Location(
+                            filePath = sourceLocation.file,
+                            line = sourceLocation.line,
+                            column = sourceLocation.column
+                        )
                     }
 
-                    interface B : A {
-                        // here
-                        override suspend fun a(): Int = 1
-                    }
-                 */
-                System.err.println(
-                    "originFunctions.size should be 1, but ${originFunctions.size} (originFunctionDescriptor = $originFunctionDescriptor, findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
-                )
+                    else -> null
+                }
+
+                if (reporter != null) {
+                    reporter.report(
+                        IrMessageLogger.Severity.WARNING,
+                        message,
+                        location
+                    )
+                } else {
+                    // TODO In K2?
+                    System.err.println(message)
+                }
+
+
                 return null
             }
-//            require(originFunctions.size == 1) {
-//            }
 
             val originFunction = originFunctions.first()
 
-            function.body = null
             function.body = generateTransformBodyForFunctionLambda(
                 pluginContext,
                 function,
                 originFunction,
                 transformTargetFunctionCall
             )
+
             return originFunction
         }
 

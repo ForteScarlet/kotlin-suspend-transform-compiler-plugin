@@ -5,28 +5,26 @@
 
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
-//import kotlinx.coroutines.CoroutineScope
-//import kotlin.coroutines.CoroutineContext
-//import kotlin.coroutines.EmptyCoroutineContext
 
 class BasicFoo {
     @JvmAsync
-    suspend fun foo(): String = ""
+    suspend fun foo(): String = "foo"
 }
 
-class BasicBar
-//    : CoroutineScope
-{
-    //override val coroutineContext: CoroutineContext = EmptyCoroutineContext
+class BasicBar {
     @JvmAsync
-    suspend fun bar(): String = ""
+    suspend fun bar(): String = "bar"
     @JvmAsync
-    suspend fun bar(i: Int): String = ""
+    suspend fun bar2(i: Int): String = "bar2"
 }
 
 interface InterfaceBar {
     @JvmAsync
     suspend fun bar(): String
     @JvmAsync
-    suspend fun bar(i: Int): String
+    suspend fun bar2(i: Int): String
+
+    fun asyncBase(i: Int): ResultValue<out String>
 }
+
+class ResultValue<T>
