@@ -262,8 +262,6 @@ class SuspendTransformFirTransformer(
                         valueParameters.addAll(original.valueParameters)
 //                        body = null
 //                        contractDescription = original.contractDescription
-                        // annotations
-                        annotations.addAll(functionAnnotations)
                         typeParameters.addAll(original.typeParameters)
                     }
                 }
