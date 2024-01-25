@@ -1,0 +1,32 @@
+FILE: Main.kt
+    public final annotation class TA : R|kotlin/Annotation| {
+        public constructor(value: R|kotlin/String| = String(forte)): R|TA| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val value: R|kotlin/String| = R|<local>/value|
+            public get(): R|kotlin/String|
+
+    }
+    public final class PropFoo : R|kotlin/Any| {
+        public constructor(): R|PropFoo| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) @R|TA|(value = String(forliy)) public final suspend fun prop(): R|kotlin/String| {
+            ^prop String()
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() public final suspend fun age(): R|kotlin/Int| {
+            ^age Int(1)
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun ageBlocking(): R|kotlin/Int|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun ageAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/Int>|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|TA|(value = String(forliy)) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun propAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/String>|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) @R|TA|(value = String(forliy)) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun propBlocking(): R|kotlin/String|
+
+    }

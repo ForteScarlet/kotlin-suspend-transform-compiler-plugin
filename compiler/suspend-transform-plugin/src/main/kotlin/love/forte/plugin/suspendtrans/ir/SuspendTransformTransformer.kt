@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.ir
 
 import love.forte.plugin.suspendtrans.*
-import love.forte.plugin.suspendtrans.k2.fir.SuspendTransformPluginKey
+import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext

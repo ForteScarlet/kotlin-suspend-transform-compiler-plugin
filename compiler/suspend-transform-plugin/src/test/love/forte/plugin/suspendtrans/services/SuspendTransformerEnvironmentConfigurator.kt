@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 
 /**
- * Inject XJson plugin into test environment
+ * Inject SuspendTransform plugin into test environment
  */
 class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
 

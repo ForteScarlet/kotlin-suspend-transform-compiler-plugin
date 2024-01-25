@@ -1,0 +1,65 @@
+public class Bar : java/lang/Object {
+    public void <init>()
+}
+
+public final class Foo$DefaultImpls : java/lang/Object {
+    public static java.util.concurrent.CompletableFuture valueAsync(Foo $this)
+
+    public static Bar valueBlocking(Foo $this)
+}
+
+final class Foo$valueAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    int label
+
+    final Foo this$0
+
+    void <init>(Foo $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class Foo$valueBlocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    int label
+
+    final Foo this$0
+
+    void <init>(Foo $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+public abstract interface Foo : java/lang/Object {
+    public abstract java.lang.Object value(kotlin.coroutines.Continuation p0)
+
+    public abstract java.util.concurrent.CompletableFuture valueAsync()
+
+    public abstract Bar valueBlocking()
+}
+
+public final class FooImpl : java/lang/Object, Foo {
+    public void <init>()
+
+    public java.lang.Object value(kotlin.coroutines.Continuation $completion)
+
+    public java.util.concurrent.CompletableFuture valueAsync()
+
+    public Tar valueBlocking()
+
+    public Bar valueBlocking()
+}
+
+public final class Tar : Bar {
+    public void <init>()
+}
