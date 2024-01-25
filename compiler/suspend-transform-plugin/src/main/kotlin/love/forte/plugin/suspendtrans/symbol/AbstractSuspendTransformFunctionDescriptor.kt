@@ -61,27 +61,29 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
             emptyList()
         }
 
-        return KotlinTypeFactory.simpleNotNullType(
+        return KotlinTypeFactory.simpleType(
             TypeAttributes.Empty,
-            returnTypeClass,
-            arguments
+            returnTypeClass.typeConstructor,
+            arguments,
+            nullable = returnType.nullable
         )
     }
 
     open fun init() {
+        val returnType = returnType(originFunction.returnType)
+
         initialize(
             originFunction.extensionReceiverParameter?.copy(this),
             classDescriptor.thisAsReceiverParameter,
             originFunction.contextReceiverParameters.map { it.copy(this) },
             originFunction.typeParameters.toList(),
             originFunction.valueParameters.map { it.copy(this) },
-            returnType(originFunction.returnType),
+            returnType,
             modality(originFunction),
             originFunction.visibility,
             mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>(SuspendTransformUserDataKey to userData)
         )
         this.isSuspend = false
-
     }
 
     protected open fun transformToPropertyInternal(): AbstractSuspendTransformProperty {

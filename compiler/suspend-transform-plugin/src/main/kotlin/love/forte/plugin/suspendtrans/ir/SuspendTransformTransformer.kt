@@ -1,14 +1,12 @@
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.SuspendTransformUserData
-import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
-import love.forte.plugin.suspendtrans.fqn
+import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.wasm.ir2wasm.getSourceLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -22,10 +20,13 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.IrMessageLogger
+import org.jetbrains.kotlin.ir.util.fileEntry
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.wasm.ir.source.location.SourceLocation
 
 /**
  *
@@ -35,49 +36,12 @@ class SuspendTransformTransformer(
     private val configuration: SuspendTransformConfiguration,
     private val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoidWithContext() {
-//    private inline val isJvm: Boolean get() = pluginContext.platform?.isJvm() == true
-//    private inline val isJs: Boolean get() = pluginContext.platform?.isJs() == true
 
-    //    private val generatedAnnotation = pluginContext.referenceClass(generatedAnnotationName)!!
-//    private val jvmRunBlockingFunctionName = configuration.jvm.jvmBlockingFunctionName
-//    private val jvmRunAsyncFunctionName = configuration.jvm.jvmAsyncFunctionName
-
-//    private val jvmRunBlockingCallableId: CallableId = jvmRunBlockingFunctionName?.callableId
-//        ?: configuration.jvm.jvmBlockingFunctionInfo.let { blocking ->
-//            CallableId(blocking.packageName.fqn, blocking.className?.fqn, Name.identifier(blocking.functionName))
-//        }
-//    private val jvmRunAsyncCallableId: CallableId = jvmRunAsyncFunctionName?.callableId
-//        ?: configuration.jvm.jvmAsyncFunctionInfo.let { async ->
-//            CallableId(async.packageName.fqn, async.className?.fqn, Name.identifier(async.functionName))
-//        }
-//
-//    private val jsRunAsyncFunctionName = configuration.js.jsPromiseFunctionName
-//    private val jsRunAsyncCallableId = jsRunAsyncFunctionName?.callableId
-//        ?: configuration.js.jsPromiseFunctionInfo.let { promise ->
-//            CallableId(promise.packageName.fqn, promise.className?.fqn, Name.identifier(promise.functionName))
-//        }
-//
-//    private val jvmOriginIncludeAnnotations =
-//        configuration.jvm.originFunctionIncludeAnnotations?.toList() ?: emptyList()
-//    private val jsOriginIncludeAnnotations = configuration.js.originFunctionIncludeAnnotations.toList()
-//
-//    private val jvmRunBlockingFunctionOrNull =
-////        pluginContext.referenceFunctions(jvmRunBlockingFunctionName.fqn).singleOrNull()
-//        pluginContext.referenceFunctions(jvmRunBlockingCallableId).firstOrNull()
-//
-//    private val jvmRunBlockingFunction
-//        get() = jvmRunBlockingFunctionOrNull
-//            ?: error("jvmRunBlockingFunction ($jvmRunBlockingFunctionName) unsupported.")
-//
-//    private val jvmRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jvmRunAsyncCallableId).firstOrNull()
-//
-//    private val jvmRunAsyncFunction
-//        get() = jvmRunAsyncFunctionOrNull ?: error("jvmRunAsyncFunction ($jvmRunAsyncFunctionName) unsupported.")
-//
-//    private val jsRunAsyncFunctionOrNull = pluginContext.referenceFunctions(jsRunAsyncCallableId).firstOrNull()
-//
-//    private val jsRunAsyncFunction
-//        get() = jsRunAsyncFunctionOrNull ?: error("jsRunAsyncFunction ($jsRunAsyncFunctionName) unsupported.")
+    // TODO What should be used in K2?
+    private val reporter = kotlin.runCatching {
+        // error: "This API is not supported for K2"
+        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
+    }.getOrNull()
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
@@ -86,40 +50,93 @@ class SuspendTransformTransformer(
         return super.visitFunctionNew(declaration)
     }
 
-
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitPropertyNew(declaration: IrProperty): IrStatement {
         val getter = declaration.getter ?: return super.visitPropertyNew(declaration)
-        resolveFunctionBodyByDescriptor(getter, declaration.descriptor)
+        resolveFunctionBodyByDescriptor(getter, declaration.descriptor, declaration)
 
         return super.visitPropertyNew(declaration)
     }
 
-    private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
-        val userData = descriptor.getUserData(SuspendTransformUserDataKey) ?: return null
-        val callableFunction =
-            pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId()).firstOrNull()
-                ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    private fun resolveFunctionBodyByDescriptor(
+        declaration: IrFunction,
+        descriptor: CallableDescriptor,
+        property: IrProperty? = null
+    ): IrFunction? {
+        // K2
+        val pluginKey = if (property != null) {
+            // from property
+            (property.origin as? IrDeclarationOrigin.GeneratedByPlugin)
+                ?.pluginKey as? SuspendTransformPluginKey
+        } else {
+            (declaration.origin as? IrDeclarationOrigin.GeneratedByPlugin)
+                ?.pluginKey as? SuspendTransformPluginKey
+        }
 
-        val generatedOriginFunction = resolveFunctionBody(declaration, userData.originFunction, callableFunction)
+        // K1 ?
+        val userData = descriptor.getUserData(SuspendTransformUserDataKey)
 
-        if (generatedOriginFunction != null) {
-            postProcessGenerateOriginFunction(generatedOriginFunction, userData)
+        val generatedOriginFunction: IrFunction? = when {
+            pluginKey != null -> {
+                val callableFunction =
+                    pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                        .firstOrNull()
+                        ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
+
+                resolveFunctionBody(
+                    declaration,
+                    { f ->
+                        pluginKey.data.originSymbol.checkSame(f)
+                    },
+                    callableFunction
+                )?.also { generatedOriginFunction ->
+                    if (property != null) {
+                        // NO! BACKING! FIELD!
+                        property.backingField = null
+                    }
+                    postProcessGenerateOriginFunction(
+                        generatedOriginFunction,
+                        pluginKey.data.transformer.originFunctionIncludeAnnotations
+                    )
+                }
+            }
+
+            userData != null -> {
+                val callableFunction =
+                    pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId())
+                        .firstOrNull()
+                        ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
+
+                resolveFunctionBody(
+                    declaration,
+                    { f -> f.descriptor == userData.originFunction },
+                    callableFunction
+                )?.also { generatedOriginFunction ->
+                    postProcessGenerateOriginFunction(
+                        generatedOriginFunction,
+                        userData.transformer.originFunctionIncludeAnnotations
+                    )
+                }
+            }
+
+            else -> return null
         }
 
         return generatedOriginFunction
     }
 
-    private fun postProcessGenerateOriginFunction(function: IrFunction, userData: SuspendTransformUserData) {
+    private fun postProcessGenerateOriginFunction(
+        function: IrFunction,
+        originFunctionIncludeAnnotations: List<IncludeAnnotation>
+    ) {
         function.annotations = buildList {
             val currentAnnotations = function.annotations
             fun hasAnnotation(name: FqName): Boolean =
                 currentAnnotations.any { a -> a.isAnnotationWithEqualFqName(name) }
             addAll(currentAnnotations)
 
-            val syntheticFunctionIncludes = userData.transformer.originFunctionIncludeAnnotations
-
-            syntheticFunctionIncludes.forEach { include ->
+            originFunctionIncludeAnnotations.forEach { include ->
                 val classId = include.classInfo.toClassId()
                 val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
                 if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
@@ -134,46 +151,60 @@ class SuspendTransformTransformer(
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBody(
         function: IrFunction,
-        originFunctionDescriptor: SimpleFunctionDescriptor,
+        checkIsOriginFunction: (IrFunction) -> Boolean,
         transformTargetFunctionCall: IrSimpleFunctionSymbol,
     ): IrFunction? {
         val parent = function.parent
         if (parent is IrDeclarationContainer) {
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
-                .filter { f -> f.descriptor == originFunctionDescriptor }
+                .filter { checkIsOriginFunction(it) }
 
             if (originFunctions.size != 1) {
-                // maybe override function
-                /*
-                    interface A {
-                       @JvmBlocking suspend fun a(): Int
+                val message =
+                    "Synthetic function $function (${function.name}) 's originFunctions.size should be 1, but ${originFunctions.size} (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
+
+                val location = when (val sourceLocation =
+                    function.getSourceLocation(runCatching { function.fileEntry }.getOrNull())) {
+                    is SourceLocation.Location -> {
+                        IrMessageLogger.Location(
+                            filePath = sourceLocation.file,
+                            line = sourceLocation.line,
+                            column = sourceLocation.column
+                        )
                     }
 
-                    interface B : A {
-                        // here
-                        override suspend fun a(): Int = 1
-                    }
-                 */
-                System.err.println(
-                    "originFunctions.size should be 1, but ${originFunctions.size} (originFunctionDescriptor = $originFunctionDescriptor, findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
-                )
+                    else -> null
+                }
+
+                if (reporter != null) {
+                    reporter.report(
+                        IrMessageLogger.Severity.WARNING,
+                        message,
+                        location
+                    )
+                } else {
+                    // TODO In K2?
+                    System.err.println(message)
+                }
+
+
                 return null
             }
-//            require(originFunctions.size == 1) {
-//            }
 
             val originFunction = originFunctions.first()
 
-            function.body = null
-//            function.body = generateTransformBodyForFunction(
             function.body = generateTransformBodyForFunctionLambda(
                 pluginContext,
                 function,
                 originFunction,
                 transformTargetFunctionCall
             )
+
             return originFunction
         }
+
+
+
         return null
     }
 }
@@ -245,14 +276,22 @@ private fun generateTransformBodyForFunctionLambda(
     return context.createIrBuilder(function.symbol).irBlockBody {
         val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
             originFunction = originFunction,
-            function = function,
-            this
+            function = function
         )
 
         val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
 
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(0, IrFunctionExpressionImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, lambdaType, suspendLambdaFunc, IrStatementOrigin.LAMBDA))
+            putValueArgument(
+                0,
+                IrFunctionExpressionImpl(
+                    UNDEFINED_OFFSET,
+                    UNDEFINED_OFFSET,
+                    lambdaType,
+                    suspendLambdaFunc,
+                    IrStatementOrigin.LAMBDA
+                )
+            )
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             val owner = transformTargetFunctionCall.owner
 

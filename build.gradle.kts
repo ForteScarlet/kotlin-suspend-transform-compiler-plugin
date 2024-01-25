@@ -30,3 +30,16 @@ allprojects {
 
 apply(plugin = "suspend-transform.nexus-publish")
 
+tasks.create("createChangelog") {
+    group = "documentation"
+    doFirst {
+        val tag = "v${IProject.version}"
+        val changelogDir = rootProject.file(".changelog").apply { mkdirs() }
+        with(File(changelogDir, "$tag.md")) {
+            if (!exists()) {
+                createNewFile()
+            }
+            writeText("Kotlin version: `v${libs.versions.kotlin.get()}`")
+        }
+    }
+}

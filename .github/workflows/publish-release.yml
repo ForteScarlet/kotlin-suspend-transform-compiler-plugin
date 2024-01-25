@@ -21,7 +21,7 @@ env:
 jobs:
   test-build-publish:
     name: Test and build
-#    runs-on: ubuntu-latest
+    #    runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
@@ -96,10 +96,28 @@ jobs:
   create-release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: [test-build-publish, publish-gradle-plugin]
+    needs: [ test-build-publish, publish-gradle-plugin ]
     permissions:
       contents: write
     steps:
+      # 检出仓库代码
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      # Setup java
+      # https://github.com/marketplace/actions/setup-java-jdk
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Create changelog
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.5
+          arguments: createChangelog
+
         # https://github.com/softprops/action-gh-release
         # Create gitHub release
       - name: Create Github Release
@@ -107,6 +125,6 @@ jobs:
         with:
           token: ${{ secrets.FORTE_TOKEN }}
           draft: true
-#          body_path: .changelog/${{ github.ref_name }}.md
+          body_path: .changelog/${{ github.ref_name }}.md
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'preview') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

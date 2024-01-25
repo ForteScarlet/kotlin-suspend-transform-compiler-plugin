@@ -63,7 +63,7 @@ kotlin {
         // find all compilations given sourceSet belongs to
         kotlinExtension.targets
             .all {
-                targets.findByName(name)?.compilations?.all {
+                compilations.all {
                     kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
                 }
             }

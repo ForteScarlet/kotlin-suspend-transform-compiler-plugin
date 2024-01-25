@@ -1,10 +1,7 @@
 package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.*
-import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
-import love.forte.plugin.suspendtrans.utils.filterNotCompileAnnotations
-import love.forte.plugin.suspendtrans.utils.findClassDescriptor
-import love.forte.plugin.suspendtrans.utils.resolveAnnotationData
+import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
@@ -242,6 +239,9 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
 
 }
 
+/**
+ * annotations to property annotations
+ */
 private fun copyAnnotations(
     originFunction: SimpleFunctionDescriptor,
     transformer: Transformer
@@ -292,12 +292,6 @@ private fun copyAnnotations(
     return Annotations.create(annotationsList) to Annotations.EMPTY
 }
 
-private data class CopyAnnotationsData(
-    val copyFunction: Boolean,
-    val excludes: List<ClassId>,
-    val includes: List<IncludeAnnotationInfo>
-)
-
 private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->
     module.builtIns.getArrayType(
         Variance.INVARIANT, module.builtIns.stringType
@@ -320,17 +314,3 @@ private fun SimpleFunctionDescriptor.toGeneratedByDescriptorInfo(): List<StringV
     }
 
 }
-
-private data class IncludeAnnotationInfo(
-    val classId: ClassId,
-    val repeatable: Boolean
-)
-
-private fun ClassInfo.toClassId(): ClassId {
-    return ClassId(packageName.fqn, className.fqn, local)
-}
-
-private fun IncludeAnnotation.toInfo(): IncludeAnnotationInfo {
-    return IncludeAnnotationInfo(classInfo.toClassId(), repeatable)
-}
-

@@ -142,8 +142,7 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
 
 fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
     originFunction: IrFunction,
-    function: IrFunction,
-    blockBodyBuilder: IrBlockBodyBuilder
+    function: IrFunction
 ): IrSimpleFunction {
     return irFactory.buildFun {
         origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
