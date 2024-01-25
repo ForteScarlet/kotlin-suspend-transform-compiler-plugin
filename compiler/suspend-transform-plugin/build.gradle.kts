@@ -22,25 +22,33 @@ dependencies {
     kapt(libs.google.auto.service)
     compileOnly(libs.google.auto.service.annotations)
 
+    testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("stdlib"))
-    testImplementation(kotlin("test-junit"))
-    testImplementation(kotlin("compiler-embeddable"))
-    testImplementation(kotlin("reflect"))
-//    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable")
+    testImplementation(kotlin("test-junit5"))
 
+    testImplementation(kotlin("compiler"))
+    testImplementation(kotlin("reflect"))
+    // see https://github.com/Icyrockton/xjson
+    testImplementation(kotlin("compiler-internal-test-framework"))  // compiler plugin test generator / test utils
+    testRuntimeOnly(kotlin("test"))
+    testRuntimeOnly(kotlin("script-runtime"))
+    testRuntimeOnly(kotlin("annotations-jvm"))
     testImplementation(project(":runtime:suspend-transform-annotation"))
     testImplementation(project(":runtime:suspend-transform-runtime"))
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
+//    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
 //    testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
-//    testImplementation("com.bennyhuo.kotlin:kotlin-compile-testing-extensions:1.7.10.2-SNAPSHOT")
 
     testImplementation(libs.kotlinx.coroutines.core)
-    // testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 }
 
 val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions.freeCompilerArgs += listOf("-Xjvm-default=all", "-opt-in=kotlin.RequiresOptIn")
+compileKotlin.kotlinOptions.freeCompilerArgs += listOf(
+    "-Xjvm-default=all",
+    "-opt-in=kotlin.RequiresOptIn",
+    "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
+)
+
 
 repositories {
     maven {
@@ -61,4 +69,41 @@ buildConfig {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+
+sourceSets {
+    test{
+        kotlin.srcDir("src/test")
+        kotlin.srcDir("src/test-gen")
+        java.srcDir("src/test-gen")
+    }
+}
+
+task<JavaExec>("generateTest") {
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass = "love.forte.plugin.suspendtrans.GenerateTestsKt"
+}
+
+// add following properties for test
+tasks.test {
+    useJUnitPlatform()
+    doFirst {
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-stdlib", "kotlin-stdlib")
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-stdlib-jdk8", "kotlin-stdlib-jdk8")
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-reflect", "kotlin-reflect")
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-test", "kotlin-test")
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-script-runtime", "kotlin-script-runtime")
+        setLibraryProperty("org.jetbrains.kotlin.test.kotlin-annotations-jvm", "kotlin-annotations-jvm")
+    }
+}
+
+fun Test.setLibraryProperty(propName: String, jarName: String) {
+    val path = project.configurations
+        .testRuntimeClasspath.get()
+        .files
+        .find { """$jarName-\d.*jar""".toRegex().matches(it.name) }
+        ?.absolutePath
+        ?: return
+    systemProperty(propName, path)
 }

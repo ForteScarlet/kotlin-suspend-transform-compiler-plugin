@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -89,13 +88,15 @@ class SuspendTransformTransformer(
         }
     }
 
-    @OptIn(UnsafeDuringIrConstructionAPI::class, ObsoleteDescriptorBasedAPI::class)
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun resolveFunctionBody(
         function: IrFunction,
         originFunctionDescriptor: SimpleFunctionDescriptor,
         transformTargetFunctionCall: IrSimpleFunctionSymbol,
     ): IrFunction? {
         val parent = function.parent
+        println("!!!resolveFunctionBody.function: $function")
+        println("!!!resolveFunctionBody.function.parent: ${function.parent}")
         if (parent is IrDeclarationContainer) {
 //            parent.findDeclaration<> {  }
             val originFunctions = parent.declarations.filterIsInstance<IrFunction>()
@@ -132,12 +133,14 @@ class SuspendTransformTransformer(
             )
             return originFunction
         }
+
+
+
         return null
     }
 }
 
 
-@OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun generateTransformBodyForFunction(
     context: IrPluginContext,
     function: IrFunction,
@@ -189,7 +192,6 @@ private fun generateTransformBodyForFunction(
  * new
  *
  */
-@OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun generateTransformBodyForFunctionLambda(
     context: IrPluginContext,
     function: IrFunction,
@@ -211,7 +213,16 @@ private fun generateTransformBodyForFunctionLambda(
         val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
 
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(0, IrFunctionExpressionImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, lambdaType, suspendLambdaFunc, IrStatementOrigin.LAMBDA))
+            putValueArgument(
+                0,
+                IrFunctionExpressionImpl(
+                    UNDEFINED_OFFSET,
+                    UNDEFINED_OFFSET,
+                    lambdaType,
+                    suspendLambdaFunc,
+                    IrStatementOrigin.LAMBDA
+                )
+            )
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             val owner = transformTargetFunctionCall.owner
 
