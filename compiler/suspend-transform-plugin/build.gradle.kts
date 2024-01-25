@@ -50,6 +50,14 @@ compileKotlin.kotlinOptions.freeCompilerArgs += listOf(
     "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
 )
 
+tasks.withType(KotlinCompile::class.java).configureEach {
+    // see https://youtrack.jetbrains.com/issue/KTIJ-21563
+    // see https://youtrack.jetbrains.com/issue/KT-57297
+//    kotlinOptions {
+//        languageVersion = "1.9"
+//        apiVersion = "1.9"
+//    }
+}
 
 repositories {
     maven {

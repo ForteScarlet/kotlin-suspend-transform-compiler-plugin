@@ -30,4 +30,4 @@ include(":plugins:suspend-transform-plugin-gradle")
 //Samples
 include(":samples:sample-jvm")
 include(":samples:sample-js")
-include(":samples:sample-wasmJs")
+//include(":samples:sample-wasmJs")

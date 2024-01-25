@@ -53,16 +53,26 @@ class SuspendTransformTransformer(
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitPropertyNew(declaration: IrProperty): IrStatement {
         val getter = declaration.getter ?: return super.visitPropertyNew(declaration)
-        resolveFunctionBodyByDescriptor(getter, declaration.descriptor)
+        resolveFunctionBodyByDescriptor(getter, declaration.descriptor, declaration)
 
         return super.visitPropertyNew(declaration)
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
-    private fun resolveFunctionBodyByDescriptor(declaration: IrFunction, descriptor: CallableDescriptor): IrFunction? {
+    private fun resolveFunctionBodyByDescriptor(
+        declaration: IrFunction,
+        descriptor: CallableDescriptor,
+        property: IrProperty? = null
+    ): IrFunction? {
         // K2
-        val pluginKey = (declaration.origin as? IrDeclarationOrigin.GeneratedByPlugin)
-            ?.pluginKey as? SuspendTransformPluginKey
+        val pluginKey = if (property != null) {
+            // from property
+            (property.origin as? IrDeclarationOrigin.GeneratedByPlugin)
+                ?.pluginKey as? SuspendTransformPluginKey
+        } else {
+            (declaration.origin as? IrDeclarationOrigin.GeneratedByPlugin)
+                ?.pluginKey as? SuspendTransformPluginKey
+        }
 
         // K1 ?
         val userData = descriptor.getUserData(SuspendTransformUserDataKey)
@@ -76,9 +86,15 @@ class SuspendTransformTransformer(
 
                 resolveFunctionBody(
                     declaration,
-                    { f -> pluginKey.data.originSymbol.checkSame(f).also { println("Check result: $it: ($f(${f.name}) same ${pluginKey.data.originSymbol})") } },
+                    { f ->
+                        pluginKey.data.originSymbol.checkSame(f)
+                    },
                     callableFunction
                 )?.also { generatedOriginFunction ->
+                    if (property != null) {
+                        // NO! BACKING! FIELD!
+                        property.backingField = null
+                    }
                     postProcessGenerateOriginFunction(
                         generatedOriginFunction,
                         pluginKey.data.transformer.originFunctionIncludeAnnotations
@@ -145,7 +161,7 @@ class SuspendTransformTransformer(
 
             if (originFunctions.size != 1) {
                 val message =
-                    "Transform function $function (${function.name}) 's originFunctions.size should be 1, but ${originFunctions.size} (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
+                    "Synthetic function $function (${function.name}) 's originFunctions.size should be 1, but ${originFunctions.size} (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions)"
 
                 val location = when (val sourceLocation =
                     function.getSourceLocation(runCatching { function.fileEntry }.getOrNull())) {

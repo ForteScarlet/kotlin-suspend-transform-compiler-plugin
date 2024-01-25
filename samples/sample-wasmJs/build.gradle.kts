@@ -54,7 +54,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            val composev = "1.6.0-alpha01"
 //            implementation("androidx.compose.ui:ui:$composev")
 //            implementation("androidx.compose.ui:ui-tooling:$composev")
 //            implementation("androidx.compose.ui:ui-tooling-preview:$composev")

@@ -7,6 +7,8 @@ import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.fir.declarations.getBooleanArgument
+import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -96,15 +98,12 @@ data class TransformAnnotationData(
             defaultAsProperty: Boolean,
         ): TransformAnnotationData {
 
-            val baseName = firAnnotation.argumentMapping.mapping[Name.identifier(annotationBaseNamePropertyName)]
-                ?.accept(AbstractFirAnnotationArgumentVoidDataVisitor.nullableString, null)
+            val baseName = firAnnotation.getStringArgument(Name.identifier(annotationBaseNamePropertyName))
                 ?.takeIf { it.isNotEmpty() }
 
-            val suffix = firAnnotation.argumentMapping.mapping[Name.identifier(annotationSuffixPropertyName)]
-                ?.accept(AbstractFirAnnotationArgumentVoidDataVisitor.nullableString, null)
+            val suffix = firAnnotation.getStringArgument(Name.identifier(annotationSuffixPropertyName))
 
-            val rawAsProperty = firAnnotation.argumentMapping.mapping[Name.identifier(annotationAsPropertyPropertyName)]
-                ?.accept(AbstractFirAnnotationArgumentVoidDataVisitor.nullableBoolean, null)
+            val rawAsProperty = firAnnotation.getBooleanArgument(Name.identifier(annotationAsPropertyPropertyName))
 
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 

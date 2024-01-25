@@ -44,12 +44,12 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:java.util.concurrent.CompletableFuture
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun valueAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo'
@@ -59,13 +59,12 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:java.util.concurrent.CompletableFuture [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): java.util.concurrent.CompletableFuture declared in <root>.Foo.valueAsync'
-                    CALL 'public open fun valueAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo' type=java.util.concurrent.CompletableFuture origin=null
+                    CALL 'public abstract fun value (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
                       $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueAsync' type=<root>.Foo<T of <root>.Foo> origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:valueBlocking visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:T of <root>.Foo
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun valueBlocking (): T of <root>.Foo declared in <root>.Foo'
@@ -75,7 +74,7 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:T of <root>.Foo [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): T of <root>.Foo declared in <root>.Foo.valueBlocking'
-                    CALL 'public open fun valueBlocking (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
+                    CALL 'public abstract fun value (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
                       $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueBlocking' type=<root>.Foo<T of <root>.Foo> origin=null
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:

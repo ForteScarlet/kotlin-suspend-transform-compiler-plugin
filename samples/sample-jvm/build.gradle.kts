@@ -16,7 +16,7 @@ buildscript {
     }
     dependencies {
         //this.implementation()
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev2")
     }
 }
 
@@ -27,7 +27,11 @@ buildscript {
 //}
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
+    kotlinOptions {
+        freeCompilerArgs += "-Xjvm-default=all"
+        // useK2
+        languageVersion = "2.0"
+    }
 }
 
 repositories {
@@ -38,6 +42,8 @@ apply(plugin = "love.forte.plugin.suspend-transform")
 
 dependencies {
     api(kotlin("stdlib"))
+    api(kotlin("test-junit5"))
+    api(kotlin("reflect"))
 //    val pluginVersion = "0.4.0"
 //    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
 //    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
@@ -48,4 +54,8 @@ dependencies {
 extensions.getByType<SuspendTransformGradleExtension>().apply {
     println(this)
     this.useJvmDefault()
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

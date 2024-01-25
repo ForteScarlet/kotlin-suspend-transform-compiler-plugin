@@ -5,12 +5,13 @@ FILE fqName:<root> fileName:/Main.kt
       JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.IFoo
     FUN name:run visibility:public modality:ABSTRACT <> ($this:<root>.IFoo, n:kotlin.Int) returnType:<root>.Bar [suspend]
+      annotations:
+        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IFoo
       VALUE_PARAMETER name:n index:0 type:kotlin.Int
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runAsync visibility:public modality:OPEN <> ($this:<root>.IFoo, n:kotlin.Int) returnType:java.util.concurrent.CompletableFuture
       annotations:
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IFoo
       VALUE_PARAMETER name:n index:0 type:kotlin.Int
       BLOCK_BODY
@@ -21,13 +22,12 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:java.util.concurrent.CompletableFuture [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): java.util.concurrent.CompletableFuture declared in <root>.IFoo.runAsync'
-                    CALL 'public open fun runAsync (n: kotlin.Int): java.util.concurrent.CompletableFuture declared in <root>.IFoo' type=java.util.concurrent.CompletableFuture origin=null
+                    CALL 'public abstract fun run (n: kotlin.Int): <root>.Bar declared in <root>.IFoo' type=<root>.Bar origin=null
                       $this: GET_VAR '<this>: <root>.IFoo declared in <root>.IFoo.runAsync' type=<root>.IFoo origin=null
                       n: GET_VAR 'n: kotlin.Int declared in <root>.IFoo.runAsync' type=kotlin.Int origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runBlocking visibility:public modality:OPEN <> ($this:<root>.IFoo, n:kotlin.Int) returnType:<root>.Bar
       annotations:
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IFoo
       VALUE_PARAMETER name:n index:0 type:kotlin.Int
       BLOCK_BODY
@@ -38,7 +38,7 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:<root>.Bar [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): <root>.Bar declared in <root>.IFoo.runBlocking'
-                    CALL 'public open fun runBlocking (n: kotlin.Int): <root>.Bar declared in <root>.IFoo' type=<root>.Bar origin=null
+                    CALL 'public abstract fun run (n: kotlin.Int): <root>.Bar declared in <root>.IFoo' type=<root>.Bar origin=null
                       $this: GET_VAR '<this>: <root>.IFoo declared in <root>.IFoo.runBlocking' type=<root>.IFoo origin=null
                       n: GET_VAR 'n: kotlin.Int declared in <root>.IFoo.runBlocking' type=kotlin.Int origin=null
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
@@ -60,6 +60,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
     FUN name:run visibility:public modality:OPEN <> ($this:<root>.Foo, name:kotlin.String) returnType:<root>.Tar [suspend]
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
@@ -76,7 +77,6 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun runAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo'
@@ -86,13 +86,12 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:java.util.concurrent.CompletableFuture [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): java.util.concurrent.CompletableFuture declared in <root>.Foo.runAsync'
-                    CALL 'public open fun runAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo' type=java.util.concurrent.CompletableFuture origin=null
+                    CALL 'public abstract fun run (): <root>.Bar declared in <root>.Foo' type=<root>.Bar origin=null
                       $this: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.runAsync' type=<root>.Foo origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runBlocking visibility:public modality:OPEN <> ($this:<root>.Foo) returnType:<root>.Bar
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
-        JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun runBlocking (): <root>.Bar declared in <root>.Foo'
@@ -102,7 +101,7 @@ FILE fqName:<root> fileName:/Main.kt
               FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:<root>.Bar [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): <root>.Bar declared in <root>.Foo.runBlocking'
-                    CALL 'public open fun runBlocking (): <root>.Bar declared in <root>.Foo' type=<root>.Bar origin=null
+                    CALL 'public abstract fun run (): <root>.Bar declared in <root>.Foo' type=<root>.Bar origin=null
                       $this: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.runBlocking' type=<root>.Foo origin=null
     FUN FAKE_OVERRIDE name:runAsync visibility:public modality:OPEN <> ($this:<root>.IFoo, n:kotlin.Int) returnType:java.util.concurrent.CompletableFuture [fake_override]
       annotations:

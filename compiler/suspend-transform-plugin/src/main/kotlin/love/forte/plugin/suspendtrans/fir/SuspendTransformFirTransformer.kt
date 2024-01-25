@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -122,10 +123,10 @@ class SuspendTransformFirTransformer(
 
                     origin = SuspendTransformPluginKey(
                         data = SuspendTransformUserDataFir(
-                            originSymbol = symbol.asOriginSymbol(
-                                typeParameters = typeParameters,
-                                valueParameters = valueParameters,
-                                returnType.coneTypeOrNull?.classId
+                            originSymbol = originFunc.symbol.asOriginSymbol(
+                                typeParameters = originFunc.typeParameters,
+                                valueParameters = originFunc.valueParameters,
+                                originFunc.returnTypeRef.coneTypeOrNull?.classId
                             ),
                             asProperty = false,
                             transformer = funData.transformer
@@ -161,67 +162,113 @@ class SuspendTransformFirTransformer(
                 val (functionAnnotations, propertyAnnotations) =
                     copyAnnotations(original, funData)
 
-                val p = buildProperty {
+//                val p = createMemberProperty()
+//                    owner = owner,
+//                    key = SuspendTransformPluginKey(
+//                        data = SuspendTransformUserDataFir(
+//                            originSymbol = original.symbol.asOriginSymbol(
+//                                typeParameters = original.typeParameters,
+//                                valueParameters = original.valueParameters,
+//                                original.returnTypeRef.coneTypeOrNull?.classId
+//                            ),
+//                            asProperty = true,
+//                            transformer = funData.transformer
+//                        )
+//                    ),
+//                    name = callableId.callableName,
+//                    returnTypeProvider = { resolveReturnConeType(original, funData) },
+//                    isVal = true,
+//                    hasBackingField = false,
+//                ) {
+//                    modality = original.syntheticModifier ?: Modality.FINAL
+//                    // TODO receiver?
+////                    val receiverType = original.receiverParameter?.typeRef?.coneTypeOrNull
+////                    if (receiverType != null) {
+////                        extensionReceiverType(receiverType)
+////                    }
+//                }
+
+                val pSymbol = FirPropertySymbol(callableId)
+                val pKey = SuspendTransformPluginKey(
+                    data = SuspendTransformUserDataFir(
+                        originSymbol = original.symbol.asOriginSymbol(
+                            typeParameters = original.typeParameters,
+                            valueParameters = original.valueParameters,
+                            original.returnTypeRef.coneTypeOrNull?.classId
+                        ),
+                        asProperty = true,
+                        transformer = funData.transformer
+                    )
+                )
+
+                val returnType = resolveReturnType(original, funData)
+
+                val p1 = buildProperty {
+                    symbol = pSymbol
                     name = callableId.callableName
-                    symbol = FirPropertySymbol(callableId)
                     source = original.source
                     resolvePhase = original.resolvePhase
                     moduleData = original.moduleData
-                    origin = original.origin
+                    origin = pKey.origin
                     attributes = original.attributes.copy()
                     status = original.status.copy(
                         isSuspend = false,
+                        isFun = false,
+                        isInner = false,
 //                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
                         modality = original.syntheticModifier,
                     )
-                    returnTypeRef = original.returnTypeRef
-                    deprecationsProvider = original.deprecationsProvider
+                    isVar = false
+                    isLocal = false
+                    returnTypeRef = returnType
+                    deprecationsProvider = UnresolvedDeprecationProvider //original.deprecationsProvider
                     containerSource = original.containerSource
                     dispatchReceiverType = original.dispatchReceiverType
                     contextReceivers.addAll(original.contextReceivers)
                     // annotations
                     annotations.addAll(propertyAnnotations)
                     typeParameters.addAll(original.typeParameters)
+                    resolvePhase = FirResolvePhase.BODY_RESOLVE
+                    backingField = null
+                    bodyResolveState = FirPropertyBodyResolveState.NOTHING_RESOLVED
+
                     getter = buildPropertyAccessor {
+                        propertySymbol = pSymbol
                         symbol = FirPropertyAccessorSymbol()
-                        source = original.source
-                        resolvePhase = original.resolvePhase
+                        isGetter = true
+                        resolvePhase = FirResolvePhase.BODY_RESOLVE
                         moduleData = original.moduleData
+
                         // annotations
                         annotations.addAll(functionAnnotations)
 
-                        val returnType = resolveReturnType(original, funData)
-
                         returnTypeRef = returnType
 
-                        origin = SuspendTransformPluginKey(
-                            data = SuspendTransformUserDataFir(
-                                originSymbol = symbol.asOriginSymbol(
-                                    typeParameters = typeParameters,
-                                    valueParameters = valueParameters,
-                                    returnType.coneTypeOrNull?.classId
-                                ),
-                                asProperty = true,
-                                transformer = funData.transformer
-                            )
-                        ).origin
+                        origin = pKey.origin
 
-                        attributes = original.attributes.copy()
-                        status = original.status
+//                        attributes = original.attributes.copy()
+                        status = original.status.copy(
+                            isSuspend = false,
+                            isFun = false,
+                            isInner = false,
+                            modality = original.syntheticModifier,
+//                            visibility = this@buildProperty.status
+                        )
                         returnTypeRef = original.returnTypeRef
-                        deprecationsProvider = original.deprecationsProvider
-                        containerSource = original.containerSource
-                        dispatchReceiverType = original.dispatchReceiverType
-                        contextReceivers.addAll(original.contextReceivers)
+//                        deprecationsProvider = original.deprecationsProvider
+//                        containerSource = original.containerSource
+//                        dispatchReceiverType = original.dispatchReceiverType
+//                        contextReceivers.addAll(original.contextReceivers)
                         valueParameters.addAll(original.valueParameters)
-                        body = original.body
-                        contractDescription = original.contractDescription
-                        annotations.addAll(original.annotations) // TODO
+//                        body = null
+//                        contractDescription = original.contractDescription
+                        // annotations
+                        annotations.addAll(functionAnnotations)
                         typeParameters.addAll(original.typeParameters)
                     }
                 }
 
-                propList.add(p.symbol)
+                propList.add(p1.symbol)
             }
         }
 
@@ -275,7 +322,6 @@ class SuspendTransformFirTransformer(
 
         declaredScope.processAllFunctions { func ->
             if (!func.isSuspend) return@processAllFunctions
-//            if (!func.visibility.isPublicAPI) return@processAllFunctions
 
             val functionName = func.name.asString()
             suspendTransformConfiguration.transformers.asSequence()
@@ -294,7 +340,11 @@ class SuspendTransformFirTransformer(
                             ).firstOrNull()
                             ?: continue
 
-                        // TODO 读不到注解的参数？
+
+                        // 读不到注解的参数？
+                        // 必须使用 anno.getXxxArgument(Name(argument name)),
+                        // 使用 argumentMapping.mapping 获取不到结果
+//                        println("RAW AnnoData: ${anno.argumentMapping.mapping}")
 
                         val annoData = TransformAnnotationData.of(
                             firAnnotation = anno,
@@ -316,15 +366,29 @@ class SuspendTransformFirTransformer(
     }
 
     private fun resolveReturnType(original: FirSimpleFunction, funData: FunData): FirTypeRef {
-        val originalReturnTypeRef = original.returnTypeRef
+        val resultConeType = resolveReturnConeType(original, funData)
+
+        return if (resultConeType is ConeErrorType) {
+            buildErrorTypeRef {
+                diagnostic = resultConeType.diagnostic
+                type = resultConeType
+            }
+        } else {
+            buildResolvedTypeRef {
+                type = resultConeType
+            }
+        }
+    }
+
+    private fun resolveReturnConeType(original: FirSimpleFunction, funData: FunData): ConeKotlinType {
         val transformer = funData.transformer
         val returnType = transformer.transformReturnType
-            ?: return originalReturnTypeRef
+            ?: return original.symbol.resolvedReturnType
 
         var typeArguments: Array<ConeTypeProjection> = emptyArray()
 
         if (transformer.transformReturnTypeGeneric) {
-            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(originalReturnTypeRef.coneType))
+            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(original.returnTypeRef.coneType))
         }
 
         val resultConeType = returnType.toClassId().createConeType(
@@ -333,11 +397,8 @@ class SuspendTransformFirTransformer(
             nullable = returnType.nullable
         )
 
-        return buildResolvedTypeRef {
-            type = resultConeType
-        }
+        return resultConeType
     }
-
 
     /**
      * @return function annotations `to` property annotations.
@@ -366,7 +427,7 @@ class SuspendTransformFirTransformer(
             }
 
             // try add @Generated(by = ...)
-            runCatching {
+//            runCatching {
 //                val generatedAnnotation = buildAnnotation {
 //                    annotationTypeRef = buildResolvedTypeRef {
 //                        type = generatedAnnotationClassId.createConeType(session)
@@ -376,16 +437,14 @@ class SuspendTransformFirTransformer(
 //                    }
 //                }
 //                add(generatedAnnotation)
-            }.getOrElse { e ->
-                // Where is log?
-                e.printStackTrace()
-            }
+//            }.getOrElse { e ->
+//                // Where is log?
+//                e.printStackTrace()
+//            }
 
             // add includes
             includes.forEach { include ->
                 val classId = include.classId
-                println("!!!include: $include")
-                println("!!!include: $classId")
                 val includeAnnotation = buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
                     annotationTypeRef = buildResolvedTypeRef {
