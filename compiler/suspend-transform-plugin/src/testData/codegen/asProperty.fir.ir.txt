@@ -19,8 +19,6 @@ FILE fqName:<root> fileName:/Main.kt
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
           Api4J
-          JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
-          Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:FINAL [val]
         $this: VALUE_PARAMETER name:<this> type:<root>.PropFoo
         BLOCK_BODY
@@ -36,8 +34,6 @@ FILE fqName:<root> fileName:/Main.kt
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:FINAL [val]
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:FINAL <> ($this:<root>.PropFoo) returnType:java.util.concurrent.CompletableFuture
         annotations:
-          JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
-          Api4J
           JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
           Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:FINAL [val]
@@ -78,8 +74,6 @@ FILE fqName:<root> fileName:/Main.kt
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
           Api4J
-          JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
-          Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:OPEN [val]
         $this: VALUE_PARAMETER name:<this> type:<root>.IProp
         BLOCK_BODY
@@ -95,8 +89,6 @@ FILE fqName:<root> fileName:/Main.kt
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:OPEN [val]
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:OPEN <> ($this:<root>.IProp) returnType:java.util.concurrent.CompletableFuture
         annotations:
-          JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
-          Api4J
           JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
           Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:OPEN [val]
@@ -148,8 +140,6 @@ FILE fqName:<root> fileName:/Main.kt
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
           Api4J
-          JvmAsync(baseName = <null>, suffix = <null>, asProperty = 'true')
-          Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:OPEN [val]
         overridden:
           public open fun <get-prop> (): kotlin.String declared in <root>.IProp
@@ -169,8 +159,6 @@ FILE fqName:<root> fileName:/Main.kt
         public open propAsync: java.util.concurrent.CompletableFuture
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:OPEN <> ($this:<root>.PropImpl) returnType:java.util.concurrent.CompletableFuture
         annotations:
-          JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
-          Api4J
           JvmBlocking(baseName = <null>, suffix = '', asProperty = 'true')
           Api4J
         correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:OPEN [val]
