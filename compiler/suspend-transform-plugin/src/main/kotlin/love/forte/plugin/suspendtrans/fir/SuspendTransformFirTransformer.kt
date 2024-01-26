@@ -58,12 +58,6 @@ class SuspendTransformFirTransformer(
     private val suspendTransformConfiguration: SuspendTransformConfiguration
 ) : FirDeclarationGenerationExtension(session) {
 
-    //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, FirJavaMethod>?, Nothing?> =
-//        session.firCachesFactory.createCache(uncurry(::createGetters))
-//        session.firCachesFactory.createCache { (symbol, declaredScope), context ->
-//            createTransformers(symbol, declaredScope)
-//        }
-
     private data class FunData(
         val annotationData: TransformAnnotationData,
         val transformer: Transformer
