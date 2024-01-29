@@ -16,7 +16,7 @@ buildscript {
     }
     dependencies {
         //this.implementation()
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev2")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-beta2")
     }
 }
 
@@ -30,7 +30,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += "-Xjvm-default=all"
         // useK2
-        languageVersion = "2.0"
+//        languageVersion = "2.0"
     }
 }
 

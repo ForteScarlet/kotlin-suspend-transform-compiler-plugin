@@ -43,7 +43,9 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
     protected open fun returnType(originReturnType: KotlinType?): KotlinType? {
         val returnType = transformer.transformReturnType ?: return originReturnType
 
-        val returnTypeClass = requireNotNull(classDescriptor.module.findClassDescriptor(returnType.toClassId()))
+        val returnTypeClass = requireNotNull(classDescriptor.module.findClassDescriptor(returnType.toClassId())) {
+            "Unable to find classDescriptor ${returnType.toClassId()}"
+        }
 
         val arguments: List<TypeProjection> = if (transformer.transformReturnTypeGeneric) {
             originReturnType?.let {

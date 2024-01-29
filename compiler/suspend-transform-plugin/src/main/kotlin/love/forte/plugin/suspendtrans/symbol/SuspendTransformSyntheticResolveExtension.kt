@@ -110,26 +110,6 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
             }
         }
 
-        fun FunctionDescriptor.findSuspendOverridden(): SimpleFunctionDescriptor? {
-            return fromSupertypes.find { sup ->
-                if (!sup.isSuspend) return@find false
-                val thisAllParams = this.allParametersExpectDispatch
-                val supAllParams = sup.allParametersExpectDispatch
-
-                if (thisAllParams.size != supAllParams.size) return@find false
-
-                thisAllParams.forEachIndexed { index, p ->
-                    val supp = supAllParams[index]
-
-                    if (p.type != supp.type) {
-                        return@find false
-                    }
-                }
-
-                true
-            }
-        }
-
         // check and add synthetic functions.
         // find all annotated
         result
