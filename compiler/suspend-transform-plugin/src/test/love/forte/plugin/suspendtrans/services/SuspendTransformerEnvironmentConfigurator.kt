@@ -3,9 +3,11 @@ package love.forte.plugin.suspendtrans.services
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
@@ -29,6 +31,9 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
     }
 
     override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
+        configuration.put(JVMConfigurationKeys.NO_JDK, false)
+        configuration.configureJdkClasspathRoots()
+
         // register runtimes
         getRuntimeJarFile("love.forte.plugin.suspendtrans.runtime.RunInSuspendJvmKt")?.let {
             configuration.addJvmClasspathRoot(

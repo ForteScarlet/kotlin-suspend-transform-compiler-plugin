@@ -11,11 +11,14 @@ import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.FIR_PARSER
+import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
+import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
 import org.jetbrains.kotlin.test.frontend.fir.Fir2IrResultsConverter
 import org.jetbrains.kotlin.test.frontend.fir.FirFrontendFacade
 import org.jetbrains.kotlin.test.initIdeaConfiguration
 import org.jetbrains.kotlin.test.model.ArtifactKinds
 import org.jetbrains.kotlin.test.model.DependencyKind
+import org.jetbrains.kotlin.test.model.FrontendKind
 import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerTest
 import org.jetbrains.kotlin.test.runners.codegen.commonConfigurationForTest
@@ -35,8 +38,9 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
     }
 
     override fun TestConfigurationBuilder.configuration() {
+        val targetFrontend: FrontendKind<*> = FrontendKinds.FIR
         globalDefaults {
-            frontend = FrontendKinds.FIR
+            frontend = targetFrontend
             targetBackend = TargetBackend.JVM_IR
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = ArtifactKinds.Jvm
@@ -53,14 +57,34 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
 
         defaultDirectives {
             FIR_PARSER with FirParser.LightTree
+
         }
 
-        commonConfigurationForTest(
-            FrontendKinds.FIR,
-            ::FirFrontendFacade,
-            ::Fir2IrResultsConverter,
-            ::JvmIrBackendFacade
-        ) { }
+        when (targetFrontend) {
+            FrontendKinds.ClassicFrontend -> {
+                commonConfigurationForTest(
+                    FrontendKinds.ClassicFrontend,
+                    ::ClassicFrontendFacade,
+                    ::ClassicFrontend2IrConverter,
+                    ::JvmIrBackendFacade
+                ) { }
+            }
+            FrontendKinds.FIR -> {
+                commonConfigurationForTest(
+                    FrontendKinds.FIR,
+                    ::FirFrontendFacade,
+                    ::Fir2IrResultsConverter,
+                    ::JvmIrBackendFacade
+                ) { }
+            }
+        }
+
+//        commonConfigurationForTest(
+//            FrontendKinds.FIR,
+//            ::FirFrontendFacade,
+//            ::Fir2IrResultsConverter,
+//            ::JvmIrBackendFacade
+//        ) { }
 
         configureHandlers()
         configureFirHandlersStep {
@@ -68,7 +92,6 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
         }
 
         configureJvmArtifactsHandlersStep {
-
         }
 
         useConfigurators(
@@ -76,7 +99,6 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
             ::JvmEnvironmentConfigurator,        // jdk and kotlin runtime configuration (e.g. FULL_JDK)
             ::SuspendTransformerEnvironmentConfigurator,    // compiler plugin configuration
         )
-
     }
 
     abstract fun TestConfigurationBuilder.configureHandlers()
