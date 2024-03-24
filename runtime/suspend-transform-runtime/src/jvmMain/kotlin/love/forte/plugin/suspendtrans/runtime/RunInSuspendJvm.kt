@@ -27,11 +27,14 @@ public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(`$Coro
 private val classLoader: ClassLoader
     get() = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
 
-private val jdk8Support: Boolean
-    get() = runCatching {
+// 现在是不是最低也是JDK8了？
+// 也许这个判断已经不需要了？
+private val jdk8Support: Boolean by lazy {
+    runCatching {
         classLoader.loadClass("kotlinx.coroutines.future.FutureKt")
         true
     }.getOrElse { false }
+}
 
 private interface FutureTransformer {
     fun <T> trans(scope: CoroutineScope, block: suspend () -> T): CompletableFuture<T>
@@ -67,17 +70,26 @@ private object SimpleTransformer : FutureTransformer {
     }
 }
 
-private val transformer: FutureTransformer =
+private val transformer: FutureTransformer by lazy {
     if (jdk8Support) CoroutinesJdk8Transformer
     else SimpleTransformer
+}
 
 
+@OptIn(DelicateCoroutinesApi::class)
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Suppress("FunctionName")
 public fun <T> `$runInAsync$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
-): CompletableFuture<T> = transformer.trans(scope ?: `$CoroutineScope4J$`, block)
+): CompletableFuture<T> =
+    // 比起在内部构建一个使用 Dispatchers.IO、并且永不被关闭的 CoroutineScope，
+    // 为何不直接使用 GlobalScope？
+    // 作为作用域：它用不被关闭、无法被关闭
+    // 作为异步调度器：它没必要使用IO
+    // 而对于更加复杂的场景，也许需要考虑完全定制化，
+    // 而不是使用当前这个简单的runtime包内的实现
+    transformer.trans(scope ?: GlobalScope, block)
 
 
 
