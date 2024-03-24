@@ -176,11 +176,30 @@ class SuspendTransformTransformer(
 //                }
 //            }
 
-            // 在当前类型中寻找它的 origin function
-            // 当前这个函数可能是继承过来的，并没有标记转化注解。
-            // 例如在 interface Foo 中产生的 runBlocking，在 FooImpl 中被 visit 到了。
-            // 这时候一般来讲是找不到它的 origin function 的，跳过就行
-            // 至于 more than 2, 目标函数预期中只应该有一个，多余2个的可能很小，但是也属于预期外的情况。
+            /*
+            在当前类型中寻找它的 origin function
+            当前这个函数可能是继承过来的，并没有标记转化注解。
+            例如在 interface Foo 中产生的 runBlocking，在 FooImpl 中被 visit 到了。
+            这时候一般来讲是找不到它的 origin function 的，跳过就行
+            至于 more than 2, 目标函数预期中只应该有一个，多余2个的可能很小，但是也属于预期外的情况。
+
+            2024/03/24:
+            似乎在没有手动添加实现的子类里会出现这种 (size == 0) 情况，例如
+            ```
+            interface Foo {
+                @JvmBlocking
+                fun run()
+            }
+
+            internal class FooImpl : Foo {
+                // 这里似乎会出现警告，但是这里实际上应该没有被标注注解才对。
+                override fun run() { ... }
+            }
+            ```
+
+             */
+
+
             val originFunctions = parent.declarations.asSequence()
                 .filterIsInstance<IrFunction>()
                 .filter { checkIsOriginFunction(it) }
@@ -203,8 +222,9 @@ class SuspendTransformTransformer(
                             "but $actualNum (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions, sourceKey = $sourceKey)"
 
                 if (reporter != null) {
+                    // WARN? DEBUG? IGNORE?
                     reporter.report(
-                        IrMessageLogger.Severity.WARNING,
+                        IrMessageLogger.Severity.INFO,
                         message,
                         function.reportLocation()
                     )
