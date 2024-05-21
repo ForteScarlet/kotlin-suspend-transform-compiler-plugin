@@ -1,8 +1,18 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
     id("suspend-transform.multiplatform-maven-publish")
+}
+
+// https://kotlinlang.org/docs/gradle-compiler-options.html#how-to-define-options
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+        javaParameters.set(true)
+    }
 }
 
 kotlin {
@@ -10,14 +20,14 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     jvm {
-        compilations.all {
-            kotlinOptions {
-                kotlinOptions {
-                    jvmTarget = "1.8"
-                    javaParameters = true
-                }
-            }
-        }
+//        compilations.all {
+//            kotlinOptions {
+//                kotlinOptions {
+//                    jvmTarget = "1.8"
+//                    javaParameters = true
+//                }
+//            }
+//        }
     }
 
     js(IR) {

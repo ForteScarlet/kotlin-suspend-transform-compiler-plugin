@@ -25,6 +25,7 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KTypeParameter
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,7 +95,7 @@ class SuspendTransformTests {
 
     @Test
     fun `interface suspend trans property test`() {
-        with(STPTrans1::class.memberProperties) {
+        with(STPTrans1::class.declaredMemberProperties) {
             assertTrue(any { it.name == "run1" && it.returnType.classifier == Int::class })
             assertTrue(any { it.name == "run2" && it.returnType.classifier == String::class })
         }
