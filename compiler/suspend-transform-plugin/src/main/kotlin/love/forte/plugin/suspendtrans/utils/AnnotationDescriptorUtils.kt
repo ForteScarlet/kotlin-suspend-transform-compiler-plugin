@@ -7,9 +7,12 @@ import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getBooleanArgument
 import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
+import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -89,6 +92,7 @@ data class TransformAnnotationData(
         }
 
         fun of(
+            session: FirSession,
             firAnnotation: FirAnnotation,
             annotationBaseNamePropertyName: String = "baseName",
             annotationSuffixPropertyName: String = "suffix",
@@ -97,13 +101,13 @@ data class TransformAnnotationData(
             defaultSuffix: String,
             defaultAsProperty: Boolean,
         ): TransformAnnotationData {
-
-            val baseName = firAnnotation.getStringArgument(Name.identifier(annotationBaseNamePropertyName))
+            val baseName = firAnnotation.getStringArgument0(Name.identifier(annotationBaseNamePropertyName), session)
                 ?.takeIf { it.isNotEmpty() }
 
-            val suffix = firAnnotation.getStringArgument(Name.identifier(annotationSuffixPropertyName))
+            val suffix = firAnnotation.getStringArgument0(Name.identifier(annotationSuffixPropertyName), session)
 
-            val rawAsProperty = firAnnotation.getBooleanArgument(Name.identifier(annotationAsPropertyPropertyName))
+            val rawAsProperty =
+                firAnnotation.getBooleanArgument0(Name.identifier(annotationAsPropertyPropertyName), session)
 
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
@@ -116,8 +120,34 @@ data class TransformAnnotationData(
             )
         }
     }
+}
 
+private fun FirAnnotation.getStringArgument0(
+    name: Name,
+    session: FirSession
+): String? {
+    val arg = getStringArgument(name, session)
+    if (arg != null) {
+        return arg
+    }
 
+    // If not found, try to use `findArgumentByName`
+    val argByName = findArgumentByName(name, returnFirstWhenNotFound = false)
+    return (argByName as? FirLiteralExpression<*>)?.value as? String
+}
+
+private fun FirAnnotation.getBooleanArgument0(
+    name: Name,
+    session: FirSession
+): Boolean? {
+    val arg = getBooleanArgument(name, session)
+    if (arg != null) {
+        return arg
+    }
+
+    // If not found, try to use `findArgumentByName`
+    val argByName = findArgumentByName(name, returnFirstWhenNotFound = false)
+    return (argByName as? FirLiteralExpression<*>)?.value as? Boolean
 }
 
 

@@ -15,32 +15,32 @@ import java.util.regex.Pattern;
 @TestMetadata("src/testData/codegen")
 @TestDataPath("$PROJECT_ROOT")
 public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
-    @Test
-    public void testAllFilesPresentInCodegen() throws Exception {
-        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("src/testData/codegen"), Pattern.compile("^(.+)\\.kt$"), null, true);
-    }
+  @Test
+  public void testAllFilesPresentInCodegen() {
+    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("src/testData/codegen"), Pattern.compile("^(.+)\\.kt$"), null, true);
+  }
 
-    @Test
-    @TestMetadata("asProperty.kt")
-    public void testAsProperty() throws Exception {
-        runTest("src/testData/codegen/asProperty.kt");
-    }
+  @Test
+  @TestMetadata("asProperty.kt")
+  public void testAsProperty() {
+    runTest("src/testData/codegen/asProperty.kt");
+  }
 
-    @Test
-    @TestMetadata("basic.kt")
-    public void testBasic() throws Exception {
-        runTest("src/testData/codegen/basic.kt");
-    }
+  @Test
+  @TestMetadata("basic.kt")
+  public void testBasic() {
+    runTest("src/testData/codegen/basic.kt");
+  }
 
-    @Test
-    @TestMetadata("override.kt")
-    public void testOverride() throws Exception {
-        runTest("src/testData/codegen/override.kt");
-    }
+  @Test
+  @TestMetadata("override.kt")
+  public void testOverride() {
+    runTest("src/testData/codegen/override.kt");
+  }
 
-    @Test
-    @TestMetadata("typeAttr.kt")
-    public void testTypeAttr() throws Exception {
-        runTest("src/testData/codegen/typeAttr.kt");
-    }
+  @Test
+  @TestMetadata("typeAttr.kt")
+  public void testTypeAttr() {
+    runTest("src/testData/codegen/typeAttr.kt");
+  }
 }

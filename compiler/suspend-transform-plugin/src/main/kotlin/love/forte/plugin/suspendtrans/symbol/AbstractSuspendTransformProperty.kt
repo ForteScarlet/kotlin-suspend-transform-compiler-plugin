@@ -45,6 +45,7 @@ abstract class AbstractSuspendTransformProperty(
     }
 
     fun init() {
+
         this.setType(
             sourceFunction.returnTypeOrNothing,
             sourceFunction.typeParameters,

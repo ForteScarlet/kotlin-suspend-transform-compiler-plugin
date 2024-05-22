@@ -2,6 +2,7 @@ import love.forte.plugin.suspendtrans.ClassInfo
 import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.TargetPlatform
 import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     kotlin("multiplatform")
@@ -14,7 +15,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.7.0-dev1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.8.0-beta1")
     }
 }
 
@@ -24,17 +25,37 @@ repositories {
 
 apply(plugin = "love.forte.plugin.suspend-transform")
 
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+//    kotlinOptions {
+    // useK2
+//        languageVersion = "2.0"
+//    }
+//}
+
+
+
 kotlin {
     js(IR) {
         nodejs()
         useEsModules()
         generateTypeScriptDefinitions()
         binaries.executable()
-        compilations.all {
-            kotlinOptions {
-                useEsClasses = true
-            }
+
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            target = "es2015"
+            useEsClasses = true
+            freeCompilerArgs.addAll(
+                // https://kotlinlang.org/docs/whatsnew20.html#per-file-compilation-for-kotlin-js-projects
+                "-Xir-per-file"
+            )
         }
+
+//        compilations.all {
+//            kotlinOptions {
+//                useEsClasses = true
+//            }
+//        }
     }
 
     sourceSets {

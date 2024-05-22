@@ -95,13 +95,11 @@ abstract class AbstractFirAnnotationArgumentVoidDataVisitor<R> : FirVisitor<R, N
     companion object {
         val nullableString = object : AbstractFirAnnotationArgumentVoidDataVisitor<String?>() {
             override fun visitElement(element: FirElement, data: Nothing?): String? {
-                println("Visited element: $element")
                 return null
             }
         }
         val nullableBoolean = object : AbstractFirAnnotationArgumentVoidDataVisitor<Boolean?>() {
             override fun visitElement(element: FirElement, data: Nothing?): Boolean? {
-                println("Visited element: $element")
                 return null
             }
         }

@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -43,12 +44,31 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.core)
 }
 
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions.freeCompilerArgs += listOf(
-    "-Xjvm-default=all",
-    "-opt-in=kotlin.RequiresOptIn",
-    "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
-)
+//val compileKotlin: KotlinCompile by tasks
+//compileKotlin.kotlinOptions.freeCompilerArgs += listOf(
+//    "-Xjvm-default=all",
+//    "-opt-in=kotlin.RequiresOptIn",
+//    "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
+//)
+
+//tasks.withType<KotlinCompile> {
+//    kotlinOptions.jvmTarget = "1.8"
+//}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+        optIn.addAll(
+            "kotlin.RequiresOptIn",
+            "org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI"
+        )
+        freeCompilerArgs.addAll(
+            "-Xjvm-default=all",
+//            "-opt-in=kotlin.RequiresOptIn",
+//            "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
+        )
+    }
+}
 
 tasks.withType(KotlinCompile::class.java).configureEach {
     // see https://youtrack.jetbrains.com/issue/KTIJ-21563
@@ -76,9 +96,7 @@ buildConfig {
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.extra["kotlin_plugin_id"]}\"")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
+
 
 
 sourceSets {
