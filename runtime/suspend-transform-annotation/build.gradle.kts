@@ -80,7 +80,6 @@ kotlin {
     // wasm
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        d8()
         browser()
         nodejs()
     }
