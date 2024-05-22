@@ -1,4 +1,5 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetsContainer
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -6,19 +7,43 @@ plugins {
     id("suspend-transform.multiplatform-maven-publish")
 }
 
+
+// https://kotlinlang.org/docs/gradle-compiler-options.html#how-to-define-options
+//tasks.withType<KotlinCompile> {
+//    compilerOptions {
+//        jvmTarget.set(JvmTarget.JVM_1_8)
+//    }
+//}
+
+//tasks.named<KotlinCompilationTask<*>>("compileKotlin").configure {
+//    compilerOptions {
+//        freeCompilerArgs.add("-Xexpect-actual-classes")
+//    }
+//}
+
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
     explicitApi()
     applyDefaultHierarchyTemplate()
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     jvm {
-        compilations.all {
-            kotlinOptions {
-                kotlinOptions {
-                    jvmTarget = "1.8"
-                    javaParameters = true
-                }
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+            javaParameters.set(true)
         }
+//        compilations.all {
+//            this.kotlinOptions
+//        }
+//        compilations.all {
+//            kotlinOptions {
+//                jvmTarget = "1.8"
+//                javaParameters = true
+//            }
+//        }
     }
 
     js(IR) {
@@ -59,15 +84,16 @@ kotlin {
         nodejs()
     }
 
-    extensions.findByType(KotlinTargetsContainer::class.java)?.also { kotlinExtension ->
-        // find all compilations given sourceSet belongs to
-        kotlinExtension.targets
-            .all {
-                compilations.all {
-                    kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
-                }
-            }
-    }
+
+//    extensions.findByType(KotlinTargetsContainer::class.java)?.also { kotlinExtension ->
+//        // find all compilations given sourceSet belongs to
+//        kotlinExtension.targets
+//            .all {
+//                compilations.all {
+//                    kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+//                }
+//            }
+//    }
 
 }
 

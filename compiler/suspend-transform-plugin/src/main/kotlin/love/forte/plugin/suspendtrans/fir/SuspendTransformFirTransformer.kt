@@ -7,10 +7,10 @@ import love.forte.plugin.suspendtrans.utils.toClassId
 import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.analysis.checkers.collectUpperBounds
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
+import org.jetbrains.kotlin.fir.collectUpperBounds
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
@@ -339,6 +339,7 @@ class SuspendTransformFirTransformer(
 //                        println("RAW AnnoData: ${anno.argumentMapping.mapping}")
 
                         val annoData = TransformAnnotationData.of(
+                            this.session,
                             firAnnotation = anno,
                             annotationBaseNamePropertyName = markAnnotation.baseNameProperty,
                             annotationSuffixPropertyName = markAnnotation.suffixProperty,
@@ -453,12 +454,13 @@ class SuspendTransformFirTransformer(
 
     private fun FirAnnotationArgumentMappingBuilder.includeGeneratedArguments(function: FirSimpleFunction) {
         fun MutableList<FirExpression>.addString(value: String) {
-            val expression = buildConstExpression(
+            val expression = buildLiteralExpression(
                 source = null,
                 kind = ConstantValueKind.String,
                 value = value,
                 setType = false
             )
+
             add(expression)
         }
 

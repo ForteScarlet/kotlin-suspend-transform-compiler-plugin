@@ -1,4 +1,5 @@
 import love.forte.gradle.common.core.project.setup
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 buildscript {
     extra["kotlin_plugin_id"] = "love.forte.plugin.suspend-transform"
@@ -23,8 +24,10 @@ allprojects {
         options.encoding = "UTF-8"
     }
     this.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.javaParameters = true
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+            javaParameters.set(true)
+        }
     }
 }
 
