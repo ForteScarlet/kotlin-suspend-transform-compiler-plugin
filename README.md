@@ -86,7 +86,12 @@ class Foo {
     } 
 }
 
-//// some custom types or functions... 
+// Some functions or types customised by **you**...
+// They are not included in the runtime. 
+// Since there are a lot of restrictions on the use of various types in WasmJS...
+// so I'm not sure how to handle them perfectly yet.
+// Until then, you can customise functions and types to control the behaviour of the compiler plugin yourself.
+// just like you can customise other platforms.
 
 fun <T> runInAsync(block: suspend () -> T): AsyncResult<T> = AsyncResult(block)
 
@@ -108,7 +113,7 @@ class Foo {
     }
     @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
     fun waitAndGetAsync(): AsyncResult<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
-    // AsyncResult is a custom type
+    // AsyncResult is a custom type by **you**
 }
 ```
 
@@ -116,9 +121,6 @@ class Foo {
 ### Gradle
 
 **Using the [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block):**
-
-<details open>
-<summary>Kotlin</summary>
 
 _build.gradle.kts_
 
@@ -135,49 +137,54 @@ plugins {
 suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
+    includeAnnotation = true // default: true
+
+    /*
+     * Use both `useJvmDefault` and `useJsDefault`.
+     * Need to include the runtime and annotation.
+     */
+    // useDefault()
+    
+    /*
+     * Use the default configuration for JVM platform,
+     * Equivalent:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jvmBlockingTransformer,
+     *     SuspendTransformConfiguration.jvmAsyncTransformer,
+     * )
+     *
+     * Need to include the runtime and annotation.
+     */
+    useJvmDefault()
+    
+    // or custom by yourself 
     jvm {
         // ...
     }
+    // or 
+    addJvmTransformers(...)
+
+    /*
+     * Use the default configuration for JS platform,
+     * Equivalent:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jsPromiseTransformer,
+     * )
+     *
+     * Need to include the runtime and annotation.
+     */
+    useJsDefault()
+
+    // or custom by yourself 
     js {
         // ...
     }
+    // or 
+    addJsTransformers(...)
 }
 ```
-
-</details>
-
-<details>
-<summary>Groovy</summary>
-
-_build.gradle_
-
-```groovy
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "$KOTLIN_VERSION" // or js? or multiplatform?
-    id "love.forte.plugin.suspend-transform" version "$PLUGIN_VERSION" 
-    // other...
-}
-
-// other...
-
-// config it.
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-
-    // or custom transformers
-    transformers = listOf(...)
-}
-```
-
-</details>
-
-
 
 **Using [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application):**
-
-<details open>
-<summary>Kotlin</summary>
 
 _build.gradle.kts_
 
@@ -204,54 +211,52 @@ plugins {
 suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
-    useDefault()
-    
-    // or custom transformers
-    transformers = listOf(...)
+    includeAnnotation = true // default: true
+
+    /*
+     * Use both `useJvmDefault` and `useJsDefault`.
+     * Need to include the runtime and annotation.
+     */
+    // useDefault()
+
+    /*
+     * Use the default configuration for JVM platform,
+     * Equivalent:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jvmBlockingTransformer,
+     *     SuspendTransformConfiguration.jvmAsyncTransformer,
+     * )
+     *
+     * Need to include the runtime and annotation.
+     */
+    useJvmDefault()
+
+    // or custom by yourself 
+    jvm {
+        // ...
+    }
+    // or 
+    addJvmTransformers(...)
+
+    /*
+     * Use the default configuration for JS platform,
+     * Equivalent:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jsPromiseTransformer,
+     * )
+     *
+     * Need to include the runtime and annotation.
+     */
+    useJsDefault()
+
+    // or custom by yourself 
+    js {
+        // ...
+    }
+    // or 
+    addJsTransformers(...)
 }
 ```
-
-</details>
-
-<details>
-<summary>Groovy</summary>
-
-_build.gradle_
-
-```groovy
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:$VERSION"
-    }
-}
-
-
-
-plugins {
-    id "org.jetbrains.kotlin.jvm" // or js? or multiplatform?
-    id "love.forte.plugin.suspend-transform" 
-    // other...
-}
-
-// other...
-
-// config it.
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-    useDefault()    
-    
-    // or custom transformers
-    transformers = listOf(...)
-}
-```
-
-</details>
 
 ## Cautions
 
@@ -265,6 +270,41 @@ K2 is supported since `v0.7.0`.
 
 > [!warning]
 > In experiments.
+
+### JsExport
+
+If you want to use `@JsExport` with default configuration in JS,
+try this:
+
+_build.gradle.kts_
+
+```kotlin
+plugins {
+    ...
+}
+
+suspendTransform {
+    addJsTransformers(
+        SuspendTransformConfiguration.jsPromiseTransformer.copy(
+            copyAnnotationExcludes = listOf(
+                // The generated function does not include `@JsExport.Ignore`.
+                ClassInfo("kotlin.js", "JsExport.Ignore")
+            )
+        )
+    )
+}
+```
+
+```Kotlin
+@file:OptIn(ExperimentalJsExport::class)
+
+@JsExport
+class Foo {
+    @JsPromise
+    @JsExport.Ignore
+    suspend fun run(): Int = ...
+}
+```
 
 ## Effect
 
@@ -475,9 +515,6 @@ suspendTransform {
 }
 ```
 
-## Useful Links
-[Kotlin Suspend Interface reversal](https://github.com/ForteScarlet/kotlin-suspend-interface-reversal)
-: Generate platform-compatible extension types for interfaces or abstract classes that contain suspend functions, based on KSP.
 
 ## License
 

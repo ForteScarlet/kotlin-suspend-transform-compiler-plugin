@@ -85,7 +85,11 @@ class Foo {
     } 
 }
 
-//// some custom types or functions... 
+// 一些由**你**自定义的函数或类型...
+// 它们不包含在 runtime 中。由于在 WasmJS 中，对于各种类型的使用会有很多限制，
+// 因此我还不清楚如何完美地处理它们。
+// 在那之前，你可以自定义函数和类型来自行控制编译器插件的行为，
+// 就像自定义其他平台那样。
 
 fun <T> runInAsync(block: suspend () -> T): AsyncResult<T> = AsyncResult(block)
 
@@ -117,66 +121,71 @@ class Foo {
 
 **通过 [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block) 使用:**
 
-<details open>
-<summary>Kotlin</summary>
-
 _build.gradle.kts_
 
 ```kotlin
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION" // 或 js? 或 multiplatform?
-    id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
-    // 其他...
+    id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION" // or js? or multiplatform?
+    id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION"
+    // other...
 }
 
-// 其他...
+// other...
 
-// 配置
+// config it.
 suspendTransform {
-    enabled = true // 默认: true
-    includeRuntime = true // 默认: true
-    useDefault()
+    enabled = true // default: true
+    includeRuntime = true // default: true
+    includeAnnotation = true // default: true
+    
+    /*
+     * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
+     * 需要包含 runtime 和 annotation
+     */
+    // useDefault()
 
-    // or custom transformers
-    transformers = listOf(...)
+    /*
+     * 使用JVM平台的默认配置
+     * 相当于:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jvmBlockingTransformer,
+     *     SuspendTransformConfiguration.jvmAsyncTransformer,
+     * )
+     *
+     * 需要包含 runtime 和 annotation
+     */
+    useJvmDefault()
+
+    // 或者由你自定义
+    jvm {
+        // ...
+    }
+    // 或者由你自定义
+    addJvmTransformers(...)
+
+    /*
+     * 使用JS平台的默认配置
+     * 相当于:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jsPromiseTransformer,
+     * )
+     *
+     * 需要包含 runtime 和 annotation
+     */
+    useJsDefault()
+
+    // 或者由你自定义
+    js {
+        // ...
+    }
+    // 或者由你自定义
+    addJsTransformers(...)
 }
 ```
-
-</details>
-
-<details>
-<summary>Groovy</summary>
-
-_build.gradle_
-
-```groovy
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "$KOTLIN_VERSION" // 或 js? 或 multiplatform?
-    id "love.forte.plugin.suspend-transform" version "$PLUGIN_VERSION" 
-    // 其他...
-}
-
-// 其他...
-
-// 配置
-suspendTransform {
-    enabled = true // 默认: true
-    includeRuntime = true // 默认: true
-    useDefault()
-
-    // or custom transformers
-    transformers = listOf(...)
-}
-```
-
-</details>
 
 
 
 **通过 [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application) 使用:**
-
-<details open>
-<summary>Kotlin</summary>
 
 _build.gradle.kts_
 
@@ -201,56 +210,54 @@ plugins {
 
 // 配置
 suspendTransform {
-    enabled = true // 默认: true
-    includeRuntime = true // 默认: true
-    useDefault()
+    enabled = true // default: true
+    includeRuntime = true // default: true
+    includeAnnotation = true // default: true
 
-    // or custom transformers
-    transformers = listOf(...)
+    /*
+     * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
+     * 需要包含 runtime 和 annotation
+     */
+    // useDefault()
+
+    /*
+     * 使用JVM平台的默认配置
+     * 相当于:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jvmBlockingTransformer,
+     *     SuspendTransformConfiguration.jvmAsyncTransformer,
+     * )
+     *
+     * 需要包含 runtime 和 annotation
+     */
+    useJvmDefault()
+
+    // 或者由你自定义
+    jvm {
+        // ...
+    }
+    // 或者由你自定义
+    addJvmTransformers(...)
+
+    /*
+     * 使用JS平台的默认配置
+     * 相当于:
+     * addJvmTransformers(
+     *     SuspendTransformConfiguration.jsPromiseTransformer,
+     * )
+     *
+     * 需要包含 runtime 和 annotation
+     */
+    useJsDefault()
+
+    // 或者由你自定义
+    js {
+        // ...
+    }
+    // 或者由你自定义
+    addJsTransformers(...)
 }
 ```
-
-</details>
-
-<details>
-<summary>Groovy</summary>
-
-_build.gradle_
-
-```groovy
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:$VERSION"
-    }
-}
-
-
-
-plugins {
-    id "org.jetbrains.kotlin.jvm" // 或 js? 或 multiplatform?
-    id "love.forte.plugin.suspend-transform" 
-    // 其他...
-}
-
-// 其他...
-
-// 配置
-suspendTransform {
-    enabled = true // 默认: true
-    includeRuntime = true // 默认: true
-    useDefault()
-
-    // or custom transformers
-    transformers = listOf(...)
-}
-```
-
-</details>
 
 ## 注意事项
 
@@ -264,6 +271,40 @@ K2 编译器从 `v0.7.0` 开始支持。
 
 > [!warning]
 > 实验中。
+
+### JsExport
+
+如果你打算在默认配置的情况下使用 `@JsExport`, 可以尝试以下代码：
+
+_build.gradle.kts_
+
+```kotlin
+plugins {
+    ...
+}
+
+suspendTransform {
+    addJsTransformers(
+        SuspendTransformConfiguration.jsPromiseTransformer.copy(
+            copyAnnotationExcludes = listOf(
+                // 生成的函数将不会包含 `@JsExport.Ignore`
+                ClassInfo("kotlin.js", "JsExport.Ignore")
+            )
+        )
+    )
+}
+```
+
+```Kotlin
+@file:OptIn(ExperimentalJsExport::class)
+
+@JsExport
+class Foo {
+    @JsPromise
+    @JsExport.Ignore
+    suspend fun run(): Int = ...
+}
+```
 
 ## 效果
 
