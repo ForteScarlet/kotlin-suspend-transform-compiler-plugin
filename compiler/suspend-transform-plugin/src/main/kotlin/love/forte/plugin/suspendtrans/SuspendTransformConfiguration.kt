@@ -95,7 +95,7 @@ data class Transformer(
     /**
      * 如果是生成属性的话，是否复制源函数上的注解到新的属性上
      *
-     * @since 0.8.0
+     * @since 0.9.0
      */
     var copyAnnotationsToSyntheticProperty: Boolean = false
 }
@@ -142,6 +142,8 @@ data class IncludeAnnotation(
 ) {
     /**
      * 如果是追加，是否追加到property上
+     *
+     * @since 0.9.0
      */
     var includeProperty: Boolean = false
 }
@@ -311,7 +313,11 @@ open class SuspendTransformConfiguration {
             originFunctionIncludeAnnotations = listOf(),
             copyAnnotationsToSyntheticFunction = true,
             copyAnnotationExcludes = listOf(jsAsyncAnnotationInfo.classInfo),
-            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jsApi4JsAnnotationInfo))
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jsApi4JsAnnotationInfo).apply {
+                    includeProperty = true
+                }
+            )
         )
         //endregion
 
