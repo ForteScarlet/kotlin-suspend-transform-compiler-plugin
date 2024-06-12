@@ -1,4 +1,5 @@
 import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+import org.jetbrains.kotlin.js.translate.context.Namer.kotlin
 
 plugins {
     `java-library`
@@ -16,7 +17,7 @@ buildscript {
     }
     dependencies {
         //this.implementation()
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.8.0-beta1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.9.0-beta1")
     }
 }
 
