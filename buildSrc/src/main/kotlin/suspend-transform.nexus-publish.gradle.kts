@@ -1,4 +1,3 @@
-import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.core.repository.Repositories
 import love.forte.gradle.common.publication.configure.nexusPublishConfig
 
@@ -14,7 +13,7 @@ plugins {
 //version = "0.0.1"
 //description = "Generate platform-compatible functions for Kotlin suspend functions"
 
-setup(IProject)
+//setupWith(libs)
 
 val isPublishConfigurable = isPublishConfigurable()
 
