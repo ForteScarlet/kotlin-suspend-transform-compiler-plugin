@@ -121,7 +121,7 @@ class Foo {
 
 ### The version
 
-Prior to 0.9.0 (included), the naming convention for versions was `x.y.z`. 
+Prior to `0.9.0` (included), the naming convention for versions was `x.y.z`. 
 But it seems that the contents of the Kotlin compiler may find changes with each version, 
 and such version numbers do not reflect the corresponding Kotlin version, 
 and may lead to some confusion as a result.
