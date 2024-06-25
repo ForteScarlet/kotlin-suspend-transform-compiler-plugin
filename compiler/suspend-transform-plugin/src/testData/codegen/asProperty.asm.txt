@@ -1,7 +1,11 @@
 public final class IProp$DefaultImpls : java/lang/Object {
     public static java.lang.String getProp(IProp $this)
 
+    public static void getProp$annotations()
+
     public static java.util.concurrent.CompletableFuture getPropAsync(IProp $this)
+
+    public static void getPropAsync$annotations()
 }
 
 final class IProp$prop$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
@@ -81,7 +85,11 @@ public final class PropFoo : java/lang/Object {
 
     public final java.lang.String getProp()
 
+    public static void getProp$annotations()
+
     public final java.util.concurrent.CompletableFuture getPropAsync()
+
+    public static void getPropAsync$annotations()
 
     public final java.lang.Object prop(kotlin.coroutines.Continuation $completion)
 }
@@ -123,7 +131,11 @@ public final class PropImpl : java/lang/Object, IProp {
 
     public java.lang.String getProp()
 
+    public static void getProp$annotations()
+
     public java.util.concurrent.CompletableFuture getPropAsync()
+
+    public static void getPropAsync$annotations()
 
     public java.lang.Object prop(kotlin.coroutines.Continuation $completion)
 }
