@@ -56,7 +56,7 @@ jobs:
           gradle-version: 8.5
           arguments:
             publishToSonatype
-            closeAndReleaseStagingRepository
+            closeAndReleaseStagingRepositories
             -s
             --warning-mode all
             -x test
