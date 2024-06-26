@@ -1,7 +1,7 @@
 import love.forte.gradle.common.core.Gpg
-import love.forte.gradle.common.core.property.of
 import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
+import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.isMainPublishable
@@ -85,7 +85,6 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-val gpgValue = Gpg.ofSystemPropOrNull()
 if (isMainPublishable()) {
     publishing {
         repositories {
@@ -103,12 +102,14 @@ if (isMainPublishable()) {
 //        }
 
             withType<MavenPublication> {
-                pom {
-                    name of project.name
-                    group = project.group
-                    description of project.description
-                    version = project.version.toString()
-                }
+
+                setupPom(project.name, IProject)
+//                pom {
+//                    name of project.name
+//                    group = project.group
+//                    description of project.description
+//                    version = project.version.toString()
+//                }
                 // setupPom(project.name, IProject)
             }
         }
@@ -121,6 +122,7 @@ if (isMainPublishable()) {
 
 
 signing {
+    val gpgValue = Gpg.ofSystemPropOrNull()
     isRequired = gpgValue != null
     if (gpgValue != null) {
         val (keyId, secretKey, password) = gpgValue

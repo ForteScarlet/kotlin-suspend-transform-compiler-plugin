@@ -1,3 +1,4 @@
+import IProject.IS_SNAPSHOT
 import love.forte.gradle.common.core.project.ProjectDetail
 import love.forte.gradle.common.core.project.Version
 import love.forte.gradle.common.core.project.minus
@@ -5,6 +6,7 @@ import love.forte.gradle.common.core.project.version
 import org.gradle.api.Project
 
 object IProject : ProjectDetail() {
+    const val IS_SNAPSHOT = false
 
     const val GROUP = "love.forte.plugin.suspend-transform"
     const val DESCRIPTION = "Generate platform-compatible functions for Kotlin suspend functions"
@@ -47,5 +49,6 @@ object IProject : ProjectDetail() {
 fun Project.setupWith(ktVersion: String) {
     group = IProject.GROUP
     description = IProject.DESCRIPTION
-    version = ktVersion + "-" + IProject.pluginVersion.toString()
+    val mergedVersion = ktVersion + "-" + IProject.pluginVersion.toString()
+    version = if (IS_SNAPSHOT) "$mergedVersion-SNAPSHOT" else mergedVersion
 }
