@@ -1,5 +1,4 @@
 import love.forte.gradle.common.core.Gpg
-import love.forte.gradle.common.core.project.setup
 import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
@@ -19,7 +18,7 @@ plugins {
 //    id("suspend-transform.jvm-maven-publish")
 }
 
-setup(IProject)
+//setup(IProject)
 
 repositories {
     mavenCentral()
@@ -86,7 +85,6 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-val gpgValue = Gpg.ofSystemPropOrNull()
 if (isMainPublishable()) {
     publishing {
         repositories {
@@ -104,7 +102,15 @@ if (isMainPublishable()) {
 //        }
 
             withType<MavenPublication> {
+
                 setupPom(project.name, IProject)
+//                pom {
+//                    name of project.name
+//                    group = project.group
+//                    description of project.description
+//                    version = project.version.toString()
+//                }
+                // setupPom(project.name, IProject)
             }
         }
     }
@@ -116,6 +122,7 @@ if (isMainPublishable()) {
 
 
 signing {
+    val gpgValue = Gpg.ofSystemPropOrNull()
     isRequired = gpgValue != null
     if (gpgValue != null) {
         val (keyId, secretKey, password) = gpgValue

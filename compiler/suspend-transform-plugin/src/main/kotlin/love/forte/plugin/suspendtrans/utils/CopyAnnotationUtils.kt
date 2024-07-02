@@ -5,15 +5,17 @@ import org.jetbrains.kotlin.name.ClassId
 
 data class CopyAnnotationsData(
     val copyFunction: Boolean,
+    val copyProperty: Boolean,
     val excludes: List<ClassId>,
     val includes: List<IncludeAnnotationInfo>
 )
 
 data class IncludeAnnotationInfo(
     val classId: ClassId,
-    val repeatable: Boolean
+    val repeatable: Boolean,
+    val includeProperty: Boolean,
 )
 
-fun IncludeAnnotation.toInfo(): love.forte.plugin.suspendtrans.utils.IncludeAnnotationInfo {
-    return IncludeAnnotationInfo(classInfo.toClassId(), repeatable)
+fun IncludeAnnotation.toInfo(): IncludeAnnotationInfo {
+    return IncludeAnnotationInfo(classInfo.toClassId(), repeatable, includeProperty)
 }

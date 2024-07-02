@@ -77,12 +77,13 @@ data class Transformer(
     val originFunctionIncludeAnnotations: List<IncludeAnnotation>,
 
     /**
-     * 需要在生成出来的函数上追截的注解信息。（不需要指定 `@Generated`）
+     * 需要在生成出来的函数上追加的注解信息。（不需要指定 `@Generated`）
      */
     val syntheticFunctionIncludeAnnotations: List<IncludeAnnotation>,
 
     /**
      * 是否复制源函数上的注解到新的函数上。
+     * 如果生成的是属性类型，则表示是否复制到 `getter` 上。
      */
     val copyAnnotationsToSyntheticFunction: Boolean,
 
@@ -90,7 +91,14 @@ data class Transformer(
      * 复制原函数上注解时需要排除掉的注解。
      */
     val copyAnnotationExcludes: List<ClassInfo>
-)
+) {
+    /**
+     * 如果是生成属性的话，是否复制源函数上的注解到新的属性上
+     *
+     * @since 0.9.0
+     */
+    var copyAnnotationsToSyntheticProperty: Boolean = false
+}
 
 /**
  * 用于标记的注解信息.
@@ -131,7 +139,14 @@ data class MarkAnnotation @JvmOverloads constructor(
 @Serializable
 data class IncludeAnnotation(
     val classInfo: ClassInfo, val repeatable: Boolean = false
-)
+) {
+    /**
+     * 如果是追加，是否追加到property上
+     *
+     * @since 0.9.0
+     */
+    var includeProperty: Boolean = false
+}
 
 /**
  *
@@ -234,7 +249,10 @@ open class SuspendTransformConfiguration {
             originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
             copyAnnotationsToSyntheticFunction = true,
             copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmBlockingAnnotationInfo.classInfo),
-            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jvmApi4JAnnotationClassInfo)
+                    .apply { includeProperty = true }
+            )
         )
         //endregion
 
@@ -261,7 +279,11 @@ open class SuspendTransformConfiguration {
             originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
             copyAnnotationsToSyntheticFunction = true,
             copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmAsyncAnnotationInfo.classInfo),
-            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo))
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jvmApi4JAnnotationClassInfo).apply {
+                    includeProperty = true
+                }
+            )
         )
         //endregion
 
@@ -291,7 +313,11 @@ open class SuspendTransformConfiguration {
             originFunctionIncludeAnnotations = listOf(),
             copyAnnotationsToSyntheticFunction = true,
             copyAnnotationExcludes = listOf(jsAsyncAnnotationInfo.classInfo),
-            syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jsApi4JsAnnotationInfo))
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jsApi4JsAnnotationInfo).apply {
+                    includeProperty = true
+                }
+            )
         )
         //endregion
 

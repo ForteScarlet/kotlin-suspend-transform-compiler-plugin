@@ -8,20 +8,20 @@ FILE: Main.kt
             ^prop String()
         }
 
-        public final val prop: R|kotlin/String|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final val prop: R|kotlin/String|
             @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
-        public final val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
             @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
     }
     public abstract interface IProp : R|kotlin/Any| {
         @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) public abstract suspend fun prop(): R|kotlin/String|
 
-        public open val prop: R|kotlin/String|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open val prop: R|kotlin/String|
             @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
-        public open val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
             @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
     }
@@ -34,10 +34,10 @@ FILE: Main.kt
             ^prop String()
         }
 
-        public open override val prop: R|kotlin/String|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open override val prop: R|kotlin/String|
             @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(asProperty = Boolean(true)) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
-        public open override val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open override val propAsync: R|java/util/concurrent/CompletableFuture<out kotlin/String>|
             @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true), suffix = String()) @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|kotlin/String|
 
     }

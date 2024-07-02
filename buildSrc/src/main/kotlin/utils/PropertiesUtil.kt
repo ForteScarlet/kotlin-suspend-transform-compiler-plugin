@@ -45,5 +45,7 @@ val isLinux: Boolean = systemProperty("os.name")?.contains("linux", true) ?: fal
  * 如果在 CI 中，则必须是 linux 平台才运作。
  * 如果不在 CI 中，始终运作。
  *
+ * 多平台发布已经不再需要分多个系统环境了，
+ * 不再需要判断 Main Host 了。
  */
-fun isMainPublishable(): Boolean = !isCi() || (isCi() && isLinux)
+fun isMainPublishable(): Boolean = true // !isCi() || (isCi() && isLinux)

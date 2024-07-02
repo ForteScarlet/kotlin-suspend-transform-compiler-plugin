@@ -16,7 +16,7 @@ buildscript {
     }
     dependencies {
         //this.implementation()
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:0.8.0-beta1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.0.20-Beta1-0.9.1")
     }
 }
 

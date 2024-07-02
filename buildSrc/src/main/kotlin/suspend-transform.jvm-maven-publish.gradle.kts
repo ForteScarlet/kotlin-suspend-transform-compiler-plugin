@@ -1,7 +1,8 @@
 import love.forte.gradle.common.core.Gpg
-import love.forte.gradle.common.core.project.setup
-import love.forte.gradle.common.publication.configure.jvmConfigPublishing
+import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
+import love.forte.gradle.common.publication.configure.setupPom
+import love.forte.gradle.common.publication.configure.signingExtension
 import utils.isMainPublishable
 
 plugins {
@@ -9,7 +10,7 @@ plugins {
     id("maven-publish")
 }
 
-setup(IProject)
+//setup(IProject)
 
 //val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
 
@@ -21,34 +22,71 @@ val gpgValue = Gpg.ofSystemPropOrNull()
 val p = project
 
 if (isMainPublishable()) {
-    jvmConfigPublishing {
-        project = IProject
-        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
-
+    val isSnapshot = project.version.toString().contains("SNAPSHOT")
+    publishingExtension {
+        repositories {
+            mavenLocal()
+            if (isSnapshot) {
+                configPublishMaven(SnapshotRepository)
+            } else {
+                configPublishMaven(ReleaseRepository)
+            }
+        }
         val jarSources = tasks.register("${p.name}SourceJar", Jar::class) {
             archiveClassifier.set("sources")
             from(sourceSets["main"].allSource)
         }
 
         val jarJavadoc = tasks.register("${p.name}JavadocJar", Jar::class) {
-//            dependsOn(tasks.dokkaHtml)
-//            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
             archiveClassifier.set("javadoc")
         }
 
-        tasks.withType<GenerateModuleMetadata> {
-            dependsOn(jarSources)
-            dependsOn(jarJavadoc)
+        publications {
+            create<MavenPublication>("publicationDist") {
+                from(components.getByName("java"))
+                artifact(jarSources)
+                artifact(jarJavadoc)
+                version = p.version.toString()
+                setupPom(p.name, IProject)
+            }
         }
 
-        artifact(jarSources)
-        artifact(jarJavadoc)
+        signingExtension {
+            val gpg = gpgValue ?: return@signingExtension
 
-        releasesRepository = ReleaseRepository
-        snapshotRepository = SnapshotRepository
-
-        gpg = gpgValue
+            val (keyId, secretKey, password) = gpg
+            useInMemoryPgpKeys(keyId, secretKey, password)
+            sign(publishingExtension.publications)
+        }
     }
+//    jvmConfigPublishing {
+//        project = IProject
+//        isSnapshot = project.version.toString().contains("SNAPSHOT", true)
+//
+//        val jarSources = tasks.register("${p.name}SourceJar", Jar::class) {
+//            archiveClassifier.set("sources")
+//            from(sourceSets["main"].allSource)
+//        }
+//
+//        val jarJavadoc = tasks.register("${p.name}JavadocJar", Jar::class) {
+////            dependsOn(tasks.dokkaHtml)
+////            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+//            archiveClassifier.set("javadoc")
+//        }
+//
+//        tasks.withType<GenerateModuleMetadata> {
+//            dependsOn(jarSources)
+//            dependsOn(jarJavadoc)
+//        }
+//
+//        artifact(jarSources)
+//        artifact(jarJavadoc)
+//
+//        releasesRepository = ReleaseRepository
+//        snapshotRepository = SnapshotRepository
+//
+//        gpg = gpgValue
+//    }
 
 }
 

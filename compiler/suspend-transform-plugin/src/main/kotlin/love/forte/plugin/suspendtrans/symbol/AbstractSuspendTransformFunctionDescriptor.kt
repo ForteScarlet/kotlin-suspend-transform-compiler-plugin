@@ -28,7 +28,7 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
     private val originFunction: SimpleFunctionDescriptor,
     functionName: Name,
     annotations: Annotations,
-    internal val propertyAnnotations: Annotations,
+    val propertyAnnotations: Annotations,
     private val userData: SuspendTransformUserData,
     val transformer: Transformer
 ) : SimpleFunctionDescriptorImpl(
@@ -92,7 +92,7 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
         return SimpleSuspendTransformPropertyDescriptor(
             classDescriptor,
             this,
-            annotations,
+            propertyAnnotations,
         )
     }
 

@@ -401,15 +401,14 @@ class SuspendTransformFirTransformer(
     ): Pair<List<FirAnnotation>, List<FirAnnotation>> {
         val transformer = funData.transformer
 
-        val (copyFunction, excludes, includes) = CopyAnnotationsData(
+        val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
             transformer.copyAnnotationsToSyntheticFunction,
+            transformer.copyAnnotationsToSyntheticProperty,
             transformer.copyAnnotationExcludes.map { it.toClassId() },
             transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
         )
 
-        val annotationList = mutableListOf<FirAnnotation>()
-
-        with(annotationList) {
+        val functionAnnotationList = buildList<FirAnnotation> {
             if (copyFunction) {
                 val notCompileAnnotationsCopied = original.annotations.filterNot {
                     val annotationClassId = it.toAnnotationClassId(session) ?: return@filterNot true
@@ -448,7 +447,32 @@ class SuspendTransformFirTransformer(
             }
         }
 
-        return annotationList to emptyList()
+        val propertyAnnotationList = buildList<FirAnnotation> {
+            if (copyProperty) {
+                val notCompileAnnotationsCopied = original.annotations.filterNot {
+                    val annotationClassId = it.toAnnotationClassId(session) ?: return@filterNot true
+                    excludes.any { ex -> annotationClassId == ex }
+                }
+
+                addAll(notCompileAnnotationsCopied)
+            }
+
+            // add includes
+            includes
+                .filter { it.includeProperty }
+                .forEach { include ->
+                    val classId = include.classId
+                    val includeAnnotation = buildAnnotation {
+                        argumentMapping = buildAnnotationArgumentMapping()
+                        annotationTypeRef = buildResolvedTypeRef {
+                            type = classId.createConeType(session)
+                        }
+                    }
+                    add(includeAnnotation)
+                }
+        }
+
+        return functionAnnotationList to propertyAnnotationList
     }
 
 

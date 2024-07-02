@@ -1,15 +1,19 @@
+import IProject.IS_SNAPSHOT
 import love.forte.gradle.common.core.project.ProjectDetail
-import love.forte.gradle.common.core.project.Version
-import love.forte.gradle.common.core.project.minus
-import love.forte.gradle.common.core.project.version
+import org.gradle.api.Project
 
 object IProject : ProjectDetail() {
+    const val IS_SNAPSHOT = false
 
     const val GROUP = "love.forte.plugin.suspend-transform"
     const val DESCRIPTION = "Generate platform-compatible functions for Kotlin suspend functions"
     const val HOMEPAGE = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
 
-    override val version: Version = version(0, 8, 0) - version("beta1")
+    // Remember the libs.versions.toml!
+    val ktVersion = "2.0.20-Beta1"
+    val pluginVersion = "0.9.1"
+
+    override val version: String = "$ktVersion-$pluginVersion"
 
     override val homepage: String get() = HOMEPAGE
 
@@ -37,4 +41,11 @@ object IProject : ProjectDetail() {
         developerConnection = "scm:git:ssh://git@github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"
     }
 
+}
+
+fun Project.setupWith(ktVersion: String) {
+    group = IProject.GROUP
+    description = IProject.DESCRIPTION
+    val mergedVersion = ktVersion + "-" + IProject.pluginVersion.toString()
+    version = if (IS_SNAPSHOT) "$mergedVersion-SNAPSHOT" else mergedVersion
 }

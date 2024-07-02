@@ -235,15 +235,14 @@ private fun copyAnnotations(
         return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
 
-    val (copyFunction, excludes, includes) = CopyAnnotationsData(
+    val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
         transformer.copyAnnotationsToSyntheticFunction,
+        transformer.copyAnnotationsToSyntheticProperty,
         transformer.copyAnnotationExcludes.map { it.toClassId() },
         transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
     )
 
-    val annotationsList = mutableListOf<AnnotationDescriptor>()
-
-    annotationsList.apply {
+    val functionAnnotationsList = buildList<AnnotationDescriptor> {
         if (copyFunction) {
             val notCompileAnnotationsCopied = originFunction.annotations.filterNotCompileAnnotations().filterNot {
                 val annotationClassId = it.annotationClass?.classId ?: return@filterNot true
@@ -269,7 +268,35 @@ private fun copyAnnotations(
         }
     }
 
-    return Annotations.create(annotationsList) to Annotations.EMPTY
+    val propertyAnnotationsList = buildList<AnnotationDescriptor> {
+        if (copyProperty) {
+            val notCompileAnnotationsCopied = originFunction.annotations.filterNotCompileAnnotations().filterNot {
+                val annotationClassId = it.annotationClass?.classId ?: return@filterNot true
+                excludes.any { ex -> annotationClassId == ex }
+            }
+            addAll(notCompileAnnotationsCopied)
+        }
+
+        // try add @Generated(by = ...)
+        findAnnotation(
+            generatedAnnotationClassId,
+            mutableMapOf(Name.identifier("by") to StringArrayValue(originFunction.toGeneratedByDescriptorInfo()))
+        )?.also(::add)
+
+        // add includes
+        includes
+            .filter { it.includeProperty }
+            .forEach { include ->
+                val classId = include.classId
+                val unsafeFqName = classId.asSingleFqName().toUnsafe()
+                if (!include.repeatable && this.any { it.fqName?.toUnsafe() == unsafeFqName }) {
+                    return@forEach
+                }
+                findAnnotation(classId)?.also(::add)
+            }
+    }
+
+    return Annotations.create(functionAnnotationsList) to Annotations.create(propertyAnnotationsList)
 }
 
 private class StringArrayValue(values: List<StringValue>) : ArrayValue(values, { module ->

@@ -18,7 +18,7 @@ tasks.named("dokkaHtmlPartial").configure {
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
-        version = IProject.version
+        version = project.version
         documentedVisibilities.set(
             listOf(
                 DokkaConfiguration.Visibility.PUBLIC,

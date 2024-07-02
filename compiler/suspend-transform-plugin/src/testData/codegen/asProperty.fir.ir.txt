@@ -28,6 +28,8 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public final fun prop (): kotlin.String declared in <root>.PropFoo'
           CONST String type=kotlin.String value=""
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:FINAL [val]
+      annotations:
+        Api4J
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-prop> visibility:public modality:FINAL <> ($this:<root>.PropFoo) returnType:kotlin.String
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
@@ -45,6 +47,8 @@ FILE fqName:<root> fileName:/Main.kt
                       CALL 'public final fun prop (): kotlin.String declared in <root>.PropFoo' type=kotlin.String origin=null
                         $this: GET_VAR '<this>: <root>.PropFoo declared in <root>.PropFoo.<get-prop>' type=<root>.PropFoo origin=null
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:FINAL [val]
+      annotations:
+        Api4J
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:FINAL <> ($this:<root>.PropFoo) returnType:java.util.concurrent.CompletableFuture
         annotations:
           JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
@@ -92,8 +96,10 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public open fun prop (): kotlin.String declared in <root>.PropImpl'
           CONST String type=kotlin.String value=""
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:OPEN [val]
+      annotations:
+        Api4J
       overridden:
-        public open prop: kotlin.String
+        public open prop: kotlin.String declared in <root>.IProp
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-prop> visibility:public modality:OPEN <> ($this:<root>.PropImpl) returnType:kotlin.String
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
@@ -113,8 +119,10 @@ FILE fqName:<root> fileName:/Main.kt
                       CALL 'public open fun prop (): kotlin.String declared in <root>.PropImpl' type=kotlin.String origin=null
                         $this: GET_VAR '<this>: <root>.PropImpl declared in <root>.PropImpl.<get-prop>' type=<root>.PropImpl origin=null
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:OPEN [val]
+      annotations:
+        Api4J
       overridden:
-        public open propAsync: java.util.concurrent.CompletableFuture
+        public open propAsync: java.util.concurrent.CompletableFuture declared in <root>.IProp
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:OPEN <> ($this:<root>.PropImpl) returnType:java.util.concurrent.CompletableFuture
         annotations:
           JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
@@ -155,6 +163,8 @@ FILE fqName:<root> fileName:/Main.kt
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IProp
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:OPEN [val]
+      annotations:
+        Api4J
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-prop> visibility:public modality:OPEN <> ($this:<root>.IProp) returnType:kotlin.String
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
@@ -172,6 +182,8 @@ FILE fqName:<root> fileName:/Main.kt
                       CALL 'public abstract fun prop (): kotlin.String declared in <root>.IProp' type=kotlin.String origin=null
                         $this: GET_VAR '<this>: <root>.IProp declared in <root>.IProp.<get-prop>' type=<root>.IProp origin=null
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:propAsync visibility:public modality:OPEN [val]
+      annotations:
+        Api4J
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:OPEN <> ($this:<root>.IProp) returnType:java.util.concurrent.CompletableFuture
         annotations:
           JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
