@@ -133,7 +133,7 @@ private fun FirAnnotation.getStringArgument0(
 
     // If not found, try to use `findArgumentByName`
     val argByName = findArgumentByName(name, returnFirstWhenNotFound = false)
-    return (argByName as? FirLiteralExpression<*>)?.value as? String
+    return (argByName as? FirLiteralExpression)?.value as? String
 }
 
 private fun FirAnnotation.getBooleanArgument0(
@@ -147,7 +147,7 @@ private fun FirAnnotation.getBooleanArgument0(
 
     // If not found, try to use `findArgumentByName`
     val argByName = findArgumentByName(name, returnFirstWhenNotFound = false)
-    return (argByName as? FirLiteralExpression<*>)?.value as? Boolean
+    return (argByName as? FirLiteralExpression)?.value as? Boolean
 }
 
 

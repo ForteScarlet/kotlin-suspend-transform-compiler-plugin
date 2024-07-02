@@ -1,8 +1,5 @@
 import IProject.IS_SNAPSHOT
 import love.forte.gradle.common.core.project.ProjectDetail
-import love.forte.gradle.common.core.project.Version
-import love.forte.gradle.common.core.project.minus
-import love.forte.gradle.common.core.project.version
 import org.gradle.api.Project
 
 object IProject : ProjectDetail() {
@@ -12,11 +9,11 @@ object IProject : ProjectDetail() {
     const val DESCRIPTION = "Generate platform-compatible functions for Kotlin suspend functions"
     const val HOMEPAGE = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
 
-    // TODO
-    val ktVersion = version(2, 0, 0)
-    val pluginVersion = version(0, 9, 0) - version("dev1")
+    // Remember the libs.versions.toml!
+    val ktVersion = "2.0.20-Beta1"
+    val pluginVersion = "0.9.1"
 
-    override val version: Version = ktVersion - pluginVersion
+    override val version: String = "$ktVersion-$pluginVersion"
 
     override val homepage: String get() = HOMEPAGE
 

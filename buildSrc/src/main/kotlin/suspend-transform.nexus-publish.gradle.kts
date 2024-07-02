@@ -22,7 +22,7 @@ if (!isPublishConfigurable) {
 }
 
 nexusPublishConfig {
-    projectDetail = IProject
+    setWithProjectDetail(IProject)
     useStaging = project.provider { !project.version.toString().endsWith("SNAPSHOT", ignoreCase = true) }
     repositoriesConfig = {
         val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull
@@ -35,39 +35,7 @@ nexusPublishConfig {
     }
 }
 
-//if (isPublishConfigurable) {
-//    nexusPublishing {
-//        logger.info("[NEXUS] - project.group:   ${project.group}")
-//        logger.info("[NEXUS] - project.version: ${project.version}")
-//        packageGroup by project.group.toString()
-//        repositoryDescription by (project.description ?: "")
-//
-//        useStaging.set(
-//            project.provider { !project.version.toString().endsWith("SNAPSHOT", ignoreCase = true) }
-//        )
-//
-//        clientTimeout by 30 unit TimeUnit.MINUTES
-//        connectTimeout by 30 unit TimeUnit.MINUTES
-//
-//
-//        transitionCheckOptions {
-//            maxRetries by 150
-//            delayBetween by 15 unit TimeUnit.SECONDS
-//        }
-//
-//        repositories {
-//            sonatype {
-//                snapshotRepositoryUrl by uri(Sonatype.Snapshot.URL)
-//                val (sonatypeUsername, sonatypePassword) = sonatypeUserInfoOrNull ?: return@sonatype
-//                username by sonatypeUsername
-//                password by sonatypePassword
-//            }
-//        }
-//    }
-    
-    
-    logger.info("[nexus-publishing-configure] - [{}] configured.", name)
-//}
+logger.info("[nexus-publishing-configure] - [{}] configured.", name)
 
 
 
