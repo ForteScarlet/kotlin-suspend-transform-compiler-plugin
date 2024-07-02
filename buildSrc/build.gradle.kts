@@ -10,7 +10,7 @@ repositories {
 
 val kotlinVersion: String = libs.versions.kotlin.get()
 val dokkaPluginVersion = "1.9.20"
-val gradleCommon = "0.4.0"
+val gradleCommon = "0.6.0"
 val nexusPublishPlugin = "2.0.0"
 val buildConfig = "5.3.5"
 

@@ -8,12 +8,12 @@ val ktVersion = libs.versions.kotlin.get()
 
 group = IProject.GROUP
 description = IProject.DESCRIPTION
-version = ktVersion + "-" + IProject.pluginVersion.toString()
+version = ktVersion + "-" + IProject.pluginVersion
 
 allprojects {
     group = IProject.GROUP
     description = IProject.DESCRIPTION
-    version = ktVersion + "-" + IProject.pluginVersion.toString()
+    version = ktVersion + "-" + IProject.pluginVersion
 
     repositories {
         mavenCentral()

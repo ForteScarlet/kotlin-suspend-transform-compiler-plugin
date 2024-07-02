@@ -99,7 +99,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         Api4J
       overridden:
-        public open prop: kotlin.String
+        public open prop: kotlin.String declared in <root>.IProp
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-prop> visibility:public modality:OPEN <> ($this:<root>.PropImpl) returnType:kotlin.String
         annotations:
           JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
@@ -122,7 +122,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         Api4J
       overridden:
-        public open propAsync: java.util.concurrent.CompletableFuture
+        public open propAsync: java.util.concurrent.CompletableFuture declared in <root>.IProp
       FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:<get-propAsync> visibility:public modality:OPEN <> ($this:<root>.PropImpl) returnType:java.util.concurrent.CompletableFuture
         annotations:
           JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
