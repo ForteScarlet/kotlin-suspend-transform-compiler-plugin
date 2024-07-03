@@ -35,7 +35,6 @@ FILE fqName:<root> fileName:/Main.kt
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
     FUN FAKE_OVERRIDE name:runAsync visibility:public modality:OPEN <> ($this:<root>.Foo) returnType:java.util.concurrent.CompletableFuture [fake_override]
       annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       overridden:
         public open fun runAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo
@@ -49,7 +48,6 @@ FILE fqName:<root> fileName:/Main.kt
       VALUE_PARAMETER name:n index:0 type:kotlin.Int
     FUN FAKE_OVERRIDE name:runBlocking visibility:public modality:OPEN <> ($this:<root>.Foo) returnType:<root>.Bar [fake_override]
       annotations:
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       overridden:
         public open fun runBlocking (): <root>.Bar declared in <root>.Foo
@@ -138,7 +136,6 @@ FILE fqName:<root> fileName:/Main.kt
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runAsync visibility:public modality:OPEN <> ($this:<root>.Foo) returnType:java.util.concurrent.CompletableFuture
       annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
       BLOCK_BODY
@@ -153,7 +150,6 @@ FILE fqName:<root> fileName:/Main.kt
                       $this: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.runAsync' type=<root>.Foo origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runBlocking visibility:public modality:OPEN <> ($this:<root>.Foo) returnType:<root>.Bar
       annotations:
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
       BLOCK_BODY
