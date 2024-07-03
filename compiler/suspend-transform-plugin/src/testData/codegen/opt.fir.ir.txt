@@ -72,9 +72,7 @@ FILE fqName:<root> fileName:/Main.kt
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runAsync visibility:public modality:FINAL <> ($this:<root>.OptInTest) returnType:java.util.concurrent.CompletableFuture
       annotations:
-        OptIn(markerClass = [CLASS_REFERENCE 'CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<<root>.OneOptAnno>])
         Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.OptInTest
       BLOCK_BODY
@@ -89,9 +87,7 @@ FILE fqName:<root> fileName:/Main.kt
                       $this: GET_VAR '<this>: <root>.OptInTest declared in <root>.OptInTest.runAsync' type=<root>.OptInTest origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runBlocking visibility:public modality:FINAL <> ($this:<root>.OptInTest) returnType:kotlin.Int
       annotations:
-        OptIn(markerClass = [CLASS_REFERENCE 'CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<<root>.OneOptAnno>])
         Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.OptInTest
       BLOCK_BODY

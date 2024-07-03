@@ -16,9 +16,9 @@ FILE: Main.kt
 
         public abstract override suspend fun run(n: R|kotlin/Int|): R|Bar|
 
-        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runAsync(): R|java/util/concurrent/CompletableFuture<out Bar>|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runAsync(): R|java/util/concurrent/CompletableFuture<out Bar>|
 
-        @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runBlocking(): R|Bar|
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runBlocking(): R|Bar|
 
     }
     public final class FooImpl : R|Foo| {

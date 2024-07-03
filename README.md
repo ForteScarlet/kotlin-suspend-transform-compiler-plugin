@@ -494,7 +494,6 @@ plugin {
     id("love.forte.plugin.suspend-transform") version "$VERSION"
 }
 
-
 suspendTransform {
     // enabled suspend transform plugin
     enabled = true
@@ -542,6 +541,138 @@ suspendTransform {
     
 }
 ```
+
+For example, you want to use a single annotation to do the work of `@JvmAsync`, `@JvmBlocking`, and `@JsPromise`:
+
+```kotlin
+// Your JVM transform functions
+// e.g. com.example.Transforms.jvm.kt
+
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+fun <T> runInBlocking(block: suspend () -> T): T {
+    // run the `block` in blocking
+    runBlocking { block() }
+}
+
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null): CompletableFuture<T> {
+    // run the `block` in async
+    val scope0 = scope ?: GlobalScope
+    return scope0.future { block() }
+    
+    /*
+        the `scope` is the `block`'s container:
+        ```
+        interface Container {
+            @JvmAsync
+            suspend fun run()
+            👇 compiled
+            
+            fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
+        }
+        ``` 
+     */
+}
+
+// Your JS transform function
+// e.g. com.example.Transforms.js.kt
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+fun <T> runInPromise(block: suspend () -> T, scope: CoroutineScope? = null): T {
+    val scope0 = scope ?: GlobalScope
+    return scope0.promise { block() }
+}
+```
+
+Create your annotation:
+
+```kotlin
+// Your single annotation
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+public annotation class SuspendTrans(
+    val blockingBaseName: String = "",
+    val blockingSuffix: String = "Blocking",
+    val blockingAsProperty: Boolean = false,
+
+    val asyncBaseName: String = "",
+    val asyncSuffix: String = "Async",
+    val asyncAsProperty: Boolean = false,
+
+    val reserveBaseName: String = "",
+    val reserveSuffix: String = "Reserve",
+    val reserveAsProperty: Boolean = false,
+)
+```
+
+Then, config your build script:
+
+```kotlin
+// The annotation type
+val suspendTransMarkAnnotationClassInfo = ClassInfo("love.forte.simbot.suspendrunner", "SuspendTrans")
+
+// The mark annotations
+val jvmSuspendTransMarkAnnotationForBlocking = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "blockingBaseName",
+    suffixProperty = "blockingSuffix",
+    asPropertyProperty = "blockingAsProperty",
+    defaultSuffix = SuspendTransformConfiguration.jvmBlockingAnnotationInfo.defaultSuffix,
+)
+val jvmSuspendTransMarkAnnotationForAsync = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "asyncBaseName",
+    suffixProperty = "asyncSuffix",
+    asPropertyProperty = "asyncAsProperty",
+    defaultSuffix = SuspendTransformConfiguration.jvmAsyncAnnotationInfo.defaultSuffix,
+)
+val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "jsPromiseBaseName",
+    suffixProperty = "jsPromiseSuffix",
+    asPropertyProperty = "jsPromiseAsProperty",
+    defaultSuffix = "Async",
+)
+
+// The transformers
+val suspendTransTransformerForJvmBlocking: Transformer = jvmBlockingTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForBlocking,
+    copyAnnotationExcludes = SuspendTransformConfiguration.jvmBlockingTransformer.copyAnnotationExcludes +
+            jvmSuspendTransMarkAnnotationForBlocking.classInfo
+)
+
+val suspendTransTransformerForJvmAsync: Transformer = jvmAsyncTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForAsync,
+    copyAnnotationExcludes = SuspendTransformConfiguration.jvmAsyncTransformer.copyAnnotationExcludes +
+            jvmSuspendTransMarkAnnotationForAsync.classInfo
+)
+
+val suspendTransTransformerForJsPromise: Transformer = jsPromiseTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForReserve,
+    copyAnnotationExcludes = jsPromiseTransformer.copyAnnotationExcludes +
+            jsSuspendTransMarkAnnotationForPromise.classInfo,
+)
+
+// The above section can also be considered to be defined in `buildSrc`.
+
+suspendTransform {
+    // disable, use the runtime and the annotation by yourself
+    includeRuntime = false     
+    includeAnnotation = false
+
+    addJvmTransformers(
+        suspendTransTransformerForJvmBlocking,
+        suspendTransTransformerForJvmAsync
+    )
+    addJsTransformers(
+        suspendTransTransformerForJsPromise
+    )
+}
+```
+
+
+## Use Cases
+
+- [Simple Robot Frameworks](https://github.com/simple-robot/simpler-robot) (Fully customized)
 
 
 ## License
