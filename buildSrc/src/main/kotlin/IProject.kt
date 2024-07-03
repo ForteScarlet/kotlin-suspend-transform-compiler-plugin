@@ -11,7 +11,7 @@ object IProject : ProjectDetail() {
 
     // Remember the libs.versions.toml!
     val ktVersion = "2.0.20-Beta1"
-    val pluginVersion = "0.9.1"
+    val pluginVersion = "0.9.2"
 
     override val version: String = "$ktVersion-$pluginVersion"
 
@@ -46,6 +46,6 @@ object IProject : ProjectDetail() {
 fun Project.setupWith(ktVersion: String) {
     group = IProject.GROUP
     description = IProject.DESCRIPTION
-    val mergedVersion = ktVersion + "-" + IProject.pluginVersion.toString()
+    val mergedVersion = ktVersion + "-" + IProject.pluginVersion
     version = if (IS_SNAPSHOT) "$mergedVersion-SNAPSHOT" else mergedVersion
 }
