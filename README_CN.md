@@ -543,9 +543,137 @@ suspendTransform {
 }
 ```
 
-## 友情连接
-[Kotlin Suspend Interface reversal](https://github.com/ForteScarlet/kotlin-suspend-interface-reversal)
-: 基于 KSP，为包含挂起函数的接口或抽象类生成与平台兼容的扩展类型。
+举个例子，你想要使用一个单独的注解就完成`@JvmAsync`, `@JvmBlocking`, and `@JsPromise`的工作：
+
+
+```kotlin
+// 你在JVM平台上的转化函数
+// 比如 com.example.Transforms.jvm.kt
+
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+fun <T> runInBlocking(block: suspend () -> T): T {
+    // run the `block` in blocking
+    runBlocking { block() }
+}
+
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null): CompletableFuture<T> {
+    // run the `block` in async
+    val scope0 = scope ?: GlobalScope
+    return scope0.future { block() }
+    
+    /*
+        `scope` 是 `block`'s 所处的容器:
+        ```
+        interface Container {
+            @JvmAsync
+            suspend fun run()
+            👇 compiled
+            
+            fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
+        }
+        ``` 
+     */
+}
+
+// 你JS平台上的转化函数
+// 比如 com.example.Transforms.js.kt
+@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
+fun <T> runInPromise(block: suspend () -> T, scope: CoroutineScope? = null): T {
+    val scope0 = scope ?: GlobalScope
+    return scope0.promise { block() }
+}
+```
+
+创建你的注解：
+
+```kotlin
+// Your single annotation
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+public annotation class SuspendTrans(
+    val blockingBaseName: String = "",
+    val blockingSuffix: String = "Blocking",
+    val blockingAsProperty: Boolean = false,
+
+    val asyncBaseName: String = "",
+    val asyncSuffix: String = "Async",
+    val asyncAsProperty: Boolean = false,
+
+    val reserveBaseName: String = "",
+    val reserveSuffix: String = "Reserve",
+    val reserveAsProperty: Boolean = false,
+)
+```
+
+然后，配置你的构建脚本
+
+```kotlin
+// 注解类型
+val suspendTransMarkAnnotationClassInfo = ClassInfo("love.forte.simbot.suspendrunner", "SuspendTrans")
+
+// 标记注解定义
+val jvmSuspendTransMarkAnnotationForBlocking = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "blockingBaseName",
+    suffixProperty = "blockingSuffix",
+    asPropertyProperty = "blockingAsProperty",
+    defaultSuffix = SuspendTransformConfiguration.jvmBlockingAnnotationInfo.defaultSuffix,
+)
+val jvmSuspendTransMarkAnnotationForAsync = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "asyncBaseName",
+    suffixProperty = "asyncSuffix",
+    asPropertyProperty = "asyncAsProperty",
+    defaultSuffix = SuspendTransformConfiguration.jvmAsyncAnnotationInfo.defaultSuffix,
+)
+val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
+    suspendTransMarkAnnotationClassInfo,
+    baseNameProperty = "jsPromiseBaseName",
+    suffixProperty = "jsPromiseSuffix",
+    asPropertyProperty = "jsPromiseAsProperty",
+    defaultSuffix = "Async",
+)
+
+// 转化函数定义
+val suspendTransTransformerForJvmBlocking: Transformer = jvmBlockingTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForBlocking,
+    copyAnnotationExcludes = SuspendTransformConfiguration.jvmBlockingTransformer.copyAnnotationExcludes +
+            jvmSuspendTransMarkAnnotationForBlocking.classInfo
+)
+
+val suspendTransTransformerForJvmAsync: Transformer = jvmAsyncTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForAsync,
+    copyAnnotationExcludes = SuspendTransformConfiguration.jvmAsyncTransformer.copyAnnotationExcludes +
+            jvmSuspendTransMarkAnnotationForAsync.classInfo
+)
+
+val suspendTransTransformerForJsPromise: Transformer = jsPromiseTransformer.copy(
+    markAnnotation = jvmSuspendTransMarkAnnotationForReserve,
+    copyAnnotationExcludes = jsPromiseTransformer.copyAnnotationExcludes +
+            jsSuspendTransMarkAnnotationForPromise.classInfo,
+)
+
+// 上面这些东西也可以考虑在 `buildSrc` 中定义。
+
+suspendTransform {
+    // 关闭它们，并使用你自己自定义的 runtime 和 annotation
+    includeRuntime = false     
+    includeAnnotation = false
+
+    addJvmTransformers(
+        suspendTransTransformerForJvmBlocking,
+        suspendTransTransformerForJvmAsync
+    )
+    addJsTransformers(
+        suspendTransTransformerForJsPromise
+    )
+}
+```
+
+## 应用案例
+
+- [Simple Robot 框架](https://github.com/simple-robot/simpler-robot) (完全定制化)
 
 ## 开源协议
 

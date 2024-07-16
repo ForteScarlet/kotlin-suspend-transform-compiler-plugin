@@ -39,14 +39,12 @@ FILE fqName:<root> fileName:/Main.kt
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
     FUN FAKE_OVERRIDE name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<<root>.Tar>) returnType:java.util.concurrent.CompletableFuture [fake_override]
       annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       overridden:
         public open fun valueAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
     FUN FAKE_OVERRIDE name:valueBlocking visibility:public modality:OPEN <> ($this:<root>.Foo<<root>.Tar>) returnType:<root>.Tar [fake_override]
       annotations:
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       overridden:
         public open fun valueBlocking (): T of <root>.Foo declared in <root>.Foo
@@ -95,7 +93,6 @@ FILE fqName:<root> fileName:/Main.kt
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:java.util.concurrent.CompletableFuture
       annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY
@@ -110,7 +107,6 @@ FILE fqName:<root> fileName:/Main.kt
                       $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueAsync' type=<root>.Foo<T of <root>.Foo> origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:valueBlocking visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:T of <root>.Foo
       annotations:
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
         Api4J
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY

@@ -222,10 +222,11 @@ open class SuspendTransformConfiguration {
         val jvmSyntheticClassInfo = ClassInfo("kotlin.jvm", "JvmSynthetic")
 
         @JvmStatic
-        val jvmApi4JAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J")
-        //endregion
+        val kotlinOptInClassInfo = ClassInfo("kotlin", "OptIn")
 
-        //region JVM blocking defaults
+        @JvmStatic
+        val jvmApi4JAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J")
+
 
         @JvmStatic
         val jvmBlockingMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking")
@@ -241,23 +242,6 @@ open class SuspendTransformConfiguration {
         )
 
         @JvmStatic
-        val jvmBlockingTransformer = Transformer(
-            markAnnotation = jvmBlockingAnnotationInfo,
-            transformFunctionInfo = jvmBlockingTransformFunction,
-            transformReturnType = null,
-            transformReturnTypeGeneric = false,
-            originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
-            copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmBlockingAnnotationInfo.classInfo),
-            syntheticFunctionIncludeAnnotations = listOf(
-                IncludeAnnotation(jvmApi4JAnnotationClassInfo)
-                    .apply { includeProperty = true }
-            )
-        )
-        //endregion
-
-        //region JVM async defaults
-        @JvmStatic
         val jvmAsyncMarkAnnotationClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmAsync")
 
         @JvmStatic
@@ -269,6 +253,31 @@ open class SuspendTransformConfiguration {
             JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
             JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
         )
+        //endregion
+
+        //region JVM blocking defaults
+        @JvmStatic
+        val jvmBlockingTransformer = Transformer(
+            markAnnotation = jvmBlockingAnnotationInfo,
+            transformFunctionInfo = jvmBlockingTransformFunction,
+            transformReturnType = null,
+            transformReturnTypeGeneric = false,
+            originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+            copyAnnotationsToSyntheticFunction = true,
+            copyAnnotationExcludes = listOf(
+                jvmSyntheticClassInfo,
+                jvmBlockingMarkAnnotationClassInfo,
+                jvmAsyncMarkAnnotationClassInfo,
+                kotlinOptInClassInfo,
+            ),
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jvmApi4JAnnotationClassInfo)
+                    .apply { includeProperty = true }
+            )
+        )
+        //endregion
+
+        //region JVM async defaults
 
         @JvmStatic
         val jvmAsyncTransformer = Transformer(
@@ -278,7 +287,12 @@ open class SuspendTransformConfiguration {
             transformReturnTypeGeneric = true,
             originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
             copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(jvmSyntheticClassInfo, jvmAsyncAnnotationInfo.classInfo),
+            copyAnnotationExcludes = listOf(
+                jvmSyntheticClassInfo,
+                jvmBlockingMarkAnnotationClassInfo,
+                jvmAsyncMarkAnnotationClassInfo,
+                kotlinOptInClassInfo,
+            ),
             syntheticFunctionIncludeAnnotations = listOf(
                 IncludeAnnotation(jvmApi4JAnnotationClassInfo).apply {
                     includeProperty = true
@@ -312,7 +326,10 @@ open class SuspendTransformConfiguration {
             transformReturnTypeGeneric = true,
             originFunctionIncludeAnnotations = listOf(),
             copyAnnotationsToSyntheticFunction = true,
-            copyAnnotationExcludes = listOf(jsAsyncAnnotationInfo.classInfo),
+            copyAnnotationExcludes = listOf(
+                jsAsyncMarkAnnotationClassInfo,
+                kotlinOptInClassInfo,
+            ),
             syntheticFunctionIncludeAnnotations = listOf(
                 IncludeAnnotation(jsApi4JsAnnotationInfo).apply {
                     includeProperty = true

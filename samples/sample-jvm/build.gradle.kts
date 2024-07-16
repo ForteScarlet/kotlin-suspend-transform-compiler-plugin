@@ -1,3 +1,7 @@
+import love.forte.plugin.suspendtrans.ClassInfo
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmAsyncTransformer
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmBlockingTransformer
+import love.forte.plugin.suspendtrans.TargetPlatform
 import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
 
 plugins {
@@ -15,16 +19,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        //this.implementation()
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.0.20-Beta1-0.9.1")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.0.20-Beta1-0.9.2")
     }
 }
-
-
-//withType<JavaCompile> {
-//    sourceCompatibility = "11"
-//    targetCompatibility = "11"
-//}
 
 kotlin {
     compilerOptions {
@@ -32,14 +29,6 @@ kotlin {
 
     }
 }
-
-//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//    kotlinOptions {
-//        freeCompilerArgs += "-Xjvm-default=all"
-        // useK2
-//        languageVersion = "2.0"
-//    }
-//}
 
 repositories {
     mavenLocal()
@@ -51,15 +40,28 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("test-junit5"))
     api(kotlin("reflect"))
-//    val pluginVersion = "0.4.0"
-//    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
-//    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
-//    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.")
     api(libs.kotlinx.coroutines.core)
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {
-    useJvmDefault()
+//     useJvmDefault()
+    transformers[TargetPlatform.JVM] = mutableListOf(
+        // Add `kotlin.OptIn` to copyAnnotationExcludes
+        jvmBlockingTransformer.copy(
+            copyAnnotationExcludes = buildList {
+                addAll(jvmBlockingTransformer.copyAnnotationExcludes)
+                add(ClassInfo("kotlin", "OptIn"))
+            }
+        ),
+
+        // Add `kotlin.OptIn` to copyAnnotationExcludes
+        jvmAsyncTransformer.copy(
+            copyAnnotationExcludes = buildList {
+                addAll(jvmAsyncTransformer.copyAnnotationExcludes)
+                add(ClassInfo("kotlin", "OptIn"))
+            }
+        )
+    )
 }
 
 tasks.withType<Test> {

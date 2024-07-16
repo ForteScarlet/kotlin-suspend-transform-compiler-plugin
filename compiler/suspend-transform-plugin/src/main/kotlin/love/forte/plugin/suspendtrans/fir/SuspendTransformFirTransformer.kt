@@ -415,7 +415,29 @@ class SuspendTransformFirTransformer(
                     excludes.any { ex -> annotationClassId == ex }
                 }
 
-                addAll(notCompileAnnotationsCopied)
+                /*
+                 * Create a new annotation based the annotation from the original function.
+                 * It will be crashed with `IllegalArgumentException: Failed requirement`
+                 * when using the `notCompileAnnotationsCopied` directly
+                 * if there have some arguments with type `KClass`,
+                 * e.g. `annotation class OneAnnotation(val target: KClass<*>)` or `kotlin.OptIn`.
+                 *
+                 * See https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/56
+                 */
+                val copied = notCompileAnnotationsCopied.map { a ->
+                    buildAnnotation {
+                        annotationTypeRef = buildResolvedTypeRef {
+                            type = a.resolvedType
+                        }
+                        this.typeArguments.addAll(a.typeArguments)
+                        this.argumentMapping = buildAnnotationArgumentMapping {
+                            this.source = a.source
+                            this.mapping.putAll(a.argumentMapping.mapping)
+                        }
+                    }
+                }
+
+                addAll(copied)
             }
 
             // try add @Generated(by = ...)

@@ -25,54 +25,39 @@ repositories {
 
 apply(plugin = "love.forte.plugin.suspend-transform")
 
-//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//    kotlinOptions {
-    // useK2
-//        languageVersion = "2.0"
-//    }
-//}
-
-
-
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xexpect-actual-classes"
+        )
+    }
+
     js(IR) {
         nodejs()
         useEsModules()
         generateTypeScriptDefinitions()
         binaries.executable()
 
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             target = "es2015"
             useEsClasses = true
             freeCompilerArgs.addAll(
                 // https://kotlinlang.org/docs/whatsnew20.html#per-file-compilation-for-kotlin-js-projects
-                "-Xir-per-file"
+                "-Xir-per-file",
             )
         }
-
-//        compilations.all {
-//            kotlinOptions {
-//                useEsClasses = true
-//            }
-//        }
     }
 
     sourceSets {
         named("jsMain") {
             dependencies {
                 implementation(kotlin("stdlib"))
-                //    val pluginVersion = "0.4.0"
-                //    api("love.forte.plugin.suspend-transform:suspend-transform-runtime:$pluginVersion")
-                //    api("love.forte.plugin.suspend-transform:suspend-transform-annotation:$pluginVersion")
-//                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 api(libs.kotlinx.coroutines.core)
             }
         }
     }
 }
-
-
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {
     transformers[TargetPlatform.JS] = mutableListOf(
