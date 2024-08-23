@@ -29,7 +29,9 @@ dependencies {
     // see https://github.com/gradle-nexus/publish-plugin
     api("io.github.gradle-nexus:publish-plugin:$nexusPublishPlugin")
 
-    api("com.github.jengelman.gradle.plugins:shadow:6.1.0")
+//    api("com.github.jengelman.gradle.plugins:shadow:8.3.0")
+    // https://gradleup.com/shadow/
+    api("com.gradleup.shadow:shadow-gradle-plugin:8.3.0")
 
     implementation("love.forte.gradle.common:gradle-common-core:$gradleCommon")
     implementation("love.forte.gradle.common:gradle-common-kotlin-multiplatform:$gradleCommon")

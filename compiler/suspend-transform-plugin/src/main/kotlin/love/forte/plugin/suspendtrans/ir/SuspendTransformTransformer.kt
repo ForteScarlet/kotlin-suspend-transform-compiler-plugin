@@ -6,6 +6,9 @@ import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.wasm.ir2wasm.getSourceLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -20,7 +23,10 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.file
+import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
+import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.wasm.ir.source.location.SourceLocation
@@ -224,7 +230,7 @@ class SuspendTransformTransformer(
                 if (reporter != null) {
                     // WARN? DEBUG? IGNORE?
                     reporter.report(
-                        IrMessageLogger.Severity.INFO,
+                        CompilerMessageSeverity.INFO,
                         message,
                         function.reportLocation()
                     )
@@ -240,7 +246,7 @@ class SuspendTransformTransformer(
             val originFunction = originFunctions.first()
 
             reporter?.report(
-                IrMessageLogger.Severity.INFO,
+                CompilerMessageSeverity.INFO,
                 "Generate body for function " +
                         kotlin.runCatching { function.kotlinFqName.asString() }.getOrElse { function.name.asString() } +
                         " by origin function " +
@@ -265,15 +271,16 @@ class SuspendTransformTransformer(
     }
 }
 
-private fun IrFunction.reportLocation(): IrMessageLogger.Location? {
+private fun IrFunction.reportLocation(): CompilerMessageSourceLocation? {
     return when (val sourceLocation =
 //        getSourceLocation(runCatching { fileEntry }.getOrNull())) {
         getSourceLocation(file)) {
         is SourceLocation.Location -> {
-            IrMessageLogger.Location(
-                filePath = sourceLocation.file,
+            CompilerMessageLocation.create(
+                path = sourceLocation.file,
                 line = sourceLocation.line,
-                column = sourceLocation.column
+                column = sourceLocation.column,
+                lineContent = null
             )
         }
 
