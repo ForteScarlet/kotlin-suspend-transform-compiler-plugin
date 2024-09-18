@@ -155,28 +155,28 @@ data class IncludeAnnotation(
 @Suppress("unused")
 @Serializable
 open class SuspendTransformConfiguration {
-    var enabled: Boolean = true
+    open var enabled: Boolean = true
 
-    var transformers: MutableMap<TargetPlatform, List<Transformer>> = mutableMapOf()
+    open var transformers: MutableMap<TargetPlatform, List<Transformer>> = mutableMapOf()
 
-    fun clear() {
+    open fun clear() {
         transformers.clear()
     }
 
-    fun useJvmDefault() {
+    open fun useJvmDefault() {
         transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer)
     }
 
-    fun useJsDefault() {
+    open fun useJsDefault() {
         transformers[TargetPlatform.JS] = mutableListOf(jsPromiseTransformer)
     }
 
-    fun useDefault() {
+    open fun useDefault() {
         useJvmDefault()
         useJsDefault()
     }
 
-    fun addTransformers(target: TargetPlatform, vararg transformers: Transformer) {
+    open fun addTransformers(target: TargetPlatform, vararg transformers: Transformer) {
         this.transformers.compute(target) { _, list ->
             if (list != null) {
                 list + transformers
@@ -186,7 +186,7 @@ open class SuspendTransformConfiguration {
         }
     }
 
-    fun addTransformers(target: TargetPlatform, transformers: Collection<Transformer>) {
+    open fun addTransformers(target: TargetPlatform, transformers: Collection<Transformer>) {
         this.transformers.compute(target) { _, list ->
             if (list != null) {
                 list + transformers
@@ -196,19 +196,19 @@ open class SuspendTransformConfiguration {
         }
     }
 
-    fun addJvmTransformers(vararg transformers: Transformer) {
+    open fun addJvmTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JVM, transformers = transformers)
     }
 
-    fun addJvmTransformers(transformers: Collection<Transformer>) {
+    open fun addJvmTransformers(transformers: Collection<Transformer>) {
         addTransformers(target = TargetPlatform.JVM, transformers = transformers)
     }
 
-    fun addJsTransformers(vararg transformers: Transformer) {
+    open fun addJsTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 
-    fun addJsTransformers(transformers: Collection<Transformer>) {
+    open fun addJsTransformers(transformers: Collection<Transformer>) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 

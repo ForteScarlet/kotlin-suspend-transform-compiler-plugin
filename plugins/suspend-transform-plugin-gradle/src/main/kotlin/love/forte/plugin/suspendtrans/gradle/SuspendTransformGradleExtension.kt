@@ -12,31 +12,31 @@ open class SuspendTransformGradleExtension : SuspendTransformConfiguration() {
     /**
      * 是否增加 `love.forte.plugin.suspend-transform:suspend-transform-annotation` 的运行时。
      */
-    var includeAnnotation: Boolean = true
+    open var includeAnnotation: Boolean = true
 
-    var annotationDependencyVersion: String = SuspendTransPluginConstants.ANNOTATION_VERSION
+    open var annotationDependencyVersion: String = SuspendTransPluginConstants.ANNOTATION_VERSION
 
     /**
      * 当 [includeAnnotation] 为 true 时，配置runtime环境的依赖方式。默认为 `compileOnly` （在JVM中） 。
      */
-    var annotationConfigurationName: String = "compileOnly"
+    open var annotationConfigurationName: String = "compileOnly"
 
     /**
      * 是否增加 `love.forte.plugin.suspend-transform:suspend-transform-runtime` 的运行时。
      */
-    var includeRuntime: Boolean = true
+    open var includeRuntime: Boolean = true
 
-    var runtimeDependencyVersion: String = SuspendTransPluginConstants.RUNTIME_VERSION
+    open var runtimeDependencyVersion: String = SuspendTransPluginConstants.RUNTIME_VERSION
 
     /**
      * 当 [includeRuntime] 为 true 时，配置runtime环境的依赖方式。默认为 `implementation` （在JVM中）。
      */
-    var runtimeConfigurationName: String = "implementation"
+    open var runtimeConfigurationName: String = "implementation"
 
     /**
      * 将runtime环境作为 `api` 的方式进行配置（在JVM中）。
      */
-    fun runtimeAsApi() {
+    open fun runtimeAsApi() {
         runtimeConfigurationName = "api"
     }
 

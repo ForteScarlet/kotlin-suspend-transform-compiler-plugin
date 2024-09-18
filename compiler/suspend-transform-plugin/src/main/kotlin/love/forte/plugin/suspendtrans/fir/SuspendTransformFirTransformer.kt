@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
-import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext.argumentsCount
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -364,11 +363,11 @@ class SuspendTransformFirTransformer(
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
                 diagnostic = resultConeType.diagnostic
-                type = resultConeType
+                coneType = resultConeType
             }
         } else {
             buildResolvedTypeRef {
-                type = resultConeType
+                coneType = resultConeType
             }
         }
     }
@@ -427,7 +426,7 @@ class SuspendTransformFirTransformer(
                 val copied = notCompileAnnotationsCopied.map { a ->
                     buildAnnotation {
                         annotationTypeRef = buildResolvedTypeRef {
-                            type = a.resolvedType
+                            coneType = a.resolvedType
                         }
                         this.typeArguments.addAll(a.typeArguments)
                         this.argumentMapping = buildAnnotationArgumentMapping {
@@ -462,7 +461,7 @@ class SuspendTransformFirTransformer(
                 val includeAnnotation = buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
                     annotationTypeRef = buildResolvedTypeRef {
-                        type = classId.createConeType(session)
+                        coneType = classId.createConeType(session)
                     }
                 }
                 add(includeAnnotation)
@@ -487,7 +486,7 @@ class SuspendTransformFirTransformer(
                     val includeAnnotation = buildAnnotation {
                         argumentMapping = buildAnnotationArgumentMapping()
                         annotationTypeRef = buildResolvedTypeRef {
-                            type = classId.createConeType(session)
+                            coneType = classId.createConeType(session)
                         }
                     }
                     add(includeAnnotation)
@@ -520,7 +519,7 @@ class SuspendTransformFirTransformer(
                             type.classId?.asFqNameString() ?: "?NULL?"
                         }
                     }
-                if (kotlin.runCatching { argumentsCount() }.getOrElse { 0 } > 0) {
+                if (this@typeString is ConeClassLikeType && typeArguments.isNotEmpty()) {
                     typeArguments.joinTo(this, ", ", "<", ">") { argument ->
                         argument.type?.classId?.asFqNameString() ?: "?NULL?"
                     }
@@ -545,7 +544,6 @@ class SuspendTransformFirTransformer(
             })
         }
     }
-
 }
 
 
