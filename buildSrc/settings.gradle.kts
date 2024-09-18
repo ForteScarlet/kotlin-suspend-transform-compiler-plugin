@@ -1,5 +1,3 @@
-rootProject.name = "kotlin-suspend-transform-compiler-plugin"
-
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
