@@ -12,6 +12,6 @@ plugins {
 apply<EmbeddablePlugin>()
 
 dependencies {
-    add("embedded", project(":compiler:suspend-transform-plugin"))
+    add("embedded", project(":compiler:suspend-transform-plugin")) { isTransitive = false }
 //    embedded(project(":compiler:suspend-transform-plugin"))
 }
