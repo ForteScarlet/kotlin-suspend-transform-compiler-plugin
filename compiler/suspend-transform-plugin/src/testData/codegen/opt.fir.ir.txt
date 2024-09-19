@@ -102,7 +102,7 @@ FILE fqName:<root> fileName:/Main.kt
                       $this: GET_VAR '<this>: <root>.OptInTest declared in <root>.OptInTest.runBlocking' type=<root>.OptInTest origin=null
     FUN name:run visibility:public modality:FINAL <> ($this:<root>.OptInTest) returnType:kotlin.Int [suspend]
       annotations:
-        OptIn(markerClass = [CLASS_REFERENCE 'CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<<root>.OneOptAnno>])
+        OptIn(markerClass = [CLASS_REFERENCE 'CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<<root>.OneOptAnno>] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
         Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
