@@ -487,7 +487,7 @@ class Bar {
 }
 ```
 
-## Custom config
+## Customization
 
 ```kotlin
 plugin {
