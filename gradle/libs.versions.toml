@@ -3,10 +3,7 @@ kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.7.1"
 google-auto-service = "1.0.1"
 # Remember the `IProject.ktVersion`!
-kotlin = "2.0.20"
-compose = "1.5.4"
-compose-compiler = "1.5.6"
-compose-plugin = "1.6.0-beta01"
+kotlin = "2.1.0-Beta1"
 
 [libraries]
 
@@ -23,14 +20,5 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 google-auto-service = { group = "com.google.auto.service", name = "auto-service", version.ref = "google-auto-service" }
 google-auto-service-annotations = { group = "com.google.auto.service", name = "auto-service-annotations", version.ref = "google-auto-service" }
 
-# compose
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
-
 [plugins]
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
-#kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization" }

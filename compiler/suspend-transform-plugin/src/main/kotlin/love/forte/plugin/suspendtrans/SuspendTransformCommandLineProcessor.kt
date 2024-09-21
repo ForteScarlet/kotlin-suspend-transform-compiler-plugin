@@ -1,7 +1,6 @@
 package love.forte.plugin.suspendtrans
 
 import BuildConfig
-import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -10,7 +9,6 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
 
 @OptIn(ExperimentalCompilerApi::class)
-@AutoService(CommandLineProcessor::class)
 class SuspendTransformCommandLineProcessor : CommandLineProcessor {
     companion object {
         val CONFIGURATION: CompilerConfigurationKey<SuspendTransformConfiguration> =

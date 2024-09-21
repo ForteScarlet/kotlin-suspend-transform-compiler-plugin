@@ -6,7 +6,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.attributes.Bundling.EMBEDDED
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.TaskProvider
@@ -18,6 +17,7 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
 import java.util.*
 
 const val kotlinEmbeddableRootPackage = "org.jetbrains.kotlin"
@@ -79,13 +79,13 @@ private fun ShadowJar.configureEmbeddableCompilerRelocation(withJavaxInject: Boo
 }
 
 private fun Project.compilerShadowJar(taskName: String, body: ShadowJar.() -> Unit): TaskProvider<out ShadowJar> {
-    val embeddedConfig = configurations.getOrCreate(EMBEDDED)
+    val embeddedConfig = configurations.getOrCreate(CONSTANTS_EMBEDDED)
     val javaPluginExtension = extensions.getByType<JavaPluginExtension>()
 
     return tasks.register<ShadowJar>(taskName) {
         group = "shadow"
-//        destinationDirectory.set(project.file(File(layout.buildDirectory, "libs")))
-        destinationDirectory.set(layout.buildDirectory.dir("libs"))
+        destinationDirectory.set(project.file(File(layout.buildDirectory.asFile.get(), "libs")))
+//        destinationDirectory.set(layout.buildDirectory.dir("libs"))
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         from(embeddedConfig)
         from(javaPluginExtension.sourceSets.getByName("main").output)
