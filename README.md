@@ -561,16 +561,16 @@ public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null)
     return scope0.future { block() }
     
     /*
-        the `scope` is the `block`'s container:
-        ```
-        interface Container {
-            @JvmAsync
-            suspend fun run()
-            👇 compiled
-            
-            fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
-        }
-        ``` 
+     *  the `scope` is the `block`'s container:
+     *  ```
+     *  interface Container {
+     *      @JvmAsync
+     *      suspend fun run()
+     *      👇 compiled
+     *      
+     *      fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
+     *  }
+     *  ``` 
      */
 }
 
@@ -598,9 +598,9 @@ public annotation class SuspendTrans(
     val asyncSuffix: String = "Async",
     val asyncAsProperty: Boolean = false,
 
-    val reserveBaseName: String = "",
-    val reserveSuffix: String = "Reserve",
-    val reserveAsProperty: Boolean = false,
+    val jsPromiseBaseName: String = "",
+    val jsPromiseSuffix: String = "Async",
+    val jsPromiseAsProperty: Boolean = false,
 )
 ```
 

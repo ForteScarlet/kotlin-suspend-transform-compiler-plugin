@@ -600,9 +600,9 @@ public annotation class SuspendTrans(
     val asyncSuffix: String = "Async",
     val asyncAsProperty: Boolean = false,
 
-    val reserveBaseName: String = "",
-    val reserveSuffix: String = "Reserve",
-    val reserveAsProperty: Boolean = false,
+    val jsPromiseBaseName: String = "",
+    val jsPromiseSuffix: String = "Async",
+    val jsPromiseAsProperty: Boolean = false,
 )
 ```
 
