@@ -41,10 +41,14 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("test-junit5"))
     api(kotlin("reflect"))
+    api(project(":runtime:suspend-transform-annotation"))
+    api(project(":runtime:suspend-transform-runtime"))
     api(libs.kotlinx.coroutines.core)
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {
+    includeRuntime = false
+    includeAnnotation = false
 //     useJvmDefault()
     transformers[TargetPlatform.JVM] = mutableListOf(
         // Add `kotlin.OptIn` to copyAnnotationExcludes

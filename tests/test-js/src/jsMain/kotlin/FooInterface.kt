@@ -21,7 +21,7 @@ class FooImpl : FooInterface {
     override suspend fun run1(value: Int): String = value.toString()
 
     @JsExport.Ignore
-    @JsPromise // TODO asProperty
+    @JsPromise(asProperty = true)
     override suspend fun run2(): String = ""
 }
 
@@ -35,7 +35,7 @@ interface FooInterface2 {
     suspend fun run1(value: Int): String
 
     @JsExport.Ignore
-    @JsPromise // TODO asProperty
+    @JsPromise(asProperty = true)
     suspend fun run2(): String
 }
 
@@ -46,7 +46,7 @@ class FooImpl2 : FooInterface2 {
     override suspend fun run1(value: Int): String = value.toString()
 
     @JsExport.Ignore
-    @JsPromise // TODO asProperty
+    @JsPromise(asProperty = true)
     override suspend fun run2(): String = ""
 }
 
@@ -75,6 +75,6 @@ class FooImpl3 : FooInterface3 {
     override suspend fun run1(value: Int): String = value.toString()
 
     @JsExport.Ignore
-    @JsPromise // asProperty
+    @JsPromise(asProperty = true)
     override suspend fun run2(): String = ""
 }
