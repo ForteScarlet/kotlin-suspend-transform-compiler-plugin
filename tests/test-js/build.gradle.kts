@@ -55,12 +55,17 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib"))
                 api(libs.kotlinx.coroutines.core)
+                api(project(":runtime:suspend-transform-annotation"))
+                api(project(":runtime:suspend-transform-runtime"))
             }
         }
     }
 }
 
 extensions.getByType<SuspendTransformGradleExtension>().apply {
+    includeRuntime = false
+    includeAnnotation = false
+
     transformers[TargetPlatform.JS] = mutableListOf(
         SuspendTransformConfiguration.jsPromiseTransformer.copy(
             copyAnnotationExcludes = listOf(

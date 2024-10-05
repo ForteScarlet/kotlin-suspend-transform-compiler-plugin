@@ -10,4 +10,8 @@ public annotation class ExperimentalJsApi
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
-public actual annotation class JsPromise
+public actual annotation class JsPromise(
+    actual val baseName: String,
+    actual val suffix: String,
+    actual val asProperty: Boolean,
+)
