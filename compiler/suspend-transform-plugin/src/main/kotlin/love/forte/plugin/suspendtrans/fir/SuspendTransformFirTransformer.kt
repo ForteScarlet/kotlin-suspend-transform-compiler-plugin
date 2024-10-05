@@ -95,6 +95,13 @@ class SuspendTransformFirTransformer(
         return names
     }
 
+    private val scope = ScopeSession()
+    private val holder = SessionHolderImpl(session, scope)
+    private val checkContext = MutableCheckerContext(
+        holder,
+        ReturnTypeCalculatorForFullBodyResolve.Default,
+    )
+
     @OptIn(SymbolInternals::class)
     override fun generateFunctions(
         callableId: CallableId,
@@ -107,19 +114,13 @@ class SuspendTransformFirTransformer(
 
         val funList = mutableListOf<FirNamedFunctionSymbol>()
 
-        val scope = ScopeSession()
-        val holder = SessionHolderImpl(session, scope)
-        val checkContext = MutableCheckerContext(
-            holder,
-            ReturnTypeCalculatorForFullBodyResolve.Default,
-        )
-
         funcMap.forEach { (func, funData) ->
-            // Check the overridden for isOverride based on source function (func) 's overridden
-            val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
 
             val annotationData = funData.annotationData
             if (!annotationData.asProperty) {
+                // Check the overridden for isOverride based on source function (func) 's overridden
+                val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+
                 // generate
 
                 val originFunc = func.fir
@@ -198,19 +199,11 @@ class SuspendTransformFirTransformer(
 
         val propList = mutableListOf<FirPropertySymbol>()
 
-        val scope = ScopeSession()
-        val holder = SessionHolderImpl(session, scope)
-        val checkContext = MutableCheckerContext(
-            holder,
-            ReturnTypeCalculatorForFullBodyResolve.Contract,
-        )
-
         funcMap.forEach { (func, funData) ->
-
-            val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
-
             val annotationData = funData.annotationData
             if (annotationData.asProperty) {
+                val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+
                 // generate
                 val original = func.fir
 
