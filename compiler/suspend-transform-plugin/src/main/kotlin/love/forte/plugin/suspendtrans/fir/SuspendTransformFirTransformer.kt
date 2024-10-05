@@ -7,6 +7,10 @@ import love.forte.plugin.suspendtrans.utils.toClassId
 import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
+import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
+import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
+import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctions
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
@@ -16,6 +20,9 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
 import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.builder.buildSimpleFunctionCopy
+import org.jetbrains.kotlin.fir.declarations.builder.buildTypeParameterCopy
+import org.jetbrains.kotlin.fir.declarations.utils.isFinal
+import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
@@ -26,13 +33,16 @@ import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.SessionHolderImpl
+import org.jetbrains.kotlin.fir.resolve.getSuperTypes
+import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -48,6 +58,7 @@ import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
 import java.util.concurrent.ConcurrentHashMap
 
+
 /**
  *
  * @author ForteScarlet
@@ -57,12 +68,18 @@ class SuspendTransformFirTransformer(
     private val suspendTransformConfiguration: SuspendTransformConfiguration
 ) : FirDeclarationGenerationExtension(session) {
 
-    private data class FunData(
-        val annotationData: TransformAnnotationData,
-        val transformer: Transformer
+    private data class FirCacheKey(
+        val classSymbol: FirClassSymbol<*>,
+        val memberScope: FirClassDeclaredMemberScope?
     )
 
-    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
+    private data class FunData(
+        val annotationData: TransformAnnotationData,
+        val transformer: Transformer,
+    )
+
+    //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
+    private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
         session.firCachesFactory.createCache { (symbol, scope), c ->
             createCache(symbol, scope)
         }
@@ -71,7 +88,7 @@ class SuspendTransformFirTransformer(
     override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
         val names = mutableSetOf<Name>()
 
-        cache.getValue(classSymbol to context.declaredScope)?.forEach { (_, map) ->
+        cache.getValue(FirCacheKey(classSymbol, context.declaredScope))?.forEach { (_, map) ->
             map.values.forEach { names.add(Name.identifier(it.annotationData.functionName)) }
         }
 
@@ -84,11 +101,23 @@ class SuspendTransformFirTransformer(
         context: MemberGenerationContext?
     ): List<FirNamedFunctionSymbol> {
         val owner = context?.owner ?: return emptyList()
-        val funcMap = cache.getValue(owner to context.declaredScope)?.get(callableId.callableName) ?: return emptyList()
+        val funcMap = cache.getValue(FirCacheKey(owner, context.declaredScope))
+            ?.get(callableId.callableName)
+            ?: return emptyList()
 
         val funList = mutableListOf<FirNamedFunctionSymbol>()
 
+        val scope = ScopeSession()
+        val holder = SessionHolderImpl(session, scope)
+        val checkContext = MutableCheckerContext(
+            holder,
+            ReturnTypeCalculatorForFullBodyResolve.Default,
+        )
+
         funcMap.forEach { (func, funData) ->
+            // Check the overridden for isOverride based on source function (func) 's overridden
+            val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+
             val annotationData = funData.annotationData
             if (!annotationData.asProperty) {
                 // generate
@@ -97,14 +126,36 @@ class SuspendTransformFirTransformer(
 
                 val (functionAnnotations, _) = copyAnnotations(originFunc, funData)
 
+                val newFunSymbol = FirNamedFunctionSymbol(callableId)
+
                 val newFun = buildSimpleFunctionCopy(originFunc) {
                     name = callableId.callableName
-                    val newFunSymbol = FirNamedFunctionSymbol(callableId)
                     symbol = newFunSymbol
                     status = originFunc.status.copy(
                         isSuspend = false,
-                        modality = originFunc.syntheticModifier
+                        modality = originFunc.syntheticModifier,
+                        // Use OPEN and `override` is unnecessary. .. ... Maybe?
+                        isOverride = isOverride || isOverridable(
+                            session,
+                            callableId.callableName,
+                            originFunc,
+                            owner,
+                            isProperty = false,
+                        ),
                     )
+
+                    // Copy the typeParameters.
+                    // Otherwise, in functions like the following, an error will occur
+                    // suspend fun <A> data(value: A): T = ...
+                    // Functions for which function-scoped generalizations (`<A>`) exist.
+                    // In the generated IR, data and dataBlocking will share an `A`, generating the error.
+                    // The error: Duplicate IR node
+                    //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                     typeParameters.replaceAll {
+                         buildTypeParameterCopy(it) {
+                             symbol = FirTypeParameterSymbol()
+                         }
+                     }
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)
@@ -132,7 +183,6 @@ class SuspendTransformFirTransformer(
             }
         }
 
-
         return funList
     }
 
@@ -142,11 +192,23 @@ class SuspendTransformFirTransformer(
         context: MemberGenerationContext?
     ): List<FirPropertySymbol> {
         val owner = context?.owner ?: return emptyList()
-        val funcMap = cache.getValue(owner to context.declaredScope)?.get(callableId.callableName) ?: return emptyList()
+        val funcMap = cache.getValue(FirCacheKey(owner, context.declaredScope))
+            ?.get(callableId.callableName)
+            ?: return emptyList()
 
         val propList = mutableListOf<FirPropertySymbol>()
 
+        val scope = ScopeSession()
+        val holder = SessionHolderImpl(session, scope)
+        val checkContext = MutableCheckerContext(
+            holder,
+            ReturnTypeCalculatorForFullBodyResolve.Contract,
+        )
+
         funcMap.forEach { (func, funData) ->
+
+            val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+
             val annotationData = funData.annotationData
             if (annotationData.asProperty) {
                 // generate
@@ -210,7 +272,15 @@ class SuspendTransformFirTransformer(
                         isInner = false,
 //                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
                         modality = original.syntheticModifier,
+                        isOverride = isOverride || isOverridable(
+                            session,
+                            callableId.callableName,
+                            original,
+                            owner,
+                            isProperty = true
+                        ),
                     )
+
                     isVar = false
                     isLocal = false
                     returnTypeRef = returnType
@@ -245,6 +315,7 @@ class SuspendTransformFirTransformer(
                             isFun = false,
                             isInner = false,
                             modality = original.syntheticModifier,
+                            isOverride = false, // funData.isOverride,
 //                            visibility = this@buildProperty.status
                         )
                         returnTypeRef = original.returnTypeRef
@@ -264,6 +335,68 @@ class SuspendTransformFirTransformer(
         }
 
         return propList
+    }
+
+    private fun checkSyntheticFunctionIsOverrideBasedOnSourceFunction(
+        funData: FunData,
+        func: FirNamedFunctionSymbol,
+        checkContext: CheckerContext
+    ): Boolean {
+        // Check the overridden for isOverride based on source function (func) 's overridden
+        var isOverride = false
+        val annoData = funData.annotationData
+        val markAnnotation = funData.transformer.markAnnotation
+
+        if (func.isOverride && !isOverride) {
+            func.processOverriddenFunctions(
+                checkContext
+            ) processOverridden@{ overriddenFunction ->
+                if (!isOverride) {
+                    // check parameters and receivers
+                    val symbolReceiver = overriddenFunction.receiverParameter
+                    val originReceiver = func.receiverParameter
+
+                    // origin receiver should be the same as symbol receiver
+                    if (originReceiver?.typeRef != symbolReceiver?.typeRef) {
+                        return@processOverridden
+                    }
+
+                    // all value parameters should be a subtype of symbol's value parameters
+                    val symbolParameterSymbols = overriddenFunction.valueParameterSymbols
+                    val originParameterSymbols = func.valueParameterSymbols
+
+                    if (symbolParameterSymbols.size != originParameterSymbols.size) {
+                        return@processOverridden
+                    }
+
+                    for ((index, symbolParameter) in symbolParameterSymbols.withIndex()) {
+                        val originParameter = originParameterSymbols[index]
+                        if (
+                            originParameter.resolvedReturnType != symbolParameter.resolvedReturnType
+                        ) {
+                            return@processOverridden
+                        }
+                    }
+
+                    val overriddenAnnotation = firAnnotation(
+                        overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
+                    ) ?: return@processOverridden
+
+                    val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
+                        markAnnotation, overriddenFunction.name.asString()
+                    )
+
+                    // Same functionName, same asProperty, the generated synthetic function will be same too.
+                    if (
+                        overriddenAnnoData.functionName == annoData.functionName
+                        && overriddenAnnoData.asProperty == annoData.asProperty
+                    ) {
+                        isOverride = true
+                    }
+                }
+            }
+        }
+        return isOverride
     }
 
     private val annotationPredicates = DeclarationPredicate.create {
@@ -321,14 +454,7 @@ class SuspendTransformFirTransformer(
                     for (transformer in transformerList) {
                         val markAnnotation = transformer.markAnnotation
 
-                        val anno = func.resolvedAnnotationsWithArguments.getAnnotationsByClassId(
-                            markAnnotation.classId,
-                            session
-                        ).firstOrNull()
-                            ?: classSymbol.resolvedAnnotationsWithArguments.getAnnotationsByClassId(
-                                markAnnotation.classId,
-                                session
-                            ).firstOrNull()
+                        val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
 
 
@@ -337,18 +463,10 @@ class SuspendTransformFirTransformer(
                         // 使用 argumentMapping.mapping 获取不到结果
 //                        println("RAW AnnoData: ${anno.argumentMapping.mapping}")
 
-                        val annoData = TransformAnnotationData.of(
-                            this.session,
-                            firAnnotation = anno,
-                            annotationBaseNamePropertyName = markAnnotation.baseNameProperty,
-                            annotationSuffixPropertyName = markAnnotation.suffixProperty,
-                            annotationAsPropertyPropertyName = markAnnotation.asPropertyProperty,
-                            defaultBaseName = functionName,
-                            defaultSuffix = markAnnotation.defaultSuffix,
-                            defaultAsProperty = markAnnotation.defaultAsProperty,
-                        )
+                        val annoData = anno.toTransformAnnotationData(markAnnotation, functionName)
 
-                        map.computeIfAbsent(Name.identifier(annoData.functionName)) { ConcurrentHashMap() }[func] =
+                        val syntheticFunName = Name.identifier(annoData.functionName)
+                        map.computeIfAbsent(syntheticFunName) { ConcurrentHashMap() }[func] =
                             FunData(annoData, transformer)
                     }
                 }
@@ -356,6 +474,33 @@ class SuspendTransformFirTransformer(
 
         return map
     }
+
+    private fun FirAnnotation.toTransformAnnotationData(
+        markAnnotation: MarkAnnotation,
+        sourceFunctionName: String
+    ) = TransformAnnotationData.of(
+        session,
+        firAnnotation = this,
+        annotationBaseNamePropertyName = markAnnotation.baseNameProperty,
+        annotationSuffixPropertyName = markAnnotation.suffixProperty,
+        annotationAsPropertyPropertyName = markAnnotation.asPropertyProperty,
+        defaultBaseName = sourceFunctionName,
+        defaultSuffix = markAnnotation.defaultSuffix,
+        defaultAsProperty = markAnnotation.defaultAsProperty,
+    )
+
+    private fun firAnnotation(
+        func: FirNamedFunctionSymbol,
+        markAnnotation: MarkAnnotation,
+        classSymbol: FirBasedSymbol<*>?
+    ) = func.resolvedAnnotationsWithArguments.getAnnotationsByClassId(
+        markAnnotation.classId,
+        session
+    ).firstOrNull()
+        ?: classSymbol?.resolvedAnnotationsWithArguments?.getAnnotationsByClassId(
+            markAnnotation.classId,
+            session
+        )?.firstOrNull()
 
     private fun resolveReturnType(original: FirSimpleFunction, funData: FunData): FirTypeRef {
         val resultConeType = resolveReturnConeType(original, funData)
@@ -544,6 +689,122 @@ class SuspendTransformFirTransformer(
             })
         }
     }
+
+
+    private fun isOverridable(
+        session: FirSession,
+        functionName: Name,
+        thisReceiverTypeRef: FirTypeRef?,
+        thisValueTypeRefs: List<FirTypeRef?>,
+        owner: FirClassSymbol<*>,
+        isProperty: Boolean,
+    ): Boolean {
+
+        if (isProperty) {
+            // value symbols must be empty.
+            check(thisValueTypeRefs.isEmpty()) { "property's value parameters must be empty." }
+
+            return owner.getSuperTypes(session)
+                .asSequence()
+                .mapNotNull {
+                    it.toRegularClassSymbol(session)
+                }
+                .flatMap {
+                    it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
+                }
+                .filter { !it.isFinal }
+                .filter { it.callableId.callableName == functionName }
+                // overridable receiver parameter.
+                .filter {
+                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                }
+                .any()
+        } else {
+            return owner.getSuperTypes(session)
+                .asSequence()
+                .mapNotNull {
+                    it.toRegularClassSymbol(session)
+                }
+                .flatMap {
+                    it.declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>()
+                }
+                // not final, overridable
+                .filter { !it.isFinal }
+                // same name
+                .filter { it.callableId.callableName == functionName }
+                // overridable receiver parameter.
+                .filter {
+                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                }
+                // overridable value parameters
+                .filter {
+                    val valuePs = it.valueParameterSymbols
+                        .map { vps ->
+                            vps.resolvedReturnTypeRef
+                        }
+
+                    if (valuePs.size != thisValueTypeRefs.size) return@filter false
+
+                    for (i in valuePs.indices) {
+                        val valueP = valuePs[i]
+                        val thisP = thisValueTypeRefs[i]
+
+                        if (thisP notSameAs valueP) {
+                            return@filter false
+                        }
+                    }
+
+                    true
+                }
+                .any()
+        }
+    }
+
+    private fun isOverridable(
+        session: FirSession,
+        functionName: Name,
+        originFunc: FirSimpleFunction,
+        owner: FirClassSymbol<*>,
+        isProperty: Boolean = false,
+    ): Boolean {
+        // 寻找 owner 中所有的 open/abstract的,
+        // parameters 的类型跟 originFunc 的 parameters 匹配的
+
+        val thisReceiverTypeRef: FirTypeRef? = originFunc.receiverParameter?.typeRef
+
+        val thisValueTypeRefs: List<FirTypeRef?> = originFunc.valueParameters.map {
+            it.symbol.resolvedReturnTypeRef
+        }
+
+        return isOverridable(session, functionName, thisReceiverTypeRef, thisValueTypeRefs, owner, isProperty)
+    }
+
+    /**
+     * Check is an overridable same type for a function's parameters.
+     *
+     */
+    private infix fun FirTypeRef?.sameAs(otherSuper: FirTypeRef?): Boolean {
+        if (this == otherSuper) return true
+        val thisConeType = this?.coneTypeOrNull
+        val otherConeType = otherSuper?.coneTypeOrNull
+
+        if (thisConeType == otherConeType) return true
+
+        if (thisConeType == null || otherConeType == null) {
+            // One this null, other is not null
+            return false
+        }
+
+        return thisConeType sameAs otherConeType
+    }
+
+    private infix fun ConeKotlinType.sameAs(otherSuper: ConeKotlinType): Boolean {
+        return this == otherSuper
+        // 有什么便捷的方法来处理 ConeTypeParameterType ？
+    }
+
+    private infix fun FirTypeRef?.notSameAs(otherSuper: FirTypeRef?): Boolean = !(this sameAs otherSuper)
+
 }
 
 
