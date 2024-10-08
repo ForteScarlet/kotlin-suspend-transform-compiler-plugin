@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.fir.plugin.createConeType
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.SessionHolderImpl
 import org.jetbrains.kotlin.fir.resolve.getSuperTypes
-import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
@@ -372,7 +371,7 @@ class SuspendTransformFirTransformer(
                     }
 
                     val overriddenAnnotation = firAnnotation(
-                        overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
+                        overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol(session)
                     ) ?: return@processOverridden
 
                     val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
@@ -501,11 +500,11 @@ class SuspendTransformFirTransformer(
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
                 diagnostic = resultConeType.diagnostic
-                coneType = resultConeType
+                type = resultConeType
             }
         } else {
             buildResolvedTypeRef {
-                coneType = resultConeType
+                type = resultConeType
             }
         }
     }
@@ -564,7 +563,7 @@ class SuspendTransformFirTransformer(
                 val copied = notCompileAnnotationsCopied.map { a ->
                     buildAnnotation {
                         annotationTypeRef = buildResolvedTypeRef {
-                            coneType = a.resolvedType
+                            type = a.resolvedType
                         }
                         this.typeArguments.addAll(a.typeArguments)
                         this.argumentMapping = buildAnnotationArgumentMapping {
@@ -599,7 +598,7 @@ class SuspendTransformFirTransformer(
                 val includeAnnotation = buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
                     annotationTypeRef = buildResolvedTypeRef {
-                        coneType = classId.createConeType(session)
+                        type = classId.createConeType(session)
                     }
                 }
                 add(includeAnnotation)
@@ -624,7 +623,7 @@ class SuspendTransformFirTransformer(
                     val includeAnnotation = buildAnnotation {
                         argumentMapping = buildAnnotationArgumentMapping()
                         annotationTypeRef = buildResolvedTypeRef {
-                            coneType = classId.createConeType(session)
+                            type = classId.createConeType(session)
                         }
                     }
                     add(includeAnnotation)
