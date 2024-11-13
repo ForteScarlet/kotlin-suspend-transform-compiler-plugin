@@ -17,10 +17,7 @@ import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.collectUpperBounds
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
-import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyAccessor
-import org.jetbrains.kotlin.fir.declarations.builder.buildSimpleFunctionCopy
-import org.jetbrains.kotlin.fir.declarations.builder.buildTypeParameterCopy
+import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
@@ -39,13 +36,11 @@ import org.jetbrains.kotlin.fir.resolve.getSuperTypes
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
+import org.jetbrains.kotlin.fir.scopes.impl.toConeType
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -155,12 +150,103 @@ class SuspendTransformFirTransformer(
                     // In the generated IR, data and dataBlocking will share an `A`, generating the error.
                     // The error: Duplicate IR node
                     //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                    // TODO copy to value parameters, receiver and return type?
+                    val originalTypeParameterCache = mutableMapOf<FirTypeParameter, FirTypeParameter>()
                      typeParameters.replaceAll {
                          buildTypeParameterCopy(it) {
                              containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
-                             symbol = it.symbol // FirTypeParameterSymbol()
+//                             symbol = it.symbol // FirTypeParameterSymbol()
+                             symbol = FirTypeParameterSymbol()
+                         }.also { new ->
+                             originalTypeParameterCache[it] = new
+
                          }
                      }
+
+                    // TODO
+                    valueParameters.replaceAll { vp ->
+                        buildValueParameterCopy(vp) {
+                            symbol = FirValueParameterSymbol(vp.symbol.name)
+
+                            val cachedTypeParameter = originalTypeParameterCache.entries.find { (k, v) ->
+                                k.toConeType() == vp.returnTypeRef.coneTypeOrNull
+                            }
+                            val newReturnTypeRef = if (cachedTypeParameter != null) {
+                                returnTypeRef.withReplacedConeType(cachedTypeParameter.value.toConeType())
+                            } else {
+                                println("returnTypeRef: $returnTypeRef")
+                                returnTypeRef.coneType.typeArgumentsOfLowerBoundIfFlexible.forEach {
+                                    println("returnTypeRef.coneType.typeArguments: $it")
+                                }
+
+                                returnTypeRef
+                            }
+
+                            returnTypeRef = newReturnTypeRef
+                        }
+                    }
+
+//                    valueParameters.replaceAll { vp ->
+//                        buildValueParameterCopy(vp) {
+//                            //println("find: ${originalTypeParameterCache[vp.returnTypeRef]}")
+//                            val cachedTypeParameter = originalTypeParameterCache.entries.find { (k, v) ->
+//                                k.toConeType() == vp.returnTypeRef.coneTypeOrNull
+//                            }
+//                            println("cache conetype: $cachedTypeParameter")
+//
+//                            println("returnTypeRef1: $returnTypeRef")
+//
+//                            val stack = ArrayDeque<Any>()
+//
+//                            fun resolveTypeCopy() {
+//
+//                            }
+//
+//                            val type = returnTypeRef.coneTypeOrNull
+//                            if (type != null && type.typeArguments.isNotEmpty()) {
+//                                for (subArguments in type.typeArguments) {
+//
+//                                }
+//                            }
+//
+//                            returnTypeRef.accept(object : FirVisitorVoid() {
+//                                override fun visitElement(element: FirElement) {
+//                                    println("visitElement($element)")
+//                                    element.acceptChildren(this)
+//                                }
+//
+//                                override fun visitResolvedTypeRef(resolvedTypeRef: FirResolvedTypeRef) {
+//                                    println("visitResolvedTypeRef(${resolvedTypeRef})")
+//                                    resolvedTypeRef.type.typeArguments.forEach {
+//                                        it.type?.typeArguments
+//                                    }
+//                                    super.visitResolvedTypeRef(resolvedTypeRef)
+//                                }
+//
+//                                override fun visitValueParameter(valueParameter: FirValueParameter) {
+//                                    println("visitValueParameter($valueParameter)")
+//                                    super.visitValueParameter(valueParameter)
+//                                }
+//
+//                                override fun visitTypeParameter(typeParameter: FirTypeParameter) {
+//                                    println("visitTypeParameter($typeParameter)")
+//                                    super.visitTypeParameter(typeParameter)
+//                                }
+//
+//                                override fun visitTypeParameterRef(typeParameterRef: FirTypeParameterRef) {
+//                                    println("visitTypeParameterRef($typeParameterRef)")
+//                                    super.visitTypeParameterRef(typeParameterRef)
+//                                }
+//                            })
+//
+//                            if (cachedTypeParameter != null) {
+//                                returnTypeRef = returnTypeRef.withReplacedConeType(cachedTypeParameter.value.toConeType())
+//                            }
+//
+//                            println("returnTypeRef2: $returnTypeRef")
+//                            symbol = FirValueParameterSymbol(vp.symbol.name)
+//                        }
+//                    }
 
                     // valueParameters.replaceAll { vp ->
                     //     buildValueParameterCopy(vp) {
@@ -188,7 +274,6 @@ class SuspendTransformFirTransformer(
                         )
                     ).origin
                 }
-
 
                 funList.add(newFun.symbol)
             }
