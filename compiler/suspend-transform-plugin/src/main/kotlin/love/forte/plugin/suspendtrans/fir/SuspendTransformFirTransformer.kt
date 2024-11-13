@@ -11,16 +11,14 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
 import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctions
+import org.jetbrains.kotlin.fir.builder.buildFunctionTypeParameter
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.collectUpperBounds
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
-import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyAccessor
-import org.jetbrains.kotlin.fir.declarations.builder.buildSimpleFunctionCopy
-import org.jetbrains.kotlin.fir.declarations.builder.buildTypeParameterCopy
+import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
@@ -45,6 +43,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.ir.builders.declarations.buildTypeParameter
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -151,11 +150,19 @@ class SuspendTransformFirTransformer(
                     // In the generated IR, data and dataBlocking will share an `A`, generating the error.
                     // The error: Duplicate IR node
                     //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                    // TODO onebot type parameters?
                      typeParameters.replaceAll {
                          buildTypeParameterCopy(it) {
-                             symbol = FirTypeParameterSymbol()
+                             containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
+                             symbol = it.symbol // FirTypeParameterSymbol()
                          }
                      }
+
+                    // valueParameters.replaceAll { vp ->
+                    //     buildValueParameterCopy(vp) {
+                    //         containingFunctionSymbol = newFunSymbol
+                    //     }
+                    // }
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)

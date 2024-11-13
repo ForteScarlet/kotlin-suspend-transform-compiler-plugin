@@ -13,6 +13,9 @@ interface Foo<out T : Bar> {
     @JvmAsync
     suspend fun value(): T
 
+    @JvmBlocking
+    @JvmAsync
+    suspend fun <R : Any> run(): R
 }
 
 class FooImpl : Foo<Tar> {
