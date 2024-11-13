@@ -33,6 +33,28 @@ FILE fqName:<root> fileName:/Main.kt
       overridden:
         public open fun hashCode (): kotlin.Int declared in <root>.Foo
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+    FUN FAKE_OVERRIDE name:run visibility:public modality:ABSTRACT <R> ($this:<root>.Foo<<root>.Tar>) returnType:R of <root>.Foo.runBlocking [suspend,fake_override]
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+      overridden:
+        public abstract fun run <R> (): R of <root>.Foo.runBlocking declared in <root>.Foo
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
+    FUN FAKE_OVERRIDE name:runAsync visibility:public modality:OPEN <R> ($this:<root>.Foo<<root>.Tar>) returnType:java.util.concurrent.CompletableFuture [fake_override]
+      annotations:
+        Api4J
+      overridden:
+        public open fun runAsync <R> (): java.util.concurrent.CompletableFuture declared in <root>.Foo
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
+    FUN FAKE_OVERRIDE name:runBlocking visibility:public modality:OPEN <R> ($this:<root>.Foo<<root>.Tar>) returnType:R of <root>.FooImpl.runBlocking [fake_override]
+      annotations:
+        Api4J
+      overridden:
+        public open fun runBlocking <R> (): R of <root>.Foo.runBlocking declared in <root>.Foo
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
     FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
       overridden:
         public open fun toString (): kotlin.String declared in <root>.Foo
@@ -91,6 +113,38 @@ FILE fqName:<root> fileName:/Main.kt
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runAsync visibility:public modality:OPEN <R> ($this:<root>.Foo<T of <root>.Foo>) returnType:java.util.concurrent.CompletableFuture
+      annotations:
+        Api4J
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun runAsync <R> (): java.util.concurrent.CompletableFuture declared in <root>.Foo'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            <T>: <none>
+            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<java.util.concurrent.CompletableFuture> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:java.util.concurrent.CompletableFuture [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <no name provided> (): java.util.concurrent.CompletableFuture declared in <root>.Foo.runAsync'
+                    CALL 'public abstract fun run <R> (): R of <root>.Foo.runBlocking declared in <root>.Foo' type=R of <root>.Foo.runBlocking origin=null
+                      <R>: <none>
+                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runAsync' type=<root>.Foo<T of <root>.Foo> origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:runBlocking visibility:public modality:OPEN <R> ($this:<root>.Foo<T of <root>.Foo>) returnType:R of <root>.Foo.runBlocking
+      annotations:
+        Api4J
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun runBlocking <R> (): R of <root>.Foo.runBlocking declared in <root>.Foo'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ origin=null
+            <T>: <none>
+            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.runBlocking> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<no name provided> visibility:local modality:FINAL <> () returnType:R of <root>.Foo.runBlocking [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <no name provided> (): R of <root>.Foo.runBlocking declared in <root>.Foo.runBlocking'
+                    CALL 'public abstract fun run <R> (): R of <root>.Foo.runBlocking declared in <root>.Foo' type=R of <root>.Foo.runBlocking origin=null
+                      <R>: <none>
+                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runBlocking' type=<root>.Foo<T of <root>.Foo> origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:java.util.concurrent.CompletableFuture
       annotations:
         Api4J
@@ -119,6 +173,13 @@ FILE fqName:<root> fileName:/Main.kt
                   RETURN type=kotlin.Nothing from='local final fun <no name provided> (): T of <root>.Foo declared in <root>.Foo.valueBlocking'
                     CALL 'public abstract fun value (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
                       $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueBlocking' type=<root>.Foo<T of <root>.Foo> origin=null
+    FUN name:run visibility:public modality:ABSTRACT <R> ($this:<root>.Foo<T of <root>.Foo>) returnType:R of <root>.Foo.runBlocking [suspend]
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmSynthetic
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
     FUN name:value visibility:public modality:ABSTRACT <> ($this:<root>.Foo<T of <root>.Foo>) returnType:T of <root>.Foo [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)

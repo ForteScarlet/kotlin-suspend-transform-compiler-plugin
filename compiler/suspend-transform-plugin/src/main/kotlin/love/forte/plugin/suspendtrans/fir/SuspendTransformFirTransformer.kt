@@ -42,7 +42,10 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
-import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -154,9 +157,16 @@ class SuspendTransformFirTransformer(
                     //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
                      typeParameters.replaceAll {
                          buildTypeParameterCopy(it) {
-                             symbol = FirTypeParameterSymbol()
+                             containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
+                             symbol = it.symbol // FirTypeParameterSymbol()
                          }
                      }
+
+                    // valueParameters.replaceAll { vp ->
+                    //     buildValueParameterCopy(vp) {
+                    //         containingFunctionSymbol = newFunSymbol
+                    //     }
+                    // }
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)
