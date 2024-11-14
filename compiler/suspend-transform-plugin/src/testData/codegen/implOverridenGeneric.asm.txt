@@ -293,8 +293,6 @@ public final class FooInterface3Impl : java/lang/Object, FooInterface3 {
 
     public Bar data2Blocking(java.lang.Object value)
 
-    public Bar data2Blocking(java.lang.Object value)
-
     public Foo data2Blocking(java.lang.Object value)
 
     public java.lang.Object data3(int $this$data3, kotlin.coroutines.Continuation $completion)

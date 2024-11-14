@@ -19,14 +19,14 @@ FILE fqName:<root> fileName:/Main.kt
       overridden:
         public open fun toString (): kotlin.String declared in <root>.FooInterface1
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>, value:A of <root>.FooInterface1Impl.data2) returnType:T of <root>.FooInterface1Impl
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>, value:A of <root>.FooInterface1Impl.data2Blocking) returnType:T of <root>.FooInterface1Impl
       annotations:
         Api4J
       TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
-      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface1Impl.data2
+      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface1Impl.data2Blocking
       BLOCK_BODY
-        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface1Impl.data2): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface1Impl.data2Blocking): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
           CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ origin=null
             <T>: <none>
             block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface1Impl> origin=LAMBDA
@@ -36,7 +36,7 @@ FILE fqName:<root> fileName:/Main.kt
                     CALL 'public open fun data2 <A> (value: A of <root>.FooInterface1Impl.data2): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl' type=T of <root>.FooInterface1Impl origin=null
                       <A>: <none>
                       $this: GET_VAR '<this>: <root>.FooInterface1Impl<T of <root>.FooInterface1Impl> declared in <root>.FooInterface1Impl.data2Blocking' type=<root>.FooInterface1Impl<T of <root>.FooInterface1Impl> origin=null
-                      value: GET_VAR 'value: A of <root>.FooInterface1Impl.data2 declared in <root>.FooInterface1Impl.data2Blocking' type=A of <root>.FooInterface1Impl.data2 origin=null
+                      value: GET_VAR 'value: A of <root>.FooInterface1Impl.data2Blocking declared in <root>.FooInterface1Impl.data2Blocking' type=A of <root>.FooInterface1Impl.data2Blocking origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data3Blocking visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface1Impl
       annotations:
         Api4J
@@ -205,14 +205,6 @@ FILE fqName:<root> fileName:/Main.kt
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooInterface3Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface3<T of <root>.FooInterface3Impl>]'
-    FUN FAKE_OVERRIDE name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface3<T of <root>.FooInterface3Impl>, value:A of <root>.FooInterface3.data2) returnType:T of <root>.FooInterface3Impl [fake_override]
-      annotations:
-        Api4J
-      overridden:
-        public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3
-      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3Impl>
-      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface3.data2
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.FooInterface3
@@ -226,14 +218,16 @@ FILE fqName:<root> fileName:/Main.kt
       overridden:
         public open fun toString (): kotlin.String declared in <root>.FooInterface3
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>, value:A of <root>.FooInterface3Impl.data2) returnType:T of <root>.FooInterface3Impl
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>, value:A of <root>.FooInterface3Impl.data2Blocking) returnType:T of <root>.FooInterface3Impl
       annotations:
         Api4J
+      overridden:
+        public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2Blocking): T of <root>.FooInterface3 declared in <root>.FooInterface3
       TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
-      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface3Impl.data2
+      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface3Impl.data2Blocking
       BLOCK_BODY
-        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3Impl.data2): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3Impl.data2Blocking): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
           CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ origin=null
             <T>: <none>
             block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3Impl> origin=LAMBDA
@@ -243,7 +237,7 @@ FILE fqName:<root> fileName:/Main.kt
                     CALL 'public open fun data2 <A> (value: A of <root>.FooInterface3Impl.data2): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl' type=T of <root>.FooInterface3Impl origin=null
                       <A>: <none>
                       $this: GET_VAR '<this>: <root>.FooInterface3Impl<T of <root>.FooInterface3Impl> declared in <root>.FooInterface3Impl.data2Blocking' type=<root>.FooInterface3Impl<T of <root>.FooInterface3Impl> origin=null
-                      value: GET_VAR 'value: A of <root>.FooInterface3Impl.data2 declared in <root>.FooInterface3Impl.data2Blocking' type=A of <root>.FooInterface3Impl.data2 origin=null
+                      value: GET_VAR 'value: A of <root>.FooInterface3Impl.data2Blocking declared in <root>.FooInterface3Impl.data2Blocking' type=A of <root>.FooInterface3Impl.data2Blocking origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data3Blocking visibility:public modality:OPEN <> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface3Impl
       annotations:
         Api4J
@@ -510,14 +504,14 @@ FILE fqName:<root> fileName:/Main.kt
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
       $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface3<T of <root>.FooInterface3>, value:A of <root>.FooInterface3.data2) returnType:T of <root>.FooInterface3
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data2Blocking visibility:public modality:OPEN <A> ($this:<root>.FooInterface3<T of <root>.FooInterface3>, value:A of <root>.FooInterface3.data2Blocking) returnType:T of <root>.FooInterface3
       annotations:
         Api4J
       TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3>
-      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface3.data2
+      VALUE_PARAMETER name:value index:0 type:A of <root>.FooInterface3.data2Blocking
       BLOCK_BODY
-        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3'
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2Blocking): T of <root>.FooInterface3 declared in <root>.FooInterface3'
           CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ origin=null
             <T>: <none>
             block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3> origin=LAMBDA
@@ -527,7 +521,7 @@ FILE fqName:<root> fileName:/Main.kt
                     CALL 'public abstract fun data2 <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3' type=T of <root>.FooInterface3 origin=null
                       <A>: <none>
                       $this: GET_VAR '<this>: <root>.FooInterface3<T of <root>.FooInterface3> declared in <root>.FooInterface3.data2Blocking' type=<root>.FooInterface3<T of <root>.FooInterface3> origin=null
-                      value: GET_VAR 'value: A of <root>.FooInterface3.data2 declared in <root>.FooInterface3.data2Blocking' type=A of <root>.FooInterface3.data2 origin=null
+                      value: GET_VAR 'value: A of <root>.FooInterface3.data2Blocking declared in <root>.FooInterface3.data2Blocking' type=A of <root>.FooInterface3.data2Blocking origin=null
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:data3Blocking visibility:public modality:OPEN <> ($this:<root>.FooInterface3<T of <root>.FooInterface3>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface3
       annotations:
         Api4J

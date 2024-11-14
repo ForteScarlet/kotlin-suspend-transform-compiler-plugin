@@ -55,6 +55,10 @@ import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
 import java.util.concurrent.ConcurrentHashMap
 
+private data class CopiedTypeParameterPair(
+    val original: FirTypeParameter,
+    val copied: FirTypeParameter
+)
 
 /**
  *
@@ -150,114 +154,55 @@ class SuspendTransformFirTransformer(
                     // The error: Duplicate IR node
                     //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
                     // TODO copy to value parameters, receiver and return type?
-                    val originalTypeParameterCache = mutableMapOf<FirTypeParameter, FirTypeParameter>()
-                     typeParameters.replaceAll {
-                         buildTypeParameterCopy(it) {
-                             containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
+                    val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
+                    typeParameters.replaceAll {
+                        buildTypeParameterCopy(it) {
+                            containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
 //                             symbol = it.symbol // FirTypeParameterSymbol()
-                             symbol = FirTypeParameterSymbol()
-                         }.also { new ->
-                             originalTypeParameterCache[it] = new
+                            symbol = FirTypeParameterSymbol()
+                        }.also { new ->
+                            originalTypeParameterCache.add(CopiedTypeParameterPair(it, new))
+                        }
+                    }
 
-                         }
-                     }
-
-                    // TODO
                     valueParameters.replaceAll { vp ->
                         buildValueParameterCopy(vp) {
                             symbol = FirValueParameterSymbol(vp.symbol.name)
 
-                            val cachedTypeParameter = originalTypeParameterCache.entries.find { (k, v) ->
-                                k.toConeType() == vp.returnTypeRef.coneTypeOrNull
-                            }
-                            val newReturnTypeRef = if (cachedTypeParameter != null) {
-                                returnTypeRef.withReplacedConeType(cachedTypeParameter.value.toConeType())
-                            } else {
-                                println("returnTypeRef: $returnTypeRef")
-                                returnTypeRef.coneType.typeArguments.forEach {
-                                    println("returnTypeRef.coneType.typeArguments: $it")
-                                }
+                            val copiedConeType = vp.returnTypeRef.coneTypeOrNull
+                                ?.copyWithTypeParameters(originalTypeParameterCache)
 
-                                returnTypeRef
+                            if (copiedConeType != null) {
+                                returnTypeRef = returnTypeRef.withReplacedConeType(copiedConeType)
                             }
-
-                            returnTypeRef = newReturnTypeRef
                         }
                     }
 
-//                    valueParameters.replaceAll { vp ->
-//                        buildValueParameterCopy(vp) {
-//                            //println("find: ${originalTypeParameterCache[vp.returnTypeRef]}")
-//                            val cachedTypeParameter = originalTypeParameterCache.entries.find { (k, v) ->
-//                                k.toConeType() == vp.returnTypeRef.coneTypeOrNull
-//                            }
-//                            println("cache conetype: $cachedTypeParameter")
-//
-//                            println("returnTypeRef1: $returnTypeRef")
-//
-//                            val stack = ArrayDeque<Any>()
-//
-//                            fun resolveTypeCopy() {
-//
-//                            }
-//
-//                            val type = returnTypeRef.coneTypeOrNull
-//                            if (type != null && type.typeArguments.isNotEmpty()) {
-//                                for (subArguments in type.typeArguments) {
-//
-//                                }
-//                            }
-//
-//                            returnTypeRef.accept(object : FirVisitorVoid() {
-//                                override fun visitElement(element: FirElement) {
-//                                    println("visitElement($element)")
-//                                    element.acceptChildren(this)
-//                                }
-//
-//                                override fun visitResolvedTypeRef(resolvedTypeRef: FirResolvedTypeRef) {
-//                                    println("visitResolvedTypeRef(${resolvedTypeRef})")
-//                                    resolvedTypeRef.type.typeArguments.forEach {
-//                                        it.type?.typeArguments
-//                                    }
-//                                    super.visitResolvedTypeRef(resolvedTypeRef)
-//                                }
-//
-//                                override fun visitValueParameter(valueParameter: FirValueParameter) {
-//                                    println("visitValueParameter($valueParameter)")
-//                                    super.visitValueParameter(valueParameter)
-//                                }
-//
-//                                override fun visitTypeParameter(typeParameter: FirTypeParameter) {
-//                                    println("visitTypeParameter($typeParameter)")
-//                                    super.visitTypeParameter(typeParameter)
-//                                }
-//
-//                                override fun visitTypeParameterRef(typeParameterRef: FirTypeParameterRef) {
-//                                    println("visitTypeParameterRef($typeParameterRef)")
-//                                    super.visitTypeParameterRef(typeParameterRef)
-//                                }
-//                            })
-//
-//                            if (cachedTypeParameter != null) {
-//                                returnTypeRef = returnTypeRef.withReplacedConeType(cachedTypeParameter.value.toConeType())
-//                            }
-//
-//                            println("returnTypeRef2: $returnTypeRef")
-//                            symbol = FirValueParameterSymbol(vp.symbol.name)
-//                        }
-//                    }
+                    receiverParameter?.also { receiverParameter ->
+                        receiverParameter.typeRef.coneTypeOrNull
+                            ?.copyWithTypeParameters(originalTypeParameterCache)
+                            ?.also { foundCopied ->
+                                this.receiverParameter = buildReceiverParameterCopy(receiverParameter) {
+                                    typeRef = typeRef.withReplacedConeType(foundCopied)
+                                }
+                            }
+                    }
 
-                    // valueParameters.replaceAll { vp ->
-                    //     buildValueParameterCopy(vp) {
-                    //         containingFunctionSymbol = newFunSymbol
-                    //     }
-                    // }
+
+                    val coneTypeOrNull = returnTypeRef.coneTypeOrNull
+                    if (coneTypeOrNull != null) {
+                        returnTypeRef = returnTypeRef.withReplacedConeType(
+                            coneTypeOrNull
+                                .copyWithTypeParameters(originalTypeParameterCache)
+                                ?: coneTypeOrNull,
+                        )
+                    }
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)
                     body = null
 
-                    val returnType = resolveReturnType(originFunc, funData)
+                    val returnType = resolveReturnType(originFunc, funData, returnTypeRef)
 
                     returnTypeRef = returnType
 
@@ -343,7 +288,8 @@ class SuspendTransformFirTransformer(
                     )
                 )
 
-                val returnType = resolveReturnType(original, funData)
+
+                val returnType = resolveReturnType(original, funData, original.returnTypeRef)
 
                 val p1 = buildProperty {
                     symbol = pSymbol
@@ -589,8 +535,12 @@ class SuspendTransformFirTransformer(
             session
         )?.firstOrNull()
 
-    private fun resolveReturnType(original: FirSimpleFunction, funData: FunData): FirTypeRef {
-        val resultConeType = resolveReturnConeType(original, funData)
+    private fun resolveReturnType(
+        original: FirSimpleFunction,
+        funData: FunData,
+        returnTypeRef: FirTypeRef
+    ): FirTypeRef {
+        val resultConeType = resolveReturnConeType(original, funData, returnTypeRef)
 
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
@@ -604,15 +554,19 @@ class SuspendTransformFirTransformer(
         }
     }
 
-    private fun resolveReturnConeType(original: FirSimpleFunction, funData: FunData): ConeKotlinType {
+    private fun resolveReturnConeType(
+        original: FirSimpleFunction,
+        funData: FunData,
+        returnTypeRef: FirTypeRef
+    ): ConeKotlinType {
         val transformer = funData.transformer
         val returnType = transformer.transformReturnType
-            ?: return original.symbol.resolvedReturnType
+            ?: return returnTypeRef.coneType // OrNull // original.symbol.resolvedReturnType
 
         var typeArguments: Array<ConeTypeProjection> = emptyArray()
 
         if (transformer.transformReturnTypeGeneric) {
-            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(original.returnTypeRef.coneType))
+            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(returnTypeRef.coneType))
         }
 
         val resultConeType = returnType.toClassId().createConeType(
@@ -892,6 +846,144 @@ class SuspendTransformFirTransformer(
 
     private infix fun FirTypeRef?.notSameAs(otherSuper: FirTypeRef?): Boolean = !(this sameAs otherSuper)
 
+
+    private fun ConeKotlinType.copyWithTypeParameters(
+        parameters: List<CopiedTypeParameterPair>,
+    ): ConeKotlinType? {
+        fun findCopied(target: ConeKotlinType) = parameters.find { (original, _) ->
+            original.toConeType() == target
+        }?.copied
+
+        when (this) {
+            is ConeDynamicType -> {
+                //println("Dynamic type: $this")
+            }
+
+            is ConeFlexibleType -> {
+                //println("Flexible type: $this")
+            }
+
+            // var typeArguments: Array<ConeTypeProjection> = emptyArray()
+            //
+            //         if (transformer.transformReturnTypeGeneric) {
+            //             typeArguments = arrayOf(ConeKotlinTypeProjectionOut(original.returnTypeRef.coneType))
+            //         }
+
+            is ConeClassLikeType -> {
+                if (typeArguments.isNotEmpty()) {
+
+                    fun mapProjection(projection: ConeTypeProjection): ConeTypeProjection? {
+                        return when (projection) {
+                            // is ConeFlexibleType -> {
+                            // }
+                            is ConeCapturedType -> {
+                                val lowerType = projection.lowerType?.let { lowerType ->
+                                    findCopied(lowerType)
+                                }?.toConeType()
+
+                                if (lowerType == null) {
+                                    projection.copy(
+                                        lowerType = lowerType
+                                    )
+                                } else {
+                                    null
+                                }
+                            }
+
+                            is ConeDefinitelyNotNullType -> {
+                                findCopied(projection.original)
+                                    ?.toConeType()
+                                    ?.let { projection.copy(it) }
+                            }
+                            // is ConeIntegerConstantOperatorType -> TODO()
+                            // is ConeIntegerLiteralConstantType -> TODO()
+                            is ConeIntersectionType -> {
+                                val upperBoundForApproximation =
+                                    projection.upperBoundForApproximation
+                                        ?.let { findCopied(it) }
+                                        ?.toConeType()
+
+                                var anyIntersectedTypes = false
+
+                                val intersectedTypes = projection.intersectedTypes.map { ktype ->
+                                    findCopied(ktype)
+                                        ?.toConeType()
+                                        ?.also { anyIntersectedTypes = true }
+                                        ?: ktype
+                                }
+
+                                if (upperBoundForApproximation != null || anyIntersectedTypes) {
+                                    ConeIntersectionType(
+                                        intersectedTypes,
+                                        upperBoundForApproximation
+                                    )
+                                } else {
+                                    null
+                                }
+                            }
+                            // is ConeLookupTagBasedType -> TODO()
+                            // is ConeStubTypeForTypeVariableInSubtyping -> TODO()
+                            // is ConeTypeVariableType -> {
+                            //     TODO()
+                            // }
+                            is ConeKotlinTypeConflictingProjection -> {
+                                findCopied(projection.type)
+                                    ?.toConeType()
+                                    ?.let { projection.copy(it) }
+                            }
+
+                            is ConeKotlinTypeProjectionIn -> {
+                                findCopied(projection.type)
+                                    ?.toConeType()
+                                    ?.let { projection.copy(it) }
+                            }
+
+                            is ConeKotlinTypeProjectionOut -> {
+                                findCopied(projection.type)
+                                    ?.toConeType()
+                                    ?.let { projection.copy(it) }
+                            }
+
+                            is ConeTypeParameterType -> {
+                                findCopied(projection)?.toConeType()
+                            }
+
+                            ConeStarProjection -> projection
+                            // Other unknowns
+                            else -> null
+                        }
+                    }
+
+                    val typeArguments: Array<ConeTypeProjection> = typeArguments.map { projection ->
+                        mapProjection(projection) ?: projection
+                    }.toTypedArray()
+
+                    return classId?.createConeType(
+                        session = session,
+                        typeArguments = typeArguments,
+                        nullable = isNullable
+                    )
+                    // typeArguments.forEach { projection ->
+                    //     projection.type?.copyWithTypeParameters(parameters)
+                    // }
+                }
+
+                return null
+            }
+
+            is ConeTypeParameterType -> {
+                return parameters.find { (original, _) ->
+                    original.toConeType() == this
+                }?.copied?.toConeType() ?: this
+            }
+
+            else -> {
+
+            }
+        }
+        return this
+        // this.fullyExpandedClassId().createConeType()
+    }
 }
 
 
@@ -912,3 +1004,4 @@ private val FirSimpleFunction.syntheticModifier: Modality?
         modality == Modality.ABSTRACT -> Modality.OPEN
         else -> status.modality
     }
+
