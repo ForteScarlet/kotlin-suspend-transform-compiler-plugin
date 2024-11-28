@@ -172,7 +172,7 @@ private fun FirTypeParameter.toTypeParameter(): TypeParameter =
 data class ValueParameter(val name: Name, val type: ClassId?)
 
 private fun FirValueParameter.toValueParameter(): ValueParameter =
-    ValueParameter(name, returnTypeRef.coneTypeOrNull?.type?.classId)
+    ValueParameter(name, returnTypeRef.coneTypeOrNull?.classId)
 
 
 fun OriginSymbol.checkSame(declaration: IrFunction): Boolean {
