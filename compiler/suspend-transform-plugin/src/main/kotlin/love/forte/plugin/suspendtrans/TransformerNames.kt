@@ -28,11 +28,6 @@ val generatedAnnotationName: FqName = GENERATED_ANNOTATION_NAME.fqn
 
 val generatedAnnotationClassId = ClassId.topLevel(generatedAnnotationName)
 
-const val GENERATED_BY_ANNOTATION_NAME: String =
-    "love.forte.plugin.suspendtrans.annotation.GeneratedBy"
-
-val generatedByAnnotationName: FqName = GENERATED_BY_ANNOTATION_NAME.fqn
-
 //region JVM
 // region jvm blocking
 const val TO_JVM_BLOCKING_ANNOTATION_NAME: String =

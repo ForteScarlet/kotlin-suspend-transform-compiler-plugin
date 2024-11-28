@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
-import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
@@ -66,16 +65,16 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
                     FrontendKinds.ClassicFrontend,
                     ::ClassicFrontendFacade,
                     ::ClassicFrontend2IrConverter,
-                    ::JvmIrBackendFacade
-                ) { }
+                    // ::JvmIrBackendFacade
+                ) // { }
             }
             FrontendKinds.FIR -> {
                 commonConfigurationForTest(
                     FrontendKinds.FIR,
                     ::FirFrontendFacade,
                     ::Fir2IrResultsConverter,
-                    ::JvmIrBackendFacade
-                ) { }
+                    // ::JvmIrBackendFacade
+                ) // { }
             }
         }
 

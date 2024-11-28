@@ -487,7 +487,7 @@ class Bar {
 }
 ```
 
-## Custom config
+## Customization
 
 ```kotlin
 plugin {
@@ -561,16 +561,16 @@ public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null)
     return scope0.future { block() }
     
     /*
-        the `scope` is the `block`'s container:
-        ```
-        interface Container {
-            @JvmAsync
-            suspend fun run()
-            👇 compiled
-            
-            fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
-        }
-        ``` 
+     *  the `scope` is the `block`'s container:
+     *  ```
+     *  interface Container {
+     *      @JvmAsync
+     *      suspend fun run()
+     *      👇 compiled
+     *      
+     *      fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
+     *  }
+     *  ``` 
      */
 }
 
@@ -598,9 +598,9 @@ public annotation class SuspendTrans(
     val asyncSuffix: String = "Async",
     val asyncAsProperty: Boolean = false,
 
-    val reserveBaseName: String = "",
-    val reserveSuffix: String = "Reserve",
-    val reserveAsProperty: Boolean = false,
+    val jsPromiseBaseName: String = "",
+    val jsPromiseSuffix: String = "Async",
+    val jsPromiseAsProperty: Boolean = false,
 )
 ```
 
@@ -616,14 +616,14 @@ val jvmSuspendTransMarkAnnotationForBlocking = MarkAnnotation(
     baseNameProperty = "blockingBaseName",
     suffixProperty = "blockingSuffix",
     asPropertyProperty = "blockingAsProperty",
-    defaultSuffix = SuspendTransformConfiguration.jvmBlockingAnnotationInfo.defaultSuffix,
+    defaultSuffix = "Blocking",
 )
 val jvmSuspendTransMarkAnnotationForAsync = MarkAnnotation(
     suspendTransMarkAnnotationClassInfo,
     baseNameProperty = "asyncBaseName",
     suffixProperty = "asyncSuffix",
     asPropertyProperty = "asyncAsProperty",
-    defaultSuffix = SuspendTransformConfiguration.jvmAsyncAnnotationInfo.defaultSuffix,
+    defaultSuffix = "Async",
 )
 val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
     suspendTransMarkAnnotationClassInfo,
@@ -633,23 +633,65 @@ val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
     defaultSuffix = "Async",
 )
 
+// The transform functions
+val jvmBlockingFunction = FunctionInfo("com.example", null, "runInBlocking")
+val jvmAsyncFunction = FunctionInfo("com.example", null, "runInAsync")
+val jsPromiseFunction = FunctionInfo("com.example", null, "runInPromise")
+
 // The transformers
-val suspendTransTransformerForJvmBlocking: Transformer = jvmBlockingTransformer.copy(
+val suspendTransTransformerForJvmBlocking: Transformer = Transformer(
     markAnnotation = jvmSuspendTransMarkAnnotationForBlocking,
-    copyAnnotationExcludes = SuspendTransformConfiguration.jvmBlockingTransformer.copyAnnotationExcludes +
-            jvmSuspendTransMarkAnnotationForBlocking.classInfo
+    transformFunctionInfo = jvmBlockingFunction,
+    transformReturnType = null, // same as origin function
+    transformReturnTypeGeneric = false,
+    // include @JvmSynthetic into origin function
+    originFunctionIncludeAnnotations = listOf(
+        SuspendTransformConfiguration.jvmSyntheticClassInfo,
+    ),
+    copyAnnotationsToSyntheticFunction = true,
+    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
+    copyAnnotationExcludes = listOf(
+        SuspendTransformConfiguration.jvmSyntheticClassInfo,
+        SuspendTransformConfiguration.kotlinOptInClassInfo,
+        suspendTransMarkAnnotationClassInfo,
+    ),
+    // Include into synthetic function's annotations
+    syntheticFunctionIncludeAnnotations = listOf()
 )
 
-val suspendTransTransformerForJvmAsync: Transformer = jvmAsyncTransformer.copy(
+val suspendTransTransformerForJvmAsync: Transformer = Transformer(
     markAnnotation = jvmSuspendTransMarkAnnotationForAsync,
-    copyAnnotationExcludes = SuspendTransformConfiguration.jvmAsyncTransformer.copyAnnotationExcludes +
-            jvmSuspendTransMarkAnnotationForAsync.classInfo
+    transformFunctionInfo = jvmAsyncFunction,
+    transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
+    transformReturnTypeGeneric = true, // Future's generic type is origin function's return type.
+    // include @JvmSynthetic into origin function
+    originFunctionIncludeAnnotations = listOf(
+        SuspendTransformConfiguration.jvmSyntheticClassInfo,
+    ),
+    copyAnnotationsToSyntheticFunction = true,
+    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
+    copyAnnotationExcludes = listOf(
+        SuspendTransformConfiguration.jvmSyntheticClassInfo,
+        suspendTransMarkAnnotationClassInfo,
+        SuspendTransformConfiguration.kotlinOptInClassInfo,
+    ),
+    // Include into synthetic function's annotations
+    syntheticFunctionIncludeAnnotations = listOf()
 )
 
-val suspendTransTransformerForJsPromise: Transformer = jsPromiseTransformer.copy(
-    markAnnotation = jvmSuspendTransMarkAnnotationForReserve,
-    copyAnnotationExcludes = jsPromiseTransformer.copyAnnotationExcludes +
-            jsSuspendTransMarkAnnotationForPromise.classInfo,
+val suspendTransTransformerForJsPromise: Transformer = Transformer(
+    markAnnotation = jsSuspendTransMarkAnnotationForPromise,
+    transformFunctionInfo = jsPromiseFunction,
+    transformReturnType = ClassInfo("kotlin.js", "Promise"),
+    transformReturnTypeGeneric = true, // Promise's generic type is origin function's return type.
+    originFunctionIncludeAnnotations = listOf(),
+    copyAnnotationsToSyntheticFunction = true,
+    // excludes: @OptIn, @SuspendTrans
+    copyAnnotationExcludes = listOf(
+        SuspendTransformConfiguration.kotlinOptInClassInfo,
+        suspendTransMarkAnnotationClassInfo,
+    ),
+    syntheticFunctionIncludeAnnotations = listOf()
 )
 
 // The above section can also be considered to be defined in `buildSrc`.

@@ -37,8 +37,10 @@ public expect annotation class Api4Js()
 @OptionalExpectation
 public expect annotation class JvmBlocking(
     /**
-     * 生成函数的基础名称，如果为空则为当前函数名。
-     * 最终生成的函数名为 [baseName] + [suffix]。
+     * The base name of synthetic function
+     * or the current function name if empty.
+     *
+     * The final function name is: [baseName] + [suffix]
      */
     val baseName: String = "",
 
@@ -57,7 +59,7 @@ public expect annotation class JvmBlocking(
      * val fooBlocking: T get() = runInBlocking { foo() }
      * ```
      *
-     * 只有函数没有参数时有效。
+     * Note: If [asProperty] == `true`, the function cannot have parameters.
      *
      */
     val asProperty: Boolean = false
@@ -97,8 +99,7 @@ public expect annotation class JvmAsync(
      * val fooAsync: Future<T> get() = runInAsync { foo() }
      * ```
      *
-     * 只有函数没有参数时有效。
-     *
+     * Note: If [asProperty] == `true`, the function cannot have parameters.
      */
     val asProperty: Boolean = false
 )
@@ -108,4 +109,21 @@ public expect annotation class JvmAsync(
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 @OptionalExpectation
-public expect annotation class JsPromise()
+public expect annotation class JsPromise(
+    val baseName: String = "",
+    val suffix: String = "Async",
+    /**
+     * 是否转化为 property 的形式：
+     *
+     * ```kotlin
+     * suspend fun foo(): T = ...
+     *
+     * // Generated
+     * val fooAsync: Promise<T> get() = runInAsync { foo() }
+     * ```
+     *
+     * Note: If [asProperty] == `true`, the function cannot have parameters.
+     *
+     */
+    val asProperty: Boolean = false
+)

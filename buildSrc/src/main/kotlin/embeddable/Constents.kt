@@ -2,4 +2,4 @@ package embeddable
 
 // constants
 
-const val EMBEDDED = "embedded"
+const val CONSTANTS_EMBEDDED = "embedded"

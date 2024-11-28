@@ -274,7 +274,7 @@ class SuspendTransformTransformer(
 private fun IrFunction.reportLocation(): CompilerMessageSourceLocation? {
     return when (val sourceLocation =
 //        getSourceLocation(runCatching { fileEntry }.getOrNull())) {
-        getSourceLocation(file)) {
+        getSourceLocation(declaration = symbol, file = file)) {
         is SourceLocation.Location -> {
             CompilerMessageLocation.create(
                 path = sourceLocation.file,

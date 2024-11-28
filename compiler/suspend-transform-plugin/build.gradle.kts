@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     java
     kotlin("jvm")
-    kotlin("kapt")
     kotlin("plugin.serialization")
     id("com.github.gmazzo.buildconfig")
     id("suspend-transform.jvm-maven-publish")
@@ -15,14 +14,9 @@ plugins {
 
 dependencies {
     compileOnly(kotlin("stdlib"))
-    compileOnly(kotlin("compiler"))
+    implementation(kotlin("compiler"))
     compileOnly(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.serialization.json)
-
-//    compileOnly(kotlin("compiler-embeddable"))
-
-    kapt(libs.google.auto.service)
-    compileOnly(libs.google.auto.service.annotations)
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("stdlib"))

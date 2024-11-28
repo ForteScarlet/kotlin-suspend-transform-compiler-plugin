@@ -24,14 +24,12 @@ dependencies {
     api("com.gradle.publish:plugin-publish-plugin:1.2.1")
     // see https://github.com/gmazzo/gradle-buildconfig-plugin
     api("com.github.gmazzo.buildconfig:plugin:$buildConfig")
-    // see https://github.com/bnorm/kotlin-power-assert#compatibility
-    api("gradle.plugin.com.bnorm.power:kotlin-power-assert-gradle:0.12.0")
     // see https://github.com/gradle-nexus/publish-plugin
     api("io.github.gradle-nexus:publish-plugin:$nexusPublishPlugin")
 
 //    api("com.github.jengelman.gradle.plugins:shadow:8.3.0")
     // https://gradleup.com/shadow/
-    api("com.gradleup.shadow:shadow-gradle-plugin:8.3.0")
+    api("com.gradleup.shadow:shadow-gradle-plugin:8.3.2")
 
     implementation("love.forte.gradle.common:gradle-common-core:$gradleCommon")
     implementation("love.forte.gradle.common:gradle-common-kotlin-multiplatform:$gradleCommon")
