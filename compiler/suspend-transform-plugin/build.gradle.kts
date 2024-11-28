@@ -14,7 +14,7 @@ plugins {
 
 dependencies {
     compileOnly(kotlin("stdlib"))
-    compileOnly(kotlin("compiler"))
+    implementation(kotlin("compiler"))
     compileOnly(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.serialization.json)
 

@@ -14,5 +14,8 @@ interface ApiResult<T : Any>
  */
 interface ApiExecutable {
     @JvmAsync
-    fun <T : Any> execute(api: Api<T>): T // ApiResult<T>
+    suspend fun <T : Any> execute(api: Api<T>): T
+
+    @JvmAsync
+    suspend fun <T : Any> execute2(api: Api<T>): ApiResult<T>
 }
