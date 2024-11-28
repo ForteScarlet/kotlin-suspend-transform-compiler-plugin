@@ -20,7 +20,6 @@ buildscript {
     }
     dependencies {
         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.0-0.9.4")
-        classpath("org.jetbrains.kotlin:kotlin-compiler:2.1.0")
     }
 }
 
