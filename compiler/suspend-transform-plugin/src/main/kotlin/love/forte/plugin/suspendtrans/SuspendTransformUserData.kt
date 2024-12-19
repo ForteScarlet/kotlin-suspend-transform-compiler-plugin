@@ -2,17 +2,25 @@ package love.forte.plugin.suspendtrans
 
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.toClassLikeSymbol
+import org.jetbrains.kotlin.fir.declarations.ExpectForActualMatchingData
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
+import org.jetbrains.kotlin.fir.declarations.expectForActual
+import org.jetbrains.kotlin.fir.scopes.impl.toConeType
+import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneTypeOrNull
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.types.classFqName
-import org.jetbrains.kotlin.ir.util.callableId
-import org.jetbrains.kotlin.ir.util.hasEqualFqName
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.js.descriptorUtils.getKotlinTypeFqName
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -134,48 +142,147 @@ data class OriginValueParameter(
 
 data class SuspendTransformUserDataFir(
     val originSymbol: OriginSymbol,
+    val markerId: String,
     val asProperty: Boolean,
     val transformer: Transformer
 )
 
 fun FirNamedFunctionSymbol.asOriginSymbol(
+    targetMarker: ClassId?,
     typeParameters: List<FirTypeParameter>,
     valueParameters: List<FirValueParameter>,
-    returnType: ClassId?
+    returnType: ClassId?,
+    session: FirSession,
 ): OriginSymbol {
     return OriginSymbol(
+        targetMarker,
+        symbol = this,
         callableId = this.callableId,
         typeParameters = typeParameters.map { it.toTypeParameter() },
-        valueParameters = valueParameters.map { it.toValueParameter() },
+        valueParameters = valueParameters.mapIndexed { index, p -> p.toValueParameter(session, index) },
         returnType
     )
 }
 
 data class OriginSymbol(
+    val targetMarker: ClassId?,
+    val symbol: FirNamedFunctionSymbol,
     val callableId: CallableId,
     val typeParameters: List<TypeParameter>,
     val valueParameters: List<ValueParameter>,
     val returnType: ClassId?
 )
 
-data class TypeParameter(val name: Name, val varianceOrdinal: Int, val isReified: Boolean, val bounds: List<ClassId?>)
+data class TypeParameter(
+    val name: Name,
+    val varianceOrdinal: Int,
+    val isReified: Boolean,
+    val bounds: List<ClassId?>,
+    val type: ConeTypeParameterType,
+)
 
-private fun FirTypeParameter.toTypeParameter(): TypeParameter =
-    TypeParameter(
+private fun FirTypeParameter.toTypeParameter(): TypeParameter {
+    return TypeParameter(
         name,
         variance.ordinal,
         isReified,
-        bounds.map { it.coneTypeOrNull?.classId }
+        bounds.map { it.coneTypeOrNull?.classId },
+        toConeType(),
     )
+}
 
 
-data class ValueParameter(val name: Name, val type: ClassId?)
+data class ValueParameter(
+    val fir: FirValueParameter,
+    val name: Name,
+    val index: Int,
+    val coneType: ConeKotlinType?,
+    val type: ClassId?,
+    val expectForActual: ExpectForActualMatchingData?
+)
 
-private fun FirValueParameter.toValueParameter(): ValueParameter =
-    ValueParameter(name, returnTypeRef.coneTypeOrNull?.classId)
+@OptIn(SymbolInternals::class)
+private fun FirValueParameter.toValueParameter(session: FirSession, index: Int): ValueParameter {
+//    LocalLoggerHelper.println("returnTypeRef = $returnTypeRef")
+//    LocalLoggerHelper.println("symbol.resolvedReturnTypeRef = ${symbol.resolvedReturnTypeRef}")
+//    LocalLoggerHelper.println("symbol.resolvedReturnTypeRef.coneType = ${symbol.resolvedReturnTypeRef.coneType}")
+//    LocalLoggerHelper.println("symbol.resolvedReturnTypeRef.coneType.isTypealiasExpansion = ${symbol.resolvedReturnTypeRef.coneType.isTypealiasExpansion}")
+//    LocalLoggerHelper.println(
+//        "symbol.resolvedReturnTypeRef.coneType.fullyExpandedType(session) = ${
+//            symbol.resolvedReturnTypeRef.coneType.fullyExpandedType(
+//                session
+//            )
+//        }"
+//    )
+//
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toClassLikeSymbol(session)?.isActual: ${
+//            returnTypeRef.coneType.toClassLikeSymbol(
+//                session
+//            )?.isActual
+//        }"
+//    )
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toClassLikeSymbol(session)?.isExpect: ${
+//            returnTypeRef.coneType.toClassLikeSymbol(
+//                session
+//            )?.isExpect
+//        }"
+//    )
+//
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toRegularClassSymbol(session): ${
+//            returnTypeRef.coneType.toRegularClassSymbol(
+//                session
+//            )
+//        }"
+//    )
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toClassLikeSymbol(session): ${
+//            returnTypeRef.coneType.toClassLikeSymbol(
+//                session
+//            )
+//        }"
+//    )
+//
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.expectForActual: " +
+//                "${returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.expectForActual}"
+//    )
+//
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.memberExpectForActual: " +
+//                "${returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.memberExpectForActual}"
+//    )
+//
+//    LocalLoggerHelper.println(
+//        "returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.fullyExpandedClass.defaultType: " +
+//                "${
+//                    returnTypeRef.coneType.toRegularClassSymbol(session)?.fir?.fullyExpandedClass(session)
+//                        ?.defaultType()
+//                }"
+//    )
+
+    return ValueParameter(
+        this,
+        name,
+        index,
+        returnTypeRef.coneTypeOrNull,
+        returnTypeRef.coneTypeOrNull?.classId,
+        returnTypeRef.toClassLikeSymbol(session)?.expectForActual
+    )
+}
 
 
-fun OriginSymbol.checkSame(declaration: IrFunction): Boolean {
+fun OriginSymbol.checkSame(markerId: String, declaration: IrFunction): Boolean {
+    if (targetMarker != null) {
+        val anno = declaration.annotations.firstOrNull { it.symbol.owner.parentAsClass.classId == targetMarker }
+        if (anno == null) return false
+
+        val valueArgument = anno.getValueArgument(Name.identifier("value")) as? IrConst ?: return false
+        return markerId == valueArgument.value
+    }
+
     // callableId
     if (callableId != declaration.callableId) return false
     // return type
@@ -215,6 +322,6 @@ private infix fun IrTypeParameter.isSameAs(typeParameter: TypeParameter): Boolea
 }
 
 private infix fun IrValueParameter.isSameAs(valueParameter: ValueParameter): Boolean {
-    if (name != valueParameter.name) return false
+    if (index != valueParameter.index) return false
     return type.classFqName == valueParameter.type?.asSingleFqName()
 }

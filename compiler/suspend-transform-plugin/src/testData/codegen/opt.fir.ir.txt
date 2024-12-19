@@ -106,6 +106,7 @@ FILE fqName:<root> fileName:/Main.kt
         Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "cnVuT3B0SW5UZXN0bnVsbA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.OptInTest
       BLOCK_BODY
