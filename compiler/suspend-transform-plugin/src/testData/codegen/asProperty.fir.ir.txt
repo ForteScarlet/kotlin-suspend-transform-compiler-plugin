@@ -22,6 +22,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
+        TargetMarker(value = "cHJvcFByb3BGb29udWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.PropFoo
       BLOCK_BODY
@@ -86,6 +87,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
+        TargetMarker(value = "cHJvcFByb3BJbXBsbnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun prop (): kotlin.String declared in <root>.IProp
@@ -156,6 +158,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = "", asProperty = true)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = true)
+        TargetMarker(value = "cHJvcElQcm9wbnVsbA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IProp
     PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey] name:prop visibility:public modality:OPEN [val]

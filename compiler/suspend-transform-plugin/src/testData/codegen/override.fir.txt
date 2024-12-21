@@ -1,6 +1,6 @@
 FILE: Main.kt
     @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() public abstract interface IFoo : R|kotlin/Any| {
-        public abstract suspend fun run(n: R|kotlin/Int|): R|Bar|
+        @R|love/forte/plugin/suspendtrans/annotation/TargetMarker|(value = String(cnVuSUZvb251bGxrb3RsaW4vSW50)) public abstract suspend fun run(n: R|kotlin/Int|): R|Bar|
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runAsync(n: R|kotlin/Int|): R|java/util/concurrent/CompletableFuture<out Bar>|
 
@@ -8,7 +8,7 @@ FILE: Main.kt
 
     }
     public abstract interface Foo : R|IFoo| {
-        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() public abstract suspend fun run(): R|Bar|
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|() @R|love/forte/plugin/suspendtrans/annotation/TargetMarker|(value = String(cnVuRm9vbnVsbA==)) public abstract suspend fun run(): R|Bar|
 
         public open suspend fun run(name: R|kotlin/String|): R|Tar| {
             ^run R|/Tar.Tar|()

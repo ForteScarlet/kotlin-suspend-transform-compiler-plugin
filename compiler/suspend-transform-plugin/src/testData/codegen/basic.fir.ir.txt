@@ -51,6 +51,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:bar visibility:public modality:FINAL <> ($this:<root>.BasicBar) returnType:kotlin.String [suspend]
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "YmFyQmFzaWNCYXJudWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.BasicBar
       BLOCK_BODY
@@ -59,6 +60,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:bar2 visibility:public modality:FINAL <> ($this:<root>.BasicBar, i:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "YmFyMkJhc2ljQmFybnVsbGtvdGxpbi9JbnQ=")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.BasicBar
       VALUE_PARAMETER name:i index:0 type:kotlin.Int
@@ -101,6 +103,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:foo visibility:public modality:FINAL <> ($this:<root>.BasicFoo) returnType:kotlin.String [suspend]
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "Zm9vQmFzaWNGb29udWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.BasicFoo
       BLOCK_BODY
@@ -177,11 +180,13 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:bar visibility:public modality:ABSTRACT <> ($this:<root>.InterfaceBar) returnType:kotlin.String [suspend]
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "YmFySW50ZXJmYWNlQmFybnVsbA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.InterfaceBar
     FUN name:bar2 visibility:public modality:ABSTRACT <> ($this:<root>.InterfaceBar, i:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "YmFyMkludGVyZmFjZUJhcm51bGxrb3RsaW4vSW50")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.InterfaceBar
       VALUE_PARAMETER name:i index:0 type:kotlin.Int

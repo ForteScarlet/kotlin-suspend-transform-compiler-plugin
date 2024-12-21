@@ -61,4 +61,10 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   public void testImplOverridenGeneric() {
     runTest("src/testData/codegen/implOverridenGeneric.kt");
   }
+
+  @Test
+  @TestMetadata("alias.kt")
+  public void testAlias() {
+    runTest("src/testData/codegen/alias.kt");
+  }
 }

@@ -67,6 +67,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTFJbXBsbnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): kotlin.String declared in <root>.FooInterface1
@@ -77,6 +78,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl, value:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UxSW1wbG51bGxrb3RsaW4vSW50")
         JvmSynthetic
       overridden:
         public abstract fun data2 (value: kotlin.Int): kotlin.String declared in <root>.FooInterface1
@@ -88,6 +90,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl, $receiver:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UxSW1wbGtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): kotlin.String declared in <root>.FooInterface1
@@ -170,6 +173,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTJJbXBsbnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): kotlin.String declared in <root>.FooInterface2
@@ -180,6 +184,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl, value:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UySW1wbG51bGxrb3RsaW4vSW50")
         JvmSynthetic
       overridden:
         public abstract fun data2 (value: kotlin.Int): kotlin.String declared in <root>.FooInterface2
@@ -191,6 +196,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl, $receiver:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UySW1wbGtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): kotlin.String declared in <root>.FooInterface2
@@ -221,6 +227,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface3Impl) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = true)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTNJbXBsbnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): kotlin.String declared in <root>.FooInterface3
@@ -306,6 +313,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface4Impl) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTRJbXBsbnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): kotlin.String declared in <root>.FooInterface4
@@ -316,6 +324,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <> ($this:<root>.FooInterface4Impl, value:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2U0SW1wbG51bGxrb3RsaW4vSW50")
         JvmSynthetic
       overridden:
         public abstract fun data2 (value: kotlin.Int): kotlin.String declared in <root>.FooInterface4
@@ -459,11 +468,13 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface4) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTRudWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface4
     FUN name:data2 visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface4, value:kotlin.Int) returnType:kotlin.String [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2U0bnVsbGtvdGxpbi9JbnQ=")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface4
       VALUE_PARAMETER name:value index:0 type:kotlin.Int

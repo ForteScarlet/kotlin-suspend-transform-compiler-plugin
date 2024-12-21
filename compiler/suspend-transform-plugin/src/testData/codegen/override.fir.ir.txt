@@ -166,6 +166,7 @@ FILE fqName:<root> fileName:/Main.kt
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "cnVuRm9vbnVsbA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.Foo
     FUN name:run visibility:public modality:ABSTRACT <> ($this:<root>.Foo, n:kotlin.Int) returnType:<root>.Bar [suspend]
@@ -231,6 +232,7 @@ FILE fqName:<root> fileName:/Main.kt
                       n: GET_VAR 'n: kotlin.Int declared in <root>.IFoo.runBlocking' type=kotlin.Int origin=null
     FUN name:run visibility:public modality:ABSTRACT <> ($this:<root>.IFoo, n:kotlin.Int) returnType:<root>.Bar [suspend]
       annotations:
+        TargetMarker(value = "cnVuSUZvb251bGxrb3RsaW4vSW50")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.IFoo
       VALUE_PARAMETER name:n index:0 type:kotlin.Int

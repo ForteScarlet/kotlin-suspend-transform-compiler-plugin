@@ -159,6 +159,13 @@ open class SuspendTransformConfiguration {
 
     open var transformers: MutableMap<TargetPlatform, List<Transformer>> = mutableMapOf()
 
+    /**
+     * 在 K2 中，用于使 IR 的合成函数可以定位到 FIR 中原始函数的辅助注解。
+     *
+     * @since *-0.10.0
+     */
+    open var targetMarker: ClassInfo? = targetMarkerClassInfo
+
     open fun clear() {
         transformers.clear()
     }
@@ -217,6 +224,8 @@ open class SuspendTransformConfiguration {
     }
 
     companion object {
+        val targetMarkerClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "TargetMarker")
+
         //region JVM defaults
         @JvmStatic
         val jvmSyntheticClassInfo = ClassInfo("kotlin.jvm", "JvmSynthetic")

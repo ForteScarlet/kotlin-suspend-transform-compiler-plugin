@@ -22,18 +22,17 @@ import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
+import org.jetbrains.kotlin.fir.expectActualMatchingContextFactory
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirExpression
+import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
-import org.jetbrains.kotlin.fir.resolve.ScopeSession
-import org.jetbrains.kotlin.fir.resolve.SessionHolderImpl
-import org.jetbrains.kotlin.fir.resolve.getSuperTypes
-import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.impl.toConeType
@@ -54,6 +53,7 @@ import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 private data class CopiedTypeParameterPair(
@@ -69,6 +69,8 @@ class SuspendTransformFirTransformer(
     session: FirSession,
     private val suspendTransformConfiguration: SuspendTransformConfiguration
 ) : FirDeclarationGenerationExtension(session) {
+    private val targetMarkerValueName = Name.identifier("value")
+    private val targetMarkerAnnotation = suspendTransformConfiguration.targetMarker?.toClassId()
 
     private data class FirCacheKey(
         val classSymbol: FirClassSymbol<*>,
@@ -90,6 +92,7 @@ class SuspendTransformFirTransformer(
     override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
         val names = mutableSetOf<Name>()
 
+
         cache.getValue(FirCacheKey(classSymbol, context.declaredScope))?.forEach { (_, map) ->
             map.values.forEach { names.add(Name.identifier(it.annotationData.functionName)) }
         }
@@ -103,6 +106,183 @@ class SuspendTransformFirTransformer(
         holder,
         ReturnTypeCalculatorForFullBodyResolve.Default,
     )
+    private val expectActualContext = session.expectActualMatchingContextFactory.create(session, scope)
+
+    /**
+     * 根据函数的名称、参数列表的各参数的类型计算一个hash字符串。
+     */
+    private fun FirSimpleFunction.calculateOriginFuncHash(): String {
+        val str = buildString {
+            append(name.asString())
+            append(dispatchReceiverType.toString())
+            append(receiverParameter?.typeRef?.coneTypeOrNull.toString())
+            valueParameters.forEach { vp ->
+                append(vp.returnTypeRef.coneTypeOrNull.toString())
+            }
+        }
+
+        return Base64.getEncoder().encodeToString(str.toByteArray())
+    }
+
+    private fun FirSimpleFunctionBuilder.copyParameters() {
+        val funSymbol = symbol
+        val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
+
+        val newTypeParameters = typeParameters.map {
+            buildTypeParameterCopy(it) {
+                containingDeclarationSymbol = funSymbol // it.containingDeclarationSymbol
+//                             symbol = it.symbol // FirTypeParameterSymbol()
+                symbol = FirTypeParameterSymbol()
+            }.also { new ->
+                originalTypeParameterCache.add(CopiedTypeParameterPair(it, new))
+            }
+        }
+        typeParameters.clear()
+        typeParameters.addAll(newTypeParameters)
+
+        val newValueParameters = valueParameters.map { vp ->
+            buildValueParameterCopy(vp) {
+                symbol = FirValueParameterSymbol(vp.symbol.name)
+
+                val copiedConeType = vp.returnTypeRef.coneTypeOrNull
+                    ?.copyWithTypeParameters(originalTypeParameterCache)
+
+                if (copiedConeType != null) {
+                    returnTypeRef = returnTypeRef.withReplacedConeType(copiedConeType)
+                }
+            }
+        }
+        valueParameters.clear()
+        valueParameters.addAll(newValueParameters)
+
+        receiverParameter?.also { receiverParameter ->
+            receiverParameter.typeRef.coneTypeOrNull
+                ?.copyWithTypeParameters(originalTypeParameterCache)
+                ?.also { foundCopied ->
+                    this.receiverParameter = buildReceiverParameterCopy(receiverParameter) {
+                        typeRef = typeRef.withReplacedConeType(foundCopied)
+                    }
+                }
+        }
+
+        val coneTypeOrNull = returnTypeRef.coneTypeOrNull
+        if (coneTypeOrNull != null) {
+            returnTypeRef = returnTypeRef.withReplacedConeType(
+                coneTypeOrNull
+                    .copyWithTypeParameters(originalTypeParameterCache)
+                    ?: coneTypeOrNull,
+            )
+        }
+    }
+
+//    private fun FirSimpleFunction.copySyntheticFun(
+//        owner: FirClassSymbol<*>,
+//        callableId: CallableId
+//    ): FirSimpleFunction {
+//        val origin = this
+//
+//        val marker = buildValueParameter {
+//            source = origin.source
+//            moduleData = origin.moduleData
+//            this.origin = origin.origin
+//            returnTypeRef = buildResolvedTypeRef {
+//                coneType = StandardTypes.Int
+//                source = null
+//            }
+//            name = Name.identifier("__test_marker")
+//            symbol = FirValueParameterSymbol(name)
+//            defaultValue = buildLiteralExpression(null, ConstantValueKind.Int, 1, null, setType = true)
+//            containingFunctionSymbol = origin.symbol
+//            backingField = null
+//            isCrossinline = false
+//            isNoinline = false
+//            isVararg = false
+//        }
+//
+//        val syntheticFun = buildSimpleFunctionCopy(this) {
+//            this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
+//            name = callableId.callableName
+//            symbol = FirNamedFunctionSymbol(callableId)
+//            status = origin.status.copy(
+//                modality = Modality.OPEN,
+//                isOverride = false,
+//                visibility = Visibilities.Public
+//            )
+//
+//            copyParameters()
+//
+//            this.valueParameters.add(0, marker)
+//
+//            val builder = this
+//
+//            body = buildSingleExpressionBlock(
+//                buildReturnExpression {
+//                    target = FirFunctionTarget(null, false)
+//                    result = buildFunctionCall {
+//                        source = origin.source
+//                        calleeReference = buildResolvedNamedReference {
+//                            source = origin.source
+//                            name = origin.name
+//                            resolvedSymbol = origin.symbol
+//                        }
+//                        // TODO contextReceiverArguments
+//
+//                        argumentList = buildResolvedArgumentList(
+//                            null,
+//                            builder.valueParameters.associateByTo(LinkedHashMap()) { valueParameter ->
+//                                buildCallableReferenceAccess {
+//                                    source = valueParameter.source
+//                                    calleeReference = buildResolvedNamedReference {
+//                                        source = valueParameter.source
+//                                        name = valueParameter.name
+//                                        resolvedSymbol = valueParameter.symbol
+//                                    }
+//                                    coneTypeOrNull = valueParameter.returnTypeRef.coneTypeOrNull
+//                                }
+//                            })
+//                    }
+//                }
+//            )
+//
+//        }
+//
+//        syntheticFun.excludeFromJsExport(session)
+//        syntheticFun.jvmSynthetic(session)
+//
+//        return syntheticFun
+//    }
+
+    private fun FirSimpleFunction.appendTargetMarker(markerId: String) {
+        if (targetMarkerAnnotation != null) {
+            if (annotations.none {
+                    it.fqName(session) == targetMarkerAnnotation.asSingleFqName()
+                            && (it.argumentMapping.mapping[targetMarkerValueName] as? FirLiteralExpression)
+                                ?.value == markerId
+                }) {
+                replaceAnnotations(
+                    buildList {
+                        addAll(annotations)
+                        add(buildAnnotation {
+                            argumentMapping = buildAnnotationArgumentMapping {
+                                mapping[Name.identifier("value")] = buildLiteralExpression(
+                                    null,
+                                    ConstantValueKind.String,
+                                    markerId,
+                                    null,
+                                    true,
+                                    null
+                                )
+                            }
+                            annotationTypeRef = buildResolvedTypeRef {
+                                coneType = targetMarkerAnnotation.createConeType(session)
+                            }
+                        })
+                    }
+                )
+            }
+        }
+
+    }
 
     @OptIn(SymbolInternals::class)
     override fun generateFunctions(
@@ -114,7 +294,7 @@ class SuspendTransformFirTransformer(
             ?.get(callableId.callableName)
             ?: return emptyList()
 
-        val funList = mutableListOf<FirNamedFunctionSymbol>()
+        val funList = arrayListOf<FirNamedFunctionSymbol>()
 
         funcMap.forEach { (func, funData) ->
 
@@ -127,9 +307,33 @@ class SuspendTransformFirTransformer(
 
                 val originFunc = func.fir
 
+                val uniqueFunHash = originFunc.calculateOriginFuncHash()
+
+                // TODO 生成一个合成函数用来代替 originFunc, 然后其他生成的桥接函数都使用这个合成的函数而不是源函数。
+
+//                val syntheticFunCallableName = callableId.callableName.asString() + "-f-${uniqueFunHash}"
+//                val syntheticFunName = callableId.copy(Name.identifier(syntheticFunCallableName))
+//                val syntheticFun = originFunc.copySyntheticFun(owner, callableId)
+//                funList.add(syntheticFun.symbol)
+
                 val (functionAnnotations, _) = copyAnnotations(originFunc, funData)
 
                 val newFunSymbol = FirNamedFunctionSymbol(callableId)
+
+                val key = SuspendTransformPluginKey(
+                    data = SuspendTransformUserDataFir(
+                        markerId = uniqueFunHash,
+                        originSymbol = originFunc.symbol.asOriginSymbol(
+                            targetMarkerAnnotation,
+                            typeParameters = originFunc.typeParameters,
+                            valueParameters = originFunc.valueParameters,
+                            originFunc.returnTypeRef.coneTypeOrNull?.classId,
+                            session,
+                        ),
+                        asProperty = false,
+                        transformer = funData.transformer
+                    )
+                )
 
                 val newFun = buildSimpleFunctionCopy(originFunc) {
                     name = callableId.callableName
@@ -155,49 +359,7 @@ class SuspendTransformFirTransformer(
                     // The error: Duplicate IR node
                     //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
                     // TODO copy to value parameters, receiver and return type?
-                    val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
-                    typeParameters.replaceAll {
-                        buildTypeParameterCopy(it) {
-                            containingDeclarationSymbol = newFunSymbol // it.containingDeclarationSymbol
-//                             symbol = it.symbol // FirTypeParameterSymbol()
-                            symbol = FirTypeParameterSymbol()
-                        }.also { new ->
-                            originalTypeParameterCache.add(CopiedTypeParameterPair(it, new))
-                        }
-                    }
-
-                    valueParameters.replaceAll { vp ->
-                        buildValueParameterCopy(vp) {
-                            symbol = FirValueParameterSymbol(vp.symbol.name)
-
-                            val copiedConeType = vp.returnTypeRef.coneTypeOrNull
-                                ?.copyWithTypeParameters(originalTypeParameterCache)
-
-                            if (copiedConeType != null) {
-                                returnTypeRef = returnTypeRef.withReplacedConeType(copiedConeType)
-                            }
-                        }
-                    }
-
-                    receiverParameter?.also { receiverParameter ->
-                        receiverParameter.typeRef.coneTypeOrNull
-                            ?.copyWithTypeParameters(originalTypeParameterCache)
-                            ?.also { foundCopied ->
-                                this.receiverParameter = buildReceiverParameterCopy(receiverParameter) {
-                                    typeRef = typeRef.withReplacedConeType(foundCopied)
-                                }
-                            }
-                    }
-
-
-                    val coneTypeOrNull = returnTypeRef.coneTypeOrNull
-                    if (coneTypeOrNull != null) {
-                        returnTypeRef = returnTypeRef.withReplacedConeType(
-                            coneTypeOrNull
-                                .copyWithTypeParameters(originalTypeParameterCache)
-                                ?: coneTypeOrNull,
-                        )
-                    }
+                    copyParameters()
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)
@@ -207,17 +369,68 @@ class SuspendTransformFirTransformer(
 
                     returnTypeRef = returnType
 
-                    origin = SuspendTransformPluginKey(
-                        data = SuspendTransformUserDataFir(
-                            originSymbol = originFunc.symbol.asOriginSymbol(
-                                typeParameters = originFunc.typeParameters,
-                                valueParameters = originFunc.valueParameters,
-                                originFunc.returnTypeRef.coneTypeOrNull?.classId
-                            ),
-                            asProperty = false,
-                            transformer = funData.transformer
-                        )
-                    ).origin
+                    // TODO 是否可以在FIR中就完成Body的构建？
+//                    buildBlock {
+//                        // build lambda
+//                        val lambda = buildAnonymousFunctionExpression {
+//                            anonymousFunction = buildAnonymousFunction {
+//                                moduleData = originFunc.moduleData
+//                                origin = key.origin
+//                                status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+//                                returnTypeRef = originFunc.returnTypeRef
+//                                isLambda = true
+//                                body = buildSingleExpressionBlock(
+//                                    buildReturnExpression {
+//                                        result = buildFunctionCall {
+////                                            explicitReceiver = this@createConventionCall
+//                                            calleeReference = buildResolvedNamedReference {
+//                                                source = originFunc.source
+//                                                name = originFunc.name
+//                                                resolvedSymbol = originFunc.symbol
+//                                            }
+//
+//                                            argumentList = buildResolvedArgumentList(null,
+//                                                this@buildSimpleFunctionCopy.valueParameters.associateByTo(LinkedHashMap()) { valueParameter ->
+//                                                    buildCallableReferenceAccess {
+//                                                        source = valueParameter.source
+//                                                        calleeReference = buildResolvedNamedReference {
+//                                                            source = valueParameter.source
+//                                                            name = valueParameter.name
+//                                                            resolvedSymbol = valueParameter.symbol
+//                                                        }
+//                                                        coneTypeOrNull = valueParameter.returnTypeRef.coneTypeOrNull
+//                                                    }
+//                                                }
+//                                                )
+//                                        }
+//                                    }
+//                                )
+//                                symbol = FirAnonymousFunctionSymbol()
+//                            }
+//                        }
+//                        lambda
+//
+//
+//                        /*
+//                            fun xxxBlock() = transformFun({ orignFun }, )
+//                         */
+//                        statements.add(
+//                            buildReturnExpression {
+//
+//
+//                            }
+//                        )
+//
+//                        buildFunctionCall {
+//                            this
+//                        }
+//                    }
+
+                    origin = key.origin
+                }
+
+                if (targetMarkerAnnotation != null) {
+                    originFunc.appendTargetMarker(uniqueFunHash)
                 }
 
                 funList.add(newFun.symbol)
@@ -246,6 +459,8 @@ class SuspendTransformFirTransformer(
 
                 // generate
                 val original = func.fir
+
+                val uniqueFunHash = original.calculateOriginFuncHash()
 
                 val (functionAnnotations, propertyAnnotations) =
                     copyAnnotations(original, funData)
@@ -279,10 +494,13 @@ class SuspendTransformFirTransformer(
                 val pSymbol = FirPropertySymbol(callableId)
                 val pKey = SuspendTransformPluginKey(
                     data = SuspendTransformUserDataFir(
+                        markerId = uniqueFunHash,
                         originSymbol = original.symbol.asOriginSymbol(
+                            targetMarkerAnnotation,
                             typeParameters = original.typeParameters,
                             valueParameters = original.valueParameters,
-                            original.returnTypeRef.coneTypeOrNull?.classId
+                            original.returnTypeRef.coneTypeOrNull?.classId,
+                            session
                         ),
                         asProperty = true,
                         transformer = funData.transformer
@@ -365,6 +583,10 @@ class SuspendTransformFirTransformer(
                 }
 
                 propList.add(p1.symbol)
+
+                if (targetMarkerAnnotation != null) {
+                    original.appendTargetMarker(uniqueFunHash)
+                }
             }
         }
 
@@ -598,7 +820,7 @@ class SuspendTransformFirTransformer(
             if (copyFunction) {
                 val notCompileAnnotationsCopied = original.annotations.filterNot {
                     val annotationClassId = it.toAnnotationClassId(session) ?: return@filterNot true
-                    excludes.any { ex -> annotationClassId == ex }
+                    annotationClassId == targetMarkerAnnotation || excludes.any { ex -> annotationClassId == ex }
                 }
 
                 /*

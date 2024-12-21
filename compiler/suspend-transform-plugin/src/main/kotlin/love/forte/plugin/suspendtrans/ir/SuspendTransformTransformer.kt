@@ -92,7 +92,7 @@ class SuspendTransformTransformer(
                     pluginKey,
                     declaration,
                     { f ->
-                        pluginKey.data.originSymbol.checkSame(f)
+                        pluginKey.data.originSymbol.checkSame(pluginKey.data.markerId, f)
                     },
                     callableFunction
                 )?.also { generatedOriginFunction ->
@@ -255,12 +255,14 @@ class SuspendTransformTransformer(
                 originFunction.reportLocation() ?: function.reportLocation()
             )
 
-            function.body = generateTransformBodyForFunctionLambda(
-                pluginContext,
-                function,
-                originFunction,
-                transformTargetFunctionCall
-            )
+            if (function.body == null) {
+                function.body = generateTransformBodyForFunctionLambda(
+                    pluginContext,
+                    function,
+                    originFunction,
+                    transformTargetFunctionCall
+                )
+            }
 
             return originFunction
         }
