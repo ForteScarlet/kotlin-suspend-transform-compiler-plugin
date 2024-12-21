@@ -164,6 +164,9 @@ suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
     includeAnnotation = true // default: true
+    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
+    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
+    // targetMarker = null // 或自定义
     
     /*
      * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
@@ -240,6 +243,9 @@ suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
     includeAnnotation = true // default: true
+    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
+    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
+    // targetMarker = null // 或自定义
 
     /*
      * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
@@ -702,6 +708,9 @@ suspendTransform {
     // 关闭它们，并使用你自己自定义的 runtime 和 annotation
     includeRuntime = false     
     includeAnnotation = false
+    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
+    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
+    targetMarker = null // 或自定义
 
     addJvmTransformers(
         suspendTransTransformerForJvmBlocking,

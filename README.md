@@ -166,6 +166,9 @@ suspendTransform {
     enabled = true // default: true
     includeRuntime = true // default: true
     includeAnnotation = true // default: true
+    // Note: If you disable includeAnnotation, you need to customise the `targetMarker` or set it to `null`.
+    //  see also: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
+    // targetMarker = ...
 
     /*
      * Use both `useJvmDefault` and `useJsDefault`.
@@ -700,6 +703,9 @@ suspendTransform {
     // disable, use the runtime and the annotation by yourself
     includeRuntime = false     
     includeAnnotation = false
+    // Note: If you disable includeAnnotation, you need to customise the `targetMarker` or set it to `null`.
+    //  see also: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
+    targetMarker = null // or customise
 
     addJvmTransformers(
         suspendTransTransformerForJvmBlocking,
