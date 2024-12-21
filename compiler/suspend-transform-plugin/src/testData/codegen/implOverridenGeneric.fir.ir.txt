@@ -70,6 +70,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>) returnType:T of <root>.FooInterface1Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTFJbXBsPFQ+bnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): T of <root>.FooInterface1 declared in <root>.FooInterface1
@@ -80,6 +81,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <A> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>, value:A of <root>.FooInterface1Impl.data2) returnType:T of <root>.FooInterface1Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UxSW1wbDxUPm51bGxB")
         JvmSynthetic
       overridden:
         public abstract fun data2 <A> (value: A of <root>.FooInterface1.data2): T of <root>.FooInterface1 declared in <root>.FooInterface1
@@ -92,6 +94,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface1Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UxSW1wbDxUPmtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): T of <root>.FooInterface1 declared in <root>.FooInterface1
@@ -169,6 +172,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>) returnType:T of <root>.FooInterface2Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTJJbXBsPFQ+bnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): T of <root>.FooInterface2 declared in <root>.FooInterface2
@@ -179,6 +183,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>, value:T of <root>.FooInterface2Impl) returnType:T of <root>.FooInterface2Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UySW1wbDxUPm51bGxU")
         JvmSynthetic
       overridden:
         public abstract fun data2 (value: T of <root>.FooInterface2): T of <root>.FooInterface2 declared in <root>.FooInterface2
@@ -190,6 +195,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface2Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UySW1wbDxUPmtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): T of <root>.FooInterface2 declared in <root>.FooInterface2
@@ -275,6 +281,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>) returnType:T of <root>.FooInterface3Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTNJbXBsPFQ+bnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): T of <root>.FooInterface3 declared in <root>.FooInterface3
@@ -285,6 +292,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <A> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>, value:A of <root>.FooInterface3Impl.data2) returnType:T of <root>.FooInterface3Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UzSW1wbDxUPm51bGxB")
         JvmSynthetic
       overridden:
         public abstract fun data2 <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3
@@ -297,6 +305,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface3Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UzSW1wbDxUPmtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): T of <root>.FooInterface3 declared in <root>.FooInterface3
@@ -380,6 +389,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:OPEN <> ($this:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>) returnType:T of <root>.FooInterface4Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTRJbXBsPFQ+bnVsbA==")
         JvmSynthetic
       overridden:
         public abstract fun data (): T of <root>.FooInterface4 declared in <root>.FooInterface4
@@ -390,6 +400,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data2 visibility:public modality:OPEN <> ($this:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>, value:T of <root>.FooInterface4Impl) returnType:T of <root>.FooInterface4Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2U0SW1wbDxUPm51bGxU")
         JvmSynthetic
       overridden:
         public abstract fun data2 (value: T of <root>.FooInterface4): T of <root>.FooInterface4 declared in <root>.FooInterface4
@@ -401,6 +412,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:OPEN <> ($this:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface4Impl [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2U0SW1wbDxUPmtvdGxpbi9JbnQ=")
         JvmSynthetic
       overridden:
         public abstract fun data3 (): T of <root>.FooInterface4 declared in <root>.FooInterface4
@@ -555,11 +567,13 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface3<T of <root>.FooInterface3>) returnType:T of <root>.FooInterface3 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTM8VD5udWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3>
     FUN name:data2 visibility:public modality:ABSTRACT <A> ($this:<root>.FooInterface3<T of <root>.FooInterface3>, value:A of <root>.FooInterface3.data2) returnType:T of <root>.FooInterface3 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2UzPFQ+bnVsbEE=")
         JvmSynthetic
       TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3>
@@ -567,6 +581,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data3 visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface3<T of <root>.FooInterface3>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface3 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2UzPFQ+a290bGluL0ludA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3>
       $receiver: VALUE_PARAMETER name:<this> type:kotlin.Int
@@ -635,17 +650,20 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:data visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface4<T of <root>.FooInterface4>) returnType:T of <root>.FooInterface4 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YUZvb0ludGVyZmFjZTQ8VD5udWxs")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface4<T of <root>.FooInterface4>
     FUN name:data2 visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface4<T of <root>.FooInterface4>, value:T of <root>.FooInterface4) returnType:T of <root>.FooInterface4 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTJGb29JbnRlcmZhY2U0PFQ+bnVsbFQ=")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface4<T of <root>.FooInterface4>
       VALUE_PARAMETER name:value index:0 type:T of <root>.FooInterface4
     FUN name:data3 visibility:public modality:ABSTRACT <> ($this:<root>.FooInterface4<T of <root>.FooInterface4>, $receiver:kotlin.Int) returnType:T of <root>.FooInterface4 [suspend]
       annotations:
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
+        TargetMarker(value = "ZGF0YTNGb29JbnRlcmZhY2U0PFQ+a290bGluL0ludA==")
         JvmSynthetic
       $this: VALUE_PARAMETER name:<this> type:<root>.FooInterface4<T of <root>.FooInterface4>
       $receiver: VALUE_PARAMETER name:<this> type:kotlin.Int
