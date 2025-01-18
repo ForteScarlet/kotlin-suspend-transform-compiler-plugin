@@ -67,4 +67,10 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   public void testAlias() {
     runTest("src/testData/codegen/alias.kt");
   }
+
+  @Test
+  @TestMetadata("varargParam.kt")
+  public void testVarargParam() {
+    runTest("src/testData/codegen/varargParam.kt");
+  }
 }

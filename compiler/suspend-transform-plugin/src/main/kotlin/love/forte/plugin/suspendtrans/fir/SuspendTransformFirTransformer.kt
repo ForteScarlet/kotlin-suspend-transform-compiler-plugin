@@ -6,7 +6,7 @@ import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.toClassId
 import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
@@ -14,24 +14,25 @@ import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctions
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
-import org.jetbrains.kotlin.fir.collectUpperBounds
-import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
+import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
-import org.jetbrains.kotlin.fir.expectActualMatchingContextFactory
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
+import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.*
+import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
+import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
@@ -257,7 +258,7 @@ class SuspendTransformFirTransformer(
             if (annotations.none {
                     it.fqName(session) == targetMarkerAnnotation.asSingleFqName()
                             && (it.argumentMapping.mapping[targetMarkerValueName] as? FirLiteralExpression)
-                                ?.value == markerId
+                        ?.value == markerId
                 }) {
                 replaceAnnotations(
                     buildList {
@@ -335,6 +336,8 @@ class SuspendTransformFirTransformer(
                     )
                 )
 
+                val funTarget = FirFunctionTarget(null, false)
+
                 val newFun = buildSimpleFunctionCopy(originFunc) {
                     name = callableId.callableName
                     symbol = newFunSymbol
@@ -363,11 +366,99 @@ class SuspendTransformFirTransformer(
 
                     annotations.clear()
                     annotations.addAll(functionAnnotations)
-                    body = null
 
                     val returnType = resolveReturnType(originFunc, funData, returnTypeRef)
-
                     returnTypeRef = returnType
+
+                    body = buildBlock {
+                        this.source = originFunc.body?.source
+
+                        // lambda: () -> T
+                        val lambdaTarget = FirFunctionTarget(null, isLambda = true)
+                        val lambda = buildAnonymousFunction {
+                            this.isLambda = true
+                            this.moduleData = originFunc.moduleData
+                            this.origin = key.origin
+                            this.returnTypeRef = originFunc.returnTypeRef
+                            this.hasExplicitParameterList = false
+                            this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+                            this.symbol = FirAnonymousFunctionSymbol()
+                            this.body = buildSingleExpressionBlock(
+                                buildReturnExpression {
+                                    target = lambdaTarget
+                                    result = buildFunctionCall {
+                                        // Call original fun
+                                        this.source = originFunc.source
+                                        this.calleeReference = buildResolvedNamedReference {
+                                            this.source = originFunc.source
+                                            this.name = originFunc.name
+                                            this.resolvedSymbol = originFunc.symbol
+                                        }
+//                                                this.argumentList = buildArgumentList {
+//                                                    for (originParam in originFunc.valueParameters) {
+//                                                        arguments.add(originParam.toQualifiedAccess())
+//                                                    }
+//                                                }
+                                        this.argumentList = buildResolvedArgumentList(
+                                            null,
+                                            mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
+                                                for (originParam in originFunc.valueParameters) {
+                                                    put(originParam.toQualifiedAccess(), originParam)
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                        lambdaTarget.bind(lambda)
+
+                        this.statements.add(buildAnonymousFunctionExpression {
+                            this.anonymousFunction = lambda
+                            this.isTrailingLambda = false
+                        })
+
+//                        this.statements.add(
+//                            buildReturnExpression {
+//                                this.target = funTarget
+//                                val transformName = with(funData.transformer.transformFunctionInfo) {
+//                                    buildString {
+//                                        if (packageName.isNotEmpty()) {
+//                                            append(packageName)
+//                                            append('.')
+//                                        }
+//                                        if (className?.isNotEmpty() == true) {
+//                                            append(className)
+//                                            append('.')
+//                                        }
+//                                        append(functionName)
+//                                    }
+//                                }
+//
+//                                holder.session.moduleData.dependencies
+//
+//                                this.result = buildFunctionCall {
+//                                    this.source = null
+                                      // TODO 必须 resolved
+//                                    this.calleeReference = buildSimpleNamedReference {
+//                                        this.source = null
+//                                        this.name = Name.identifier(transformName)
+//                                    }
+                                        // TODO Argument 必须 resolved
+////                                    this.argumentList = buildArgumentList {
+////                                        arguments.add(buildAnonymousFunctionExpression {
+////                                            this.source = lambda.source
+////                                            this.anonymousFunction = lambda
+////                                            this.isTrailingLambda = false
+////                                        })
+////                                        // TODO scope?
+////                                    }
+//                                }
+//                            }
+//                        )
+                        // ConeClassLikeType()
+                    }
+                    // body = null
 
                     // TODO 是否可以在FIR中就完成Body的构建？
 //                    buildBlock {
@@ -428,6 +519,8 @@ class SuspendTransformFirTransformer(
 
                     origin = key.origin
                 }
+
+                funTarget.bind(newFun)
 
                 if (targetMarkerAnnotation != null) {
                     originFunc.appendTargetMarker(uniqueFunHash)
