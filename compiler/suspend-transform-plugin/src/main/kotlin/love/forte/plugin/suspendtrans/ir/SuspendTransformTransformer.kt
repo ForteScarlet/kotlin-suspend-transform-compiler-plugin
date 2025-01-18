@@ -95,15 +95,19 @@ class SuspendTransformTransformer(
                         pluginKey.data.originSymbol.checkSame(pluginKey.data.markerId, f)
                     },
                     callableFunction
-                )?.also { generatedOriginFunction ->
+                ).also { generatedOriginFunction ->
                     if (property != null) {
                         // NO! BACKING! FIELD!
                         property.backingField = null
                     }
-                    postProcessGenerateOriginFunction(
-                        generatedOriginFunction,
-                        pluginKey.data.transformer.originFunctionIncludeAnnotations
-                    )
+
+                    if (generatedOriginFunction != null) {
+                        postProcessGenerateOriginFunction(
+                            generatedOriginFunction,
+                            pluginKey.data.transformer.originFunctionIncludeAnnotations
+                        )
+                    }
+
                 }
             }
 
@@ -162,6 +166,11 @@ class SuspendTransformTransformer(
         crossinline checkIsOriginFunction: (IrFunction) -> Boolean,
         transformTargetFunctionCall: IrSimpleFunctionSymbol,
     ): IrFunction? {
+        if (function.body != null) {
+            return null
+        }
+
+
         val parent = function.parent
         if (parent is IrDeclarationContainer) {
 
@@ -255,14 +264,12 @@ class SuspendTransformTransformer(
                 originFunction.reportLocation() ?: function.reportLocation()
             )
 
-            if (function.body == null) {
-                function.body = generateTransformBodyForFunctionLambda(
-                    pluginContext,
-                    function,
-                    originFunction,
-                    transformTargetFunctionCall
-                )
-            }
+            function.body = generateTransformBodyForFunctionLambda(
+                pluginContext,
+                function,
+                originFunction,
+                transformTargetFunctionCall
+            )
 
             return originFunction
         }
