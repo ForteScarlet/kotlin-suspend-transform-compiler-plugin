@@ -277,10 +277,13 @@ private fun FirValueParameter.toValueParameter(session: FirSession, index: Int):
 fun OriginSymbol.checkSame(markerId: String, declaration: IrFunction): Boolean {
     if (targetMarker != null) {
         val anno = declaration.annotations.firstOrNull { it.symbol.owner.parentAsClass.classId == targetMarker }
-        if (anno == null) return false
-
-        val valueArgument = anno.getValueArgument(Name.identifier("value")) as? IrConst ?: return false
-        return markerId == valueArgument.value
+        if (anno != null) {
+            val valueArgument = anno.getValueArgument(Name.identifier("value")) as? IrConst
+            if (markerId == valueArgument?.value) {
+                return true
+            }
+        }
+        // 如果匹配不成功，继续原本的逻辑
     }
 
     // callableId
