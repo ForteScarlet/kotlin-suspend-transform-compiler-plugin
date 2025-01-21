@@ -1,11 +1,10 @@
 package love.forte.plugin.suspendtrans.fir
 
 import love.forte.plugin.suspendtrans.*
-import love.forte.plugin.suspendtrans.utils.CopyAnnotationsData
-import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
-import love.forte.plugin.suspendtrans.utils.toClassId
-import love.forte.plugin.suspendtrans.utils.toInfo
+import love.forte.plugin.suspendtrans.utils.*
+import org.jetbrains.kotlin.descriptors.EffectiveVisibility
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
@@ -21,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
+import org.jetbrains.kotlin.fir.deserialization.replaceName
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
@@ -32,9 +32,12 @@ import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
+import org.jetbrains.kotlin.fir.references.builder.buildExplicitThisReference
+import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
+import org.jetbrains.kotlin.fir.resolve.transformers.ScopeClassDeclaration
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.impl.toConeType
 import org.jetbrains.kotlin.fir.scopes.processAllFunctions
@@ -43,6 +46,7 @@ import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
+import org.jetbrains.kotlin.fir.types.builder.buildFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -56,6 +60,7 @@ import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 private data class CopiedTypeParameterPair(
     val original: FirTypeParameter,
@@ -78,10 +83,33 @@ class SuspendTransformFirTransformer(
         val memberScope: FirClassDeclaredMemberScope?
     )
 
-    private data class FunData(
-        val annotationData: TransformAnnotationData,
-        val transformer: Transformer,
-    )
+    private sealed class FunData {
+        abstract val funName: Name
+        abstract val transformer: Transformer
+        abstract val annotationData: TransformAnnotationData
+    }
+
+    // synthetic fun 需要知道 bridge fun, 反之则不需要
+
+    private data class SyntheticFunData(
+        override val funName: Name,
+        val bridgeFunData: BridgeFunData,
+    ) : FunData() {
+        override val annotationData: TransformAnnotationData
+            get() = bridgeFunData.annotationData
+        override val transformer: Transformer
+            get() = bridgeFunData.transformer
+    }
+
+    private data class BridgeFunData(
+        override val funName: Name,
+        val symbol: FirNamedFunctionSymbol,
+        val target: FirFunctionTarget,
+        val lambdaParameter: FirValueParameter,
+        val returnType: FirTypeRef,
+        override val annotationData: TransformAnnotationData,
+        override val transformer: Transformer,
+    ) : FunData()
 
     //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
@@ -93,9 +121,9 @@ class SuspendTransformFirTransformer(
     override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
         val names = mutableSetOf<Name>()
 
-
         cache.getValue(FirCacheKey(classSymbol, context.declaredScope))?.forEach { (_, map) ->
-            map.values.forEach { names.add(Name.identifier(it.annotationData.functionName)) }
+//            map.values.forEach { names.add(Name.identifier(it.annotationData.functionName)) }
+            map.values.forEach { names.add(it.funName) }
         }
 
         return names
@@ -298,239 +326,310 @@ class SuspendTransformFirTransformer(
         val funList = arrayListOf<FirNamedFunctionSymbol>()
 
         funcMap.forEach { (func, funData) ->
+            when (funData) {
+                is BridgeFunData -> {
+                    generateBridgeFunctions(
+                        callableId,
+                        context,
+                        owner,
+                        func,
+                        funData,
+                        funList,
+                    )
+                }
 
-            val annotationData = funData.annotationData
-            if (!annotationData.asProperty) {
-                // Check the overridden for isOverride based on source function (func) 's overridden
-                val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+                is SyntheticFunData -> {
+                    generateSyntheticFunctions(
+                        callableId,
+                        context,
+                        owner,
+                        func,
+                        funData,
+                        funList,
+                    )
+                }
+            }
+        }
 
-                // generate
+        return funList
+    }
 
-                val originFunc = func.fir
+    private fun generateBridgeFunctions(
+        callableId: CallableId,
+        context: MemberGenerationContext?,
+        owner: FirClassSymbol<*>,
+        originFunSymbol: FirNamedFunctionSymbol,
+        funData: BridgeFunData,
+        results: MutableList<FirNamedFunctionSymbol>,
+    ) {
+        // private inline fun $name(block: suspend () -> T): returnType // IR -> {}
+        val key = SuspendTransformBridgeFunctionKey(
+            data = SuspendTransformBridgeFunDataFir(
+                asProperty = false,
+                transformer = funData.transformer
+            )
+        )
 
-                val uniqueFunHash = originFunc.calculateOriginFuncHash()
+        val bridgeFun = buildSimpleFunction {
+            name = funData.funName
+            source = originFunSymbol.source
+            moduleData = originFunSymbol.moduleData
+            // see FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_STATUSLESS_DECLARATIONS
+            status = FirResolvedDeclarationStatusImpl(
+                Visibilities.Private,
+                Modality.FINAL,
+                EffectiveVisibility.PrivateInClass
+            ).copy(
+                visibility = Visibilities.Private,
+                modality = Modality.FINAL,
+                isOverride = false,
+                isSuspend = false,
+                isInline = true,
+            )
+            returnTypeRef = funData.returnType
+            receiverParameter = null
+            containerSource = originFunSymbol.containerSource
+            dispatchReceiverType = originFunSymbol.dispatchReceiverType
+            // TODO 泛型需不需要处理？
+            valueParameters.add(funData.lambdaParameter)
+            body = null
+            symbol = funData.symbol
 
-                // TODO 生成一个合成函数用来代替 originFunc, 然后其他生成的桥接函数都使用这个合成的函数而不是源函数。
+            // TODO 仅保留跟 originFun.returnType 一样或相关的 type parameter?
+//            val returnConeType = originFunSymbol.resolvedReturnTypeRef.coneType
+//            originFunSymbol.typeParameterSymbols.find { originTypeParameterSymbol ->
+//                returnConeType.copyWithTypeParameters()
+//                originTypeParameterSymbol
+//                TODO()
+//            }
+
+            origin = key.origin
+        }
+
+        bridgeFun.jvmSynthetic(session)
+
+        funData.target.bind(bridgeFun)
+
+        results.add(bridgeFun.symbol)
+    }
+
+    @OptIn(SymbolInternals::class)
+    private fun generateSyntheticFunctions(
+        callableId: CallableId,
+        context: MemberGenerationContext?,
+        owner: FirClassSymbol<*>,
+        originFunSymbol: FirNamedFunctionSymbol,
+        funData: SyntheticFunData,
+        results: MutableList<FirNamedFunctionSymbol>,
+    ) {
+        val bridgeFunData = funData.bridgeFunData
+
+        val annotationData = funData.annotationData
+        if (!annotationData.asProperty) {
+            // Check the overridden for isOverride based on source function (func) 's overridden
+            val isOverride =
+                checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, originFunSymbol, checkContext)
+
+            // generate
+            val originFunc = originFunSymbol.fir
+
+            val uniqueFunHash = originFunc.calculateOriginFuncHash()
+
+            // TODO 生成一个合成函数用来代替 originFunc, 然后其他生成的桥接函数都使用这个合成的函数而不是源函数。
 
 //                val syntheticFunCallableName = callableId.callableName.asString() + "-f-${uniqueFunHash}"
 //                val syntheticFunName = callableId.copy(Name.identifier(syntheticFunCallableName))
 //                val syntheticFun = originFunc.copySyntheticFun(owner, callableId)
 //                funList.add(syntheticFun.symbol)
 
-                val (functionAnnotations, _) = copyAnnotations(originFunc, funData)
+            val (functionAnnotations, _) = copyAnnotations(originFunc, funData)
 
-                val newFunSymbol = FirNamedFunctionSymbol(callableId)
+            val newFunSymbol = FirNamedFunctionSymbol(callableId)
 
-                val key = SuspendTransformPluginKey(
-                    data = SuspendTransformUserDataFir(
-                        markerId = uniqueFunHash,
-                        originSymbol = originFunc.symbol.asOriginSymbol(
-                            targetMarkerAnnotation,
-                            typeParameters = originFunc.typeParameters,
-                            valueParameters = originFunc.valueParameters,
-                            originFunc.returnTypeRef.coneTypeOrNull?.classId,
-                            session,
-                        ),
-                        asProperty = false,
-                        transformer = funData.transformer
-                    )
+            val key = SuspendTransformPluginKey(
+                data = SuspendTransformUserDataFir(
+                    markerId = uniqueFunHash,
+                    originSymbol = originFunc.symbol.asOriginSymbol(
+                        targetMarkerAnnotation,
+                        typeParameters = originFunc.typeParameters,
+                        valueParameters = originFunc.valueParameters,
+                        originFunc.returnTypeRef.coneTypeOrNull?.classId,
+                        session,
+                    ),
+                    asProperty = false,
+                    transformer = funData.transformer
+                )
+            )
+
+            val newFunTarget = FirFunctionTarget(null, isLambda = false)
+            val newFun = buildSimpleFunctionCopy(originFunc) {
+                name = callableId.callableName
+                symbol = newFunSymbol
+                status = originFunc.status.copy(
+                    isSuspend = false,
+                    modality = originFunc.syntheticModifier,
+                    // Use OPEN and `override` is unnecessary. .. ... Maybe?
+                    isOverride = isOverride || isOverridable(
+                        session,
+                        callableId.callableName,
+                        originFunc,
+                        owner,
+                        isProperty = false,
+                    ),
                 )
 
-                val funTarget = FirFunctionTarget(null, false)
+                // Copy the typeParameters.
+                // Otherwise, in functions like the following, an error will occur
+                // suspend fun <A> data(value: A): T = ...
+                // Functions for which function-scoped generalizations (`<A>`) exist.
+                // In the generated IR, data and dataBlocking will share an `A`, generating the error.
+                // The error: Duplicate IR node
+                //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                // TODO copy to value parameters, receiver and
+                //  return type?
+                copyParameters()
 
-                val newFun = buildSimpleFunctionCopy(originFunc) {
-                    name = callableId.callableName
-                    symbol = newFunSymbol
-                    status = originFunc.status.copy(
-                        isSuspend = false,
-                        modality = originFunc.syntheticModifier,
-                        // Use OPEN and `override` is unnecessary. .. ... Maybe?
-                        isOverride = isOverride || isOverridable(
-                            session,
-                            callableId.callableName,
-                            originFunc,
-                            owner,
-                            isProperty = false,
-                        ),
-                    )
+                val thisReceiverParameter = this.receiverParameter
+                val thisContextReceivers = this.contextReceivers
+                val thisValueParameters = this.valueParameters
 
-                    // Copy the typeParameters.
-                    // Otherwise, in functions like the following, an error will occur
-                    // suspend fun <A> data(value: A): T = ...
-                    // Functions for which function-scoped generalizations (`<A>`) exist.
-                    // In the generated IR, data and dataBlocking will share an `A`, generating the error.
-                    // The error: Duplicate IR node
-                    //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
-                    // TODO copy to value parameters, receiver and return type?
-                    copyParameters()
+                annotations.clear()
+                annotations.addAll(functionAnnotations)
 
-                    annotations.clear()
-                    annotations.addAll(functionAnnotations)
+                returnTypeRef = funData.bridgeFunData.returnType
 
-                    val returnType = resolveReturnType(originFunc, funData, returnTypeRef)
-                    returnTypeRef = returnType
+                /*
+                 * __suspendTransform__run_0_runBlocking({ run(times) })
+                 */
 
-                    body = buildBlock {
-                        this.source = originFunc.body?.source
+                body = buildBlock {
+                    this.source = originFunc.body?.source
 
-                        // lambda: () -> T
-                        val lambdaTarget = FirFunctionTarget(null, isLambda = true)
-                        val lambda = buildAnonymousFunction {
-                            this.isLambda = true
-                            this.moduleData = originFunc.moduleData
-                            this.origin = key.origin
-                            this.returnTypeRef = originFunc.returnTypeRef
-                            this.hasExplicitParameterList = false
-                            this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
-                            this.symbol = FirAnonymousFunctionSymbol()
-                            this.body = buildSingleExpressionBlock(
-                                buildReturnExpression {
-                                    target = lambdaTarget
-                                    result = buildFunctionCall {
-                                        // Call original fun
-                                        this.source = originFunc.source
-                                        this.calleeReference = buildResolvedNamedReference {
-                                            this.source = originFunc.source
-                                            this.name = originFunc.name
-                                            this.resolvedSymbol = originFunc.symbol
+                    // lambda: suspend () -> T
+                    val lambdaTarget = FirFunctionTarget(null, isLambda = true)
+                    val lambda = buildAnonymousFunction {
+                        this.isLambda = true
+                        this.moduleData = originFunSymbol.moduleData
+//                        this.origin = key.origin
+                        this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
+                        this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef
+                        this.hasExplicitParameterList = false
+                        this.status =
+                            FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+                        this.symbol = FirAnonymousFunctionSymbol()
+                        this.body = buildSingleExpressionBlock(
+                            buildReturnExpression {
+                                target = lambdaTarget
+                                result = buildFunctionCall {
+                                    // Call original fun
+                                    this.coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
+                                    this.source = originFunSymbol.source
+                                    this.calleeReference = buildResolvedNamedReference {
+                                        this.source = originFunSymbol.source
+                                        this.name = originFunSymbol.name
+                                        this.resolvedSymbol = originFunSymbol
+                                    }
+
+                                    val originValueParameters = originFunc.valueParameters
+
+                                    this.dispatchReceiver = buildThisReceiverExpression {
+                                        coneTypeOrNull = originFunSymbol.dispatchReceiverType
+                                        source = originFunSymbol.source
+                                        calleeReference = buildImplicitThisReference {
+                                            boundSymbol = owner
                                         }
-//                                                this.argumentList = buildArgumentList {
-//                                                    for (originParam in originFunc.valueParameters) {
-//                                                        arguments.add(originParam.toQualifiedAccess())
-//                                                    }
-//                                                }
-                                        this.argumentList = buildResolvedArgumentList(
-                                            null,
-                                            mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
-                                                for (originParam in originFunc.valueParameters) {
-                                                    put(originParam.toQualifiedAccess(), originParam)
-                                                }
+                                    }
+
+                                    // TODO?
+                                    this.contextReceiverArguments.addAll(thisContextReceivers.map { receiver ->
+                                        buildThisReceiverExpression {
+                                            coneTypeOrNull = receiver.typeRef.coneTypeOrNull
+                                            source = receiver.source
+                                            calleeReference = buildExplicitThisReference {
+                                                source = receiver.source
+                                                labelName = receiver.labelName?.asString()
                                             }
-                                        )
+                                        }
+                                    })
+
+                                    // TODO?
+                                    this.explicitReceiver = thisReceiverParameter?.let { thisExplicitReceiver ->
+                                        buildThisReceiverExpression {
+                                            coneTypeOrNull = thisExplicitReceiver.typeRef.coneTypeOrNull
+                                            source = thisExplicitReceiver.source
+                                            calleeReference = buildExplicitThisReference {
+                                                source = thisExplicitReceiver.source
+                                            }
+                                        }
+                                    }
+
+                                    this.argumentList = buildResolvedArgumentList(
+                                        null,
+                                        mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
+                                            thisValueParameters.forEachIndexed { index, thisParam ->
+                                                val qualifiedAccess = thisParam.toQualifiedAccess()
+                                                put(qualifiedAccess, originValueParameters[index])
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+
+                        this.typeRef = bridgeFunData.lambdaParameter.returnTypeRef
+                    }
+                    lambdaTarget.bind(lambda)
+
+                    // bind to bridge fun
+
+                    this.statements.add(
+                        buildReturnExpression {
+                            this.target = newFunTarget
+                            this.result = buildFunctionCall {
+                                this.coneTypeOrNull = bridgeFunData.returnType.coneType
+                                this.source = bridgeFunData.symbol.source
+                                this.calleeReference = buildResolvedNamedReference {
+                                    this.source = bridgeFunData.symbol.source
+                                    this.name = bridgeFunData.symbol.name
+                                    this.resolvedSymbol = bridgeFunData.symbol
+                                }
+
+                                this.dispatchReceiver = buildThisReceiverExpression {
+                                    coneTypeOrNull = originFunSymbol.dispatchReceiverType
+                                    source = originFunSymbol.source
+                                    calleeReference = buildImplicitThisReference {
+                                        boundSymbol = owner
                                     }
                                 }
-                            )
+
+                                this.argumentList = buildResolvedArgumentList(
+                                    null,
+                                    mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
+                                        put(buildAnonymousFunctionExpression {
+                                            source = null
+                                            anonymousFunction = lambda
+                                            isTrailingLambda = false
+                                        }, funData.bridgeFunData.lambdaParameter)
+                                    }
+                                )
+                            }
                         }
-                        lambdaTarget.bind(lambda)
-
-                        this.statements.add(buildAnonymousFunctionExpression {
-                            this.anonymousFunction = lambda
-                            this.isTrailingLambda = false
-                        })
-
-//                        this.statements.add(
-//                            buildReturnExpression {
-//                                this.target = funTarget
-//                                val transformName = with(funData.transformer.transformFunctionInfo) {
-//                                    buildString {
-//                                        if (packageName.isNotEmpty()) {
-//                                            append(packageName)
-//                                            append('.')
-//                                        }
-//                                        if (className?.isNotEmpty() == true) {
-//                                            append(className)
-//                                            append('.')
-//                                        }
-//                                        append(functionName)
-//                                    }
-//                                }
-//
-//                                holder.session.moduleData.dependencies
-//
-//                                this.result = buildFunctionCall {
-//                                    this.source = null
-                                      // TODO 必须 resolved
-//                                    this.calleeReference = buildSimpleNamedReference {
-//                                        this.source = null
-//                                        this.name = Name.identifier(transformName)
-//                                    }
-                                        // TODO Argument 必须 resolved
-////                                    this.argumentList = buildArgumentList {
-////                                        arguments.add(buildAnonymousFunctionExpression {
-////                                            this.source = lambda.source
-////                                            this.anonymousFunction = lambda
-////                                            this.isTrailingLambda = false
-////                                        })
-////                                        // TODO scope?
-////                                    }
-//                                }
-//                            }
-//                        )
-                        // ConeClassLikeType()
-                    }
-                    // body = null
-
-                    // TODO 是否可以在FIR中就完成Body的构建？
-//                    buildBlock {
-//                        // build lambda
-//                        val lambda = buildAnonymousFunctionExpression {
-//                            anonymousFunction = buildAnonymousFunction {
-//                                moduleData = originFunc.moduleData
-//                                origin = key.origin
-//                                status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
-//                                returnTypeRef = originFunc.returnTypeRef
-//                                isLambda = true
-//                                body = buildSingleExpressionBlock(
-//                                    buildReturnExpression {
-//                                        result = buildFunctionCall {
-////                                            explicitReceiver = this@createConventionCall
-//                                            calleeReference = buildResolvedNamedReference {
-//                                                source = originFunc.source
-//                                                name = originFunc.name
-//                                                resolvedSymbol = originFunc.symbol
-//                                            }
-//
-//                                            argumentList = buildResolvedArgumentList(null,
-//                                                this@buildSimpleFunctionCopy.valueParameters.associateByTo(LinkedHashMap()) { valueParameter ->
-//                                                    buildCallableReferenceAccess {
-//                                                        source = valueParameter.source
-//                                                        calleeReference = buildResolvedNamedReference {
-//                                                            source = valueParameter.source
-//                                                            name = valueParameter.name
-//                                                            resolvedSymbol = valueParameter.symbol
-//                                                        }
-//                                                        coneTypeOrNull = valueParameter.returnTypeRef.coneTypeOrNull
-//                                                    }
-//                                                }
-//                                                )
-//                                        }
-//                                    }
-//                                )
-//                                symbol = FirAnonymousFunctionSymbol()
-//                            }
-//                        }
-//                        lambda
-//
-//
-//                        /*
-//                            fun xxxBlock() = transformFun({ orignFun }, )
-//                         */
-//                        statements.add(
-//                            buildReturnExpression {
-//
-//
-//                            }
-//                        )
-//
-//                        buildFunctionCall {
-//                            this
-//                        }
-//                    }
-
-                    origin = key.origin
+                    )
                 }
+                // body = null
 
-                funTarget.bind(newFun)
-
-                if (targetMarkerAnnotation != null) {
-                    originFunc.appendTargetMarker(uniqueFunHash)
-                }
-
-                funList.add(newFun.symbol)
+                origin = key.origin
             }
-        }
 
-        return funList
+            if (targetMarkerAnnotation != null) {
+                originFunc.appendTargetMarker(uniqueFunHash)
+            }
+
+            // TODO 在原函数上附加的annotations
+
+            newFunTarget.bind(newFun)
+            results.add(newFun.symbol)
+        }
     }
 
     @OptIn(SymbolInternals::class)
@@ -545,44 +644,49 @@ class SuspendTransformFirTransformer(
 
         val propList = mutableListOf<FirPropertySymbol>()
 
-        funcMap.forEach { (func, funData) ->
+        for ((originalFunSymbol, funData) in funcMap) {
+            if (funData !is SyntheticFunData) {
+                continue
+            }
+
             val annotationData = funData.annotationData
             if (annotationData.asProperty) {
-                val isOverride = checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, func, checkContext)
+                val isOverride =
+                    checkSyntheticFunctionIsOverrideBasedOnSourceFunction(funData, originalFunSymbol, checkContext)
 
                 // generate
-                val original = func.fir
+                val original = originalFunSymbol.fir
 
                 val uniqueFunHash = original.calculateOriginFuncHash()
 
                 val (functionAnnotations, propertyAnnotations) =
                     copyAnnotations(original, funData)
 
-//                val p = createMemberProperty()
-//                    owner = owner,
-//                    key = SuspendTransformPluginKey(
-//                        data = SuspendTransformUserDataFir(
-//                            originSymbol = original.symbol.asOriginSymbol(
-//                                typeParameters = original.typeParameters,
-//                                valueParameters = original.valueParameters,
-//                                original.returnTypeRef.coneTypeOrNull?.classId
-//                            ),
-//                            asProperty = true,
-//                            transformer = funData.transformer
-//                        )
-//                    ),
-//                    name = callableId.callableName,
-//                    returnTypeProvider = { resolveReturnConeType(original, funData) },
-//                    isVal = true,
-//                    hasBackingField = false,
-//                ) {
-//                    modality = original.syntheticModifier ?: Modality.FINAL
-//                    // TODO receiver?
-////                    val receiverType = original.receiverParameter?.typeRef?.coneTypeOrNull
-////                    if (receiverType != null) {
-////                        extensionReceiverType(receiverType)
-////                    }
-//                }
+                //                val p = createMemberProperty()
+                //                    owner = owner,
+                //                    key = SuspendTransformPluginKey(
+                //                        data = SuspendTransformUserDataFir(
+                //                            originSymbol = original.symbol.asOriginSymbol(
+                //                                typeParameters = original.typeParameters,
+                //                                valueParameters = original.valueParameters,
+                //                                original.returnTypeRef.coneTypeOrNull?.classId
+                //                            ),
+                //                            asProperty = true,
+                //                            transformer = funData.transformer
+                //                        )
+                //                    ),
+                //                    name = callableId.callableName,
+                //                    returnTypeProvider = { resolveReturnConeType(original, funData) },
+                //                    isVal = true,
+                //                    hasBackingField = false,
+                //                ) {
+                //                    modality = original.syntheticModifier ?: Modality.FINAL
+                //                    // TODO receiver?
+                ////                    val receiverType = original.receiverParameter?.typeRef?.coneTypeOrNull
+                ////                    if (receiverType != null) {
+                ////                        extensionReceiverType(receiverType)
+                ////                    }
+                //                }
 
                 val pSymbol = FirPropertySymbol(callableId)
                 val pKey = SuspendTransformPluginKey(
@@ -601,7 +705,7 @@ class SuspendTransformFirTransformer(
                 )
 
 
-                val returnType = resolveReturnType(original, funData, original.returnTypeRef)
+                val returnType = resolveReturnType(funData.transformer, original.returnTypeRef)
 
                 val p1 = buildProperty {
                     symbol = pSymbol
@@ -615,7 +719,7 @@ class SuspendTransformFirTransformer(
                         isSuspend = false,
                         isFun = false,
                         isInner = false,
-//                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
+                        //                        modality = if (original.status.isOverride) Modality.OPEN else original.status.modality,
                         modality = original.syntheticModifier,
                         isOverride = isOverride || isOverridable(
                             session,
@@ -654,23 +758,23 @@ class SuspendTransformFirTransformer(
 
                         origin = pKey.origin
 
-//                        attributes = original.attributes.copy()
+                        //                        attributes = original.attributes.copy()
                         status = original.status.copy(
                             isSuspend = false,
                             isFun = false,
                             isInner = false,
                             modality = original.syntheticModifier,
                             isOverride = false, // funData.isOverride,
-//                            visibility = this@buildProperty.status
+                            //                            visibility = this@buildProperty.status
                         )
                         returnTypeRef = original.returnTypeRef
-//                        deprecationsProvider = original.deprecationsProvider
-//                        containerSource = original.containerSource
-//                        dispatchReceiverType = original.dispatchReceiverType
-//                        contextReceivers.addAll(original.contextReceivers)
+                        //                        deprecationsProvider = original.deprecationsProvider
+                        //                        containerSource = original.containerSource
+                        //                        dispatchReceiverType = original.dispatchReceiverType
+                        //                        contextReceivers.addAll(original.contextReceivers)
                         valueParameters.addAll(original.valueParameters)
-//                        body = null
-//                        contractDescription = original.contractDescription
+                        //                        body = null
+                        //                        contractDescription = original.contractDescription
                         typeParameters.addAll(original.typeParameters)
                     }
                 }
@@ -680,6 +784,8 @@ class SuspendTransformFirTransformer(
                 if (targetMarkerAnnotation != null) {
                     original.appendTargetMarker(uniqueFunHash)
                 }
+
+                // TODO 在原函数上附加的annotations
             }
         }
 
@@ -687,14 +793,14 @@ class SuspendTransformFirTransformer(
     }
 
     private fun checkSyntheticFunctionIsOverrideBasedOnSourceFunction(
-        funData: FunData,
+        syntheticFunData: SyntheticFunData,
         func: FirNamedFunctionSymbol,
         checkContext: CheckerContext
     ): Boolean {
         // Check the overridden for isOverride based on source function (func) 's overridden
         var isOverride = false
-        val annoData = funData.annotationData
-        val markAnnotation = funData.transformer.markAnnotation
+        val annoData = syntheticFunData.annotationData
+        val markAnnotation = syntheticFunData.transformer.markAnnotation
 
         if (func.isOverride && !isOverride) {
             func.processOverriddenFunctions(
@@ -791,6 +897,23 @@ class SuspendTransformFirTransformer(
             }
         }
 
+        // TODO
+        //  https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/75
+        //  原始函数生成两个函数：
+        //  1. xxxBlocking 真正要生成的函数
+        //  2. __suspendTransform__$funName_$index_$transFunName 用于提供给 IR 直接生成body的private桥接函数
+
+        // fun.name -> Counter
+        val funNameCounters = mutableMapOf<String, AtomicInteger>()
+
+        fun resolveFunNameCount(name: String): Int = funNameCounters.computeIfAbsent(name) {
+            AtomicInteger(0)
+        }.andIncrement
+
+        // Key -> synthetic fun name or bridge fun name
+        // Value Map ->
+        //      Key: -> origin fun symbol
+        //      Values -> FunData
         val map = ConcurrentHashMap<Name, MutableMap<FirNamedFunctionSymbol, FunData>>()
 
         declaredScope.processAllFunctions { func ->
@@ -811,17 +934,90 @@ class SuspendTransformFirTransformer(
                         // 必须使用 anno.getXxxArgument(Name(argument name)),
                         // 使用 argumentMapping.mapping 获取不到结果
 //                        println("RAW AnnoData: ${anno.argumentMapping.mapping}")
-
                         val annoData = anno.toTransformAnnotationData(markAnnotation, functionName)
 
-                        val syntheticFunName = Name.identifier(annoData.functionName)
-                        map.computeIfAbsent(syntheticFunName) { ConcurrentHashMap() }[func] =
-                            FunData(annoData, transformer)
+                        val funCount = resolveFunNameCount(functionName)
+
+                        val syntheticFunNameString = annoData.functionName
+                        val bridgeFunNameString = bridgeFunName(functionName, funCount, syntheticFunNameString)
+
+                        val syntheticFunName = Name.identifier(syntheticFunNameString)
+                        val bridgeFunName = Name.identifier(bridgeFunNameString)
+
+                        val bridgeFunCallableId = func.callableId.replaceName(bridgeFunName)
+
+                        val bridgeFunSymbol = FirNamedFunctionSymbol(bridgeFunCallableId)
+
+                        // noinline suspend () -> T
+                        val suspendLambdaValueParameter = buildValueParameter {
+                            source = func.source
+                            resolvePhase = FirResolvePhase.RAW_FIR
+                            moduleData = func.moduleData
+                            origin = FirDeclarationOrigin.Synthetic.FakeFunction
+
+                            returnTypeRef = buildResolvedTypeRef {
+                                source = func.source
+                                val funTypeRef = buildFunctionTypeRef {
+                                    source = func.source
+                                    isMarkedNullable = false
+                                    receiverTypeRef = null
+                                    isSuspend = true
+                                    returnTypeRef = func.resolvedReturnTypeRef
+                                }
+
+                                delegatedTypeRef = funTypeRef
+
+                                coneType = session.typeResolver.resolveType(
+                                    funTypeRef,
+                                    ScopeClassDeclaration(emptyList(), emptyList()),
+                                    false,
+                                    false,
+                                    false,
+                                    null,
+                                    SupertypeSupplier.Default,
+                                ).type
+                            }
+
+                            backingField = null
+                            defaultValue = null
+                            val pname = Name.identifier("block")
+                            name = pname
+                            symbol = FirValueParameterSymbol(pname)
+                            containingFunctionSymbol = bridgeFunSymbol
+                            isVararg = false
+                            isCrossinline = false
+                            isNoinline = true
+                        }
+
+                        val returnType = resolveReturnType(transformer, func.resolvedReturnTypeRef)
+
+                        val bridgeFunData = BridgeFunData(
+                            bridgeFunName,
+                            bridgeFunSymbol,
+                            FirFunctionTarget(null, false),
+                            suspendLambdaValueParameter,
+                            returnType,
+                            annoData,
+                            transformer
+                        )
+
+                        map.computeIfAbsent(bridgeFunName) { name ->
+                            ConcurrentHashMap()
+                        }[func] = bridgeFunData
+
+                        map.computeIfAbsent(syntheticFunName) {
+                            ConcurrentHashMap()
+                        }[func] = SyntheticFunData(syntheticFunName, bridgeFunData)
                     }
                 }
         }
 
         return map
+    }
+
+    private fun bridgeFunName(original: String, count: Int, syntheticFun: String): String {
+        // __suspendTransform__run_0_runBlocking
+        return "__suspendTransform__${original}_${count}_${syntheticFun}"
     }
 
     private fun FirAnnotation.toTransformAnnotationData(
@@ -852,11 +1048,10 @@ class SuspendTransformFirTransformer(
         )?.firstOrNull()
 
     private fun resolveReturnType(
-        original: FirSimpleFunction,
-        funData: FunData,
+        transformer: Transformer,
         returnTypeRef: FirTypeRef
     ): FirTypeRef {
-        val resultConeType = resolveReturnConeType(original, funData, returnTypeRef)
+        val resultConeType = resolveReturnConeType(transformer, returnTypeRef)
 
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
@@ -871,11 +1066,10 @@ class SuspendTransformFirTransformer(
     }
 
     private fun resolveReturnConeType(
-        original: FirSimpleFunction,
-        funData: FunData,
+        transformer: Transformer,
         returnTypeRef: FirTypeRef
     ): ConeKotlinType {
-        val transformer = funData.transformer
+        val transformer = transformer
         val returnType = transformer.transformReturnType
             ?: return returnTypeRef.coneType // OrNull // original.symbol.resolvedReturnType
 
@@ -898,9 +1092,9 @@ class SuspendTransformFirTransformer(
      * @return function annotations `to` property annotations.
      */
     private fun copyAnnotations(
-        original: FirSimpleFunction, funData: FunData,
+        original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
     ): Pair<List<FirAnnotation>, List<FirAnnotation>> {
-        val transformer = funData.transformer
+        val transformer = syntheticFunData.transformer
 
         val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
             transformer.copyAnnotationsToSyntheticFunction,
@@ -940,22 +1134,6 @@ class SuspendTransformFirTransformer(
 
                 addAll(copied)
             }
-
-            // try add @Generated(by = ...)
-//            runCatching {
-//                val generatedAnnotation = buildAnnotation {
-//                    annotationTypeRef = buildResolvedTypeRef {
-//                        type = generatedAnnotationClassId.createConeType(session)
-//                    }
-//                    argumentMapping = buildAnnotationArgumentMapping {
-//                        includeGeneratedArguments(original)
-//                    }
-//                }
-//                add(generatedAnnotation)
-//            }.getOrElse { e ->
-//                // Where is log?
-//                e.printStackTrace()
-//            }
 
             // add includes
             includes.forEach { include ->
