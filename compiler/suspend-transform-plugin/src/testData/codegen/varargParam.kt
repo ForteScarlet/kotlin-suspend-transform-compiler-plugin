@@ -7,12 +7,13 @@ import kotlinx.coroutines.runBlocking
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
-public interface DeleteOption
 
 abstract class MyClass {
     @JvmBlocking
     @JvmAsync
-    suspend open fun deleteAll(vararg options: DeleteOption): Int {
+    suspend open fun deleteAll(option: Int): Int {
         return 1
     }
+
 }
+

@@ -1,6 +1,8 @@
 package love.forte.plugin.suspendtrans.ir
 
 import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.fir.SuspendTransformBridgeFunctionKey
+import love.forte.plugin.suspendtrans.fir.SuspendTransformGeneratedDeclarationKey
 import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
@@ -15,10 +17,7 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -72,10 +71,10 @@ class SuspendTransformTransformer(
         val pluginKey = if (property != null) {
             // from property
             (property.origin as? IrDeclarationOrigin.GeneratedByPlugin)
-                ?.pluginKey as? SuspendTransformPluginKey
+                ?.pluginKey as? SuspendTransformGeneratedDeclarationKey
         } else {
             (declaration.origin as? IrDeclarationOrigin.GeneratedByPlugin)
-                ?.pluginKey as? SuspendTransformPluginKey
+                ?.pluginKey as? SuspendTransformGeneratedDeclarationKey
         }
 
         // K1 ?
@@ -83,32 +82,66 @@ class SuspendTransformTransformer(
 
         val generatedOriginFunction: IrFunction? = when {
             pluginKey != null -> {
-                val callableFunction =
-                    pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
-                        .firstOrNull()
-                        ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
 
-                resolveFunctionBody(
-                    pluginKey,
-                    declaration,
-                    { f ->
-                        pluginKey.data.originSymbol.checkSame(pluginKey.data.markerId, f)
-                    },
-                    callableFunction
-                ).also { generatedOriginFunction ->
-                    if (property != null) {
-                        // NO! BACKING! FIELD!
-                        property.backingField = null
-                    }
+                when (pluginKey) {
+                    is SuspendTransformBridgeFunctionKey -> {
+                        val callableFunction =
+                            pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                                .firstOrNull()
+                                ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
 
-                    if (generatedOriginFunction != null) {
-                        postProcessGenerateOriginFunction(
-                            generatedOriginFunction,
-                            pluginKey.data.transformer.originFunctionIncludeAnnotations
+                        resolveBridgeFunctionBody(
+                            pluginKey,
+                            declaration,
+                            callableFunction
                         )
+
+                        null
+//                            .also { generatedOriginFunction ->
+//                            if (property != null) {
+//                                // NO! BACKING! FIELD!
+//                                property.backingField = null
+//                            }
+//
+//                            if (generatedOriginFunction != null) {
+//                                postProcessGenerateOriginFunction(
+//                                    generatedOriginFunction,
+//                                    pluginKey.data.transformer.originFunctionIncludeAnnotations
+//                                )
+//                            }
+//                        }
                     }
 
+                    is SuspendTransformPluginKey -> {
+                        val callableFunction =
+                            pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                                .firstOrNull()
+                                ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
+
+                        resolveFunctionBody(
+                            pluginKey,
+                            declaration,
+                            { f ->
+                                pluginKey.data.originSymbol.checkSame(pluginKey.data.markerId, f)
+                            },
+                            callableFunction
+                        ).also { generatedOriginFunction ->
+                            if (property != null) {
+                                // NO! BACKING! FIELD!
+                                property.backingField = null
+                            }
+
+                            if (generatedOriginFunction != null) {
+                                postProcessGenerateOriginFunction(
+                                    generatedOriginFunction,
+                                    pluginKey.data.transformer.originFunctionIncludeAnnotations
+                                )
+                            }
+                        }
+                    }
                 }
+
+
             }
 
             userData != null -> {
@@ -159,6 +192,9 @@ class SuspendTransformTransformer(
         }
     }
 
+    /**
+     * @return origin function
+     */
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private inline fun resolveFunctionBody(
         sourceKey: Any?,
@@ -274,9 +310,24 @@ class SuspendTransformTransformer(
             return originFunction
         }
 
-
-
         return null
+    }
+
+    /**
+     * 直接为bridge fun生成body
+     */
+    private fun resolveBridgeFunctionBody(
+        sourceKey: Any?,
+        function: IrFunction,
+        transformTargetFunctionCall: IrSimpleFunctionSymbol,
+    ) {
+        // body: return $transform(block, scope?)
+        function.body = generateTransformBodyForFunctionLambda(
+            pluginContext,
+            function,
+            null,
+            transformTargetFunctionCall
+        )
     }
 }
 
@@ -353,45 +404,54 @@ private fun generateTransformBodyForFunction(
 private fun generateTransformBodyForFunctionLambda(
     context: IrPluginContext,
     function: IrFunction,
-    originFunction: IrFunction,
+    originFunction: IrFunction?,
     transformTargetFunctionCall: IrSimpleFunctionSymbol,
 ): IrBody {
-    val originValueParameters = originFunction.valueParameters
-    function.valueParameters.forEachIndexed { index, parameter ->
-        val originFunctionValueParameter = originValueParameters[index]
-        parameter.defaultValue = originFunctionValueParameter.defaultValue
+    // 不为null，说明是直接生成。否则是bridge
+    originFunction?.valueParameters?.also { originValueParameters ->
+        function.valueParameters.forEachIndexed { index, parameter ->
+            val originFunctionValueParameter = originValueParameters[index]
+            parameter.defaultValue = originFunctionValueParameter.defaultValue
+        }
     }
 
     return context.createIrBuilder(function.symbol).irBlockBody {
-        val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
-            originFunction = originFunction,
-            function = function
-        )
 
-        val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
+        val lambdaExpression: IrExpression = if (originFunction != null) {
+            val suspendLambdaFunc = context.createSuspendLambdaFunctionWithCoroutineScope(
+                originFunction = originFunction,
+                function = function
+            )
+
+            val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
+
+            IrFunctionExpressionImpl(
+                UNDEFINED_OFFSET,
+                UNDEFINED_OFFSET,
+                lambdaType,
+                suspendLambdaFunc,
+                IrStatementOrigin.LAMBDA
+            )
+        } else {
+            // is bridge fun, use the first param `block`
+            val blockParameter = function.valueParameters.first()
+            irGet(blockParameter)
+        }
 
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(
-                0,
-                IrFunctionExpressionImpl(
-                    UNDEFINED_OFFSET,
-                    UNDEFINED_OFFSET,
-                    lambdaType,
-                    suspendLambdaFunc,
-                    IrStatementOrigin.LAMBDA
-                )
-            )
-            // argument: 1, if is CoroutineScope, and this is CoroutineScope.
-            val owner = transformTargetFunctionCall.owner
+            putValueArgument(0, lambdaExpression)
+
+            val transformFunctionOwner = transformTargetFunctionCall.owner
 
             // CoroutineScope
-            val ownerValueParameters = owner.valueParameters
+            val ownerValueParameters = transformFunctionOwner.valueParameters
 
+            // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             if (ownerValueParameters.size > 1) {
                 for (index in 1..ownerValueParameters.lastIndex) {
                     val valueParameter = ownerValueParameters[index]
                     val type = valueParameter.type
-                    tryResolveCoroutineScopeValueParameter(type, context, function, owner, this@irBlockBody, index)
+                    tryResolveCoroutineScopeValueParameter(type, context, function, transformFunctionOwner, this@irBlockBody, index)
                 }
             }
 
