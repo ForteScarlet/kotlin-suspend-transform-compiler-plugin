@@ -5,8 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.promise
 import kotlin.coroutines.CoroutineContext
 import kotlin.js.Promise
+import kotlinx.coroutines.SupervisorJob
 
-private val CoroutineContext4Js: CoroutineContext = Dispatchers.Default
+private val CoroutineContext4Js: CoroutineContext = Dispatchers.Default + SupervisorJob()
 
 private val CoroutineScope4Js: CoroutineScope = CoroutineScope(CoroutineContext4Js)
 
