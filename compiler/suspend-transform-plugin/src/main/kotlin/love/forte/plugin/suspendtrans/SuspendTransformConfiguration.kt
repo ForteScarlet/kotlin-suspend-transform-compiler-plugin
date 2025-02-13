@@ -2,6 +2,9 @@ package love.forte.plugin.suspendtrans
 
 import kotlinx.serialization.Serializable
 
+// TODO 序列化改成二进制的，比如 protobuf，
+//  然后使用base64或hash进行传递，避免谜之转义
+
 @Serializable
 data class FunctionInfo(
     var packageName: String,
