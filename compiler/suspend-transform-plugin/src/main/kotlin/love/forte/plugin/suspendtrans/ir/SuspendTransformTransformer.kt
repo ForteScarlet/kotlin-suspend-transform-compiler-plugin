@@ -3,6 +3,7 @@ package love.forte.plugin.suspendtrans.ir
 import love.forte.plugin.suspendtrans.*
 import love.forte.plugin.suspendtrans.fir.SuspendTransformBridgeFunctionKey
 import love.forte.plugin.suspendtrans.fir.SuspendTransformGeneratedDeclarationKey
+import love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key
 import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
@@ -81,9 +82,15 @@ class SuspendTransformTransformer(
         val userData = descriptor.getUserData(SuspendTransformUserDataKey)
 
         val generatedOriginFunction: IrFunction? = when {
-            pluginKey != null -> {
+            // K2 v3, 如果已经有body了，则不再需要生成，直接跳过。
+            declaration.body != null -> return null
 
+            pluginKey != null -> {
                 when (pluginKey) {
+                    // K2 v3, 通常是已经完成body生成的，跳过（应该到不了这一步，因为 body != null 已经在上面被检测过了
+                    is SuspendTransformK2V3Key -> null
+
+                    // K2 v2
                     is SuspendTransformBridgeFunctionKey -> {
                         val callableFunction =
                             pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
@@ -321,13 +328,15 @@ class SuspendTransformTransformer(
         function: IrFunction,
         transformTargetFunctionCall: IrSimpleFunctionSymbol,
     ) {
-        // body: return $transform(block, scope?)
-        function.body = generateTransformBodyForFunctionLambda(
-            pluginContext,
-            function,
-            null,
-            transformTargetFunctionCall
-        )
+        if (function.body == null) {
+            // body: return $transform(block, scope?)
+            function.body = generateTransformBodyForFunctionLambda(
+                pluginContext,
+                function,
+                null,
+                transformTargetFunctionCall
+            )
+        }
     }
 }
 
