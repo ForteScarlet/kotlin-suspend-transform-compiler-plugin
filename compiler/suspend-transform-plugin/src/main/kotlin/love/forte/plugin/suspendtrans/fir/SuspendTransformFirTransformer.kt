@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.SessionHolderImpl
 import org.jetbrains.kotlin.fir.resolve.getSuperTypes
+import org.jetbrains.kotlin.fir.resolve.providers.dependenciesSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorForFullBodyResolve
@@ -90,22 +91,29 @@ class SuspendTransformFirTransformer(
     )
 
     private fun initScopeSymbol() {
-        coroutineScopeSymbol = session.symbolProvider.getClassLikeSymbolByClassId(
-            ClassId(
-                FqName.fromSegments(listOf("kotlinx", "coroutines")),
-                Name.identifier("CoroutineScope")
-            )
-        ) ?: error("Cannot resolve `kotlinx.coroutines.CoroutineScope` symbol.")
+
+        val classId = ClassId(
+            FqName.fromSegments(listOf("kotlinx", "coroutines")),
+            Name.identifier("CoroutineScope")
+        )
+
+        coroutineScopeSymbol = session.symbolProvider.getClassLikeSymbolByClassId(classId)
+            ?: session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId)
+                    ?: error("Cannot resolve `kotlinx.coroutines.CoroutineScope` symbol.")
     }
 
     private fun initTransformerFunctionSymbolMap() {
         // 尝试找到所有配置的 bridge function, 例如 `runBlocking` 等
+        val symbolProvider = session.symbolProvider
+        val dependenciesSymbolProvider = session.dependenciesSymbolProvider
+
         suspendTransformConfiguration.transformers
-            .forEach { (_, transformerList) ->
+            .forEach { (platform, transformerList) ->
                 for (transformer in transformerList) {
                     val transformFunctionInfo = transformer.transformFunctionInfo
                     val packageName = transformFunctionInfo.packageName
                     val functionName = transformFunctionInfo.functionName
+
                     @Suppress("DEPRECATION")
                     val className = transformFunctionInfo.className
                     if (className != null) {
@@ -117,11 +125,18 @@ class SuspendTransformFirTransformer(
 
                     // TODO 校验funcs?
 
+                    val functionNameIdentifier = Name.identifier(functionName)
+
                     val transformerFunctionSymbols =
-                        session.symbolProvider.getTopLevelFunctionSymbols(
+                        symbolProvider.getTopLevelFunctionSymbols(
                             packageName.fqn,
-                            Name.identifier(functionName)
-                        )
+                            functionNameIdentifier
+                        ).ifEmpty {
+                            dependenciesSymbolProvider.getTopLevelFunctionSymbols(
+                                packageName.fqn,
+                                functionNameIdentifier
+                            )
+                        }
 
                     if (transformerFunctionSymbols.isNotEmpty()) {
                         if (transformerFunctionSymbols.size == 1) {
@@ -130,7 +145,8 @@ class SuspendTransformFirTransformer(
                             error("Found multiple transformer function symbols for transformer: $transformer")
                         }
                     } else {
-                        error("Cannot find transformer function symbol for transformer: $transformer")
+                        // 有时候在不同平台中寻找，可能会找不到，例如在jvm中找不到js的函数
+                        // error("Cannot find transformer function symbol $packageName.$functionName (${session.moduleData.platform}) for transformer: $transformer")
                     }
                 }
             }
@@ -331,7 +347,6 @@ class SuspendTransformFirTransformer(
                             }
                         }
 
-                        // TODO?
                         this.contextReceiverArguments.addAll(thisContextReceivers.map { receiver ->
                             buildThisReceiverExpression {
                                 coneTypeOrNull = receiver.typeRef.coneTypeOrNull
@@ -390,13 +405,13 @@ class SuspendTransformFirTransformer(
                         this.resolvedSymbol = bridgeFunSymbol
                     }
 
-                    //                                this.dispatchReceiver = buildThisReceiverExpression {
-                    //                                    coneTypeOrNull = originFunSymbol.dispatchReceiverType
-                    //                                    source = originFunSymbol.source
-                    //                                    calleeReference = buildImplicitThisReference {
-                    //                                        boundSymbol = owner
-                    //                                    }
-                    //                                }
+                    // this.dispatchReceiver = buildThisReceiverExpression {
+                    //     coneTypeOrNull = originFunSymbol.dispatchReceiverType
+                    //     source = originFunSymbol.source
+                    //     calleeReference = buildImplicitThisReference {
+                    //         boundSymbol = owner
+                    //     }
+                    // }
 
                     this.argumentList = buildResolvedArgumentList(
                         null,
@@ -416,21 +431,36 @@ class SuspendTransformFirTransformer(
                                 bridgeFunSymbol.valueParameterSymbols
 
                             if (valueParameterSymbols.size > 1) {
+                                // 支持:
+                                //  CoroutineScope? -> this as? CoroutineScope
+                                //  CoroutineScope -> this or throw error
+                                //  CoroutineScope (optional) -> this or ignore
+                                //  TODO Any -> this
+                                //  TODO 后面的所有参数处理
+
+//                                val listIterator = valueParameterSymbols.listIterator(1)
+//                                listIterator.forEach { otherParameter ->
+//
+//                                }
+
                                 val secondParameter = valueParameterSymbols[1]
 
                                 val secondParameterType = secondParameter.resolvedReturnType
                                 val secondParameterTypeNotNullable =
                                     secondParameterType.makeConeTypeDefinitelyNotNullOrNotNull(session.typeContext)
 
-                                val isCoroutineScope = secondParameterTypeNotNullable.isSubtypeOf(
-                                    coroutineScopeSymbol.toLookupTag().constructClassType(),
-                                    session,
-                                )
+                                fun ConeKotlinType.isCoroutineScope(): Boolean {
+                                    return isSubtypeOf(
+                                        coroutineScopeSymbol.toLookupTag().constructClassType(),
+                                        session
+                                    )
+                                }
+
+                                val isCoroutineScope = secondParameterTypeNotNullable.isCoroutineScope()
 
                                 if (isCoroutineScope) {
                                     if (secondParameterType.isMarkedNullable) {
                                         // this as? CoroutineScope
-
                                         val secondParameterTypeNotNullable =
                                             secondParameterType.makeConeTypeDefinitelyNotNullOrNotNull(
                                                 session.typeContext
@@ -458,15 +488,39 @@ class SuspendTransformFirTransformer(
                                                 operation = FirOperation.SAFE_AS
                                                 conversionTypeRef =
                                                     secondParameterTypeNotNullable.toFirResolvedTypeRef()
-
                                             },
                                             secondParameter.fir
                                         )
 
                                     } else {
-                                        // this as CoroutineScope
-                                        // or throw error?
+                                        // if this is CoroutineScope, put, or throw error?
 
+                                        var ownerIsCoroutineScopeOrParameterIsOptional = secondParameter.hasDefaultValue
+
+                                        for (superType in owner.getSuperTypes(session, recursive = false)) {
+                                            if (superType.isCoroutineScope()) {
+                                                put(
+                                                    buildThisReceiverExpression {
+                                                        coneTypeOrNull = originFunSymbol.dispatchReceiverType
+                                                        source = originFunSymbol.source
+                                                        calleeReference = buildImplicitThisReference {
+                                                            boundSymbol = owner
+                                                        }
+                                                    },
+                                                    secondParameter.fir
+                                                )
+                                                ownerIsCoroutineScopeOrParameterIsOptional = true
+                                                break
+                                            }
+                                        }
+
+                                        // or throw error?
+                                        if (!ownerIsCoroutineScopeOrParameterIsOptional) {
+                                            error(
+                                                "Owner is not a CoroutineScope, " +
+                                                        "and the transformer function requires a `CoroutineScope` parameter."
+                                            )
+                                        }
                                     }
 
                                 }
@@ -534,10 +588,6 @@ class SuspendTransformFirTransformer(
                         isProperty = false,
                     ),
                 )
-
-//                val returnType = resolveReturnType(originFunc, funData, returnTypeRef)
-//                returnTypeRef = returnType
-//                returnTypeRef = funData.bridgeFunData.returnType
 
                 // Copy the typeParameters.
                 // Otherwise, in functions like the following, an error will occur
@@ -868,6 +918,7 @@ class SuspendTransformFirTransformer(
 
                         val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
+
 
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
                             ?: error("Cannot find transformer function symbol for transformer: $transformer")
