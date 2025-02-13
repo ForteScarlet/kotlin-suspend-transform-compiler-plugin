@@ -45,6 +45,12 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   }
 
   @Test
+  @TestMetadata("typeAttrNested.kt")
+  public void testTypeAttrNested() {
+    runTest("src/testData/codegen/typeAttrNested.kt");
+  }
+
+  @Test
   @TestMetadata("opt.kt")
   public void testOpt() {
     runTest("src/testData/codegen/opt.kt");

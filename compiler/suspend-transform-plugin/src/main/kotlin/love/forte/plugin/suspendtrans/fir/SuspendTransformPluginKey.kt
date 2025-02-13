@@ -15,3 +15,8 @@ data class SuspendTransformPluginKey(val data: SuspendTransformUserDataFir) :
 
 data class SuspendTransformBridgeFunctionKey(val data: SuspendTransformBridgeFunDataFir) :
     SuspendTransformGeneratedDeclarationKey()
+
+/**
+ * The v3 logic for generating suspend bridge functions: generate body in FIR stage.
+ */
+object SuspendTransformK2V3Key : SuspendTransformGeneratedDeclarationKey()
