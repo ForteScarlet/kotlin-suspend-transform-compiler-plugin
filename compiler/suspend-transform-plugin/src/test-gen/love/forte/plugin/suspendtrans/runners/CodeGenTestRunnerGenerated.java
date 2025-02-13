@@ -33,12 +33,6 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   }
 
   @Test
-  @TestMetadata("async.kt")
-  public void testAsync() {
-    runTest("src/testData/codegen/async.kt");
-  }
-
-  @Test
   @TestMetadata("override.kt")
   public void testOverride() {
     runTest("src/testData/codegen/override.kt");
