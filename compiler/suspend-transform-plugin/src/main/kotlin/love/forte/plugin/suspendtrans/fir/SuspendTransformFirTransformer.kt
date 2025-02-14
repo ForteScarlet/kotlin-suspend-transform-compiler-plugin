@@ -108,7 +108,7 @@ class SuspendTransformFirTransformer(
         val dependenciesSymbolProvider = session.dependenciesSymbolProvider
 
         suspendTransformConfiguration.transformers
-            .forEach { (platform, transformerList) ->
+            .forEach { (_, transformerList) ->
                 for (transformer in transformerList) {
                     val transformFunctionInfo = transformer.transformFunctionInfo
                     val packageName = transformFunctionInfo.packageName
@@ -435,19 +435,8 @@ class SuspendTransformFirTransformer(
                                 //  CoroutineScope? -> this as? CoroutineScope
                                 //  CoroutineScope -> this or throw error
                                 //  CoroutineScope (optional) -> this or ignore
-                                //  TODO Any -> this
-                                //  TODO 后面的所有参数处理
-
-//                                val listIterator = valueParameterSymbols.listIterator(1)
-//                                listIterator.forEach { otherParameter ->
-//
-//                                }
-
-                                val secondParameter = valueParameterSymbols[1]
-
-                                val secondParameterType = secondParameter.resolvedReturnType
-                                val secondParameterTypeNotNullable =
-                                    secondParameterType.makeConeTypeDefinitelyNotNullOrNotNull(session.typeContext)
+                                //  Any -> this
+                                //  index 1 以及后面的所有参数都进行处理
 
                                 fun ConeKotlinType.isCoroutineScope(): Boolean {
                                     return isSubtypeOf(
@@ -456,74 +445,79 @@ class SuspendTransformFirTransformer(
                                     )
                                 }
 
-                                val isCoroutineScope = secondParameterTypeNotNullable.isCoroutineScope()
+                                fun thisReceiverExpression(): FirThisReceiverExpression {
+                                    return buildThisReceiverExpression {
+                                        coneTypeOrNull =
+                                            originFunSymbol.dispatchReceiverType
+                                        source = originFunSymbol.source
+                                        calleeReference = buildImplicitThisReference {
+                                            boundSymbol = owner
+                                        }
+                                    }
+                                }
 
-                                if (isCoroutineScope) {
-                                    if (secondParameterType.isMarkedNullable) {
-                                        // this as? CoroutineScope
-                                        val secondParameterTypeNotNullable =
-                                            secondParameterType.makeConeTypeDefinitelyNotNullOrNotNull(
-                                                session.typeContext
-                                            )
+                                val listIterator = valueParameterSymbols.listIterator(1)
+                                listIterator.forEach { parameterSymbol ->
+                                    val parameterFir = parameterSymbol.fir
+                                    val parameterType = parameterSymbol.resolvedReturnType
 
-                                        put(
-                                            buildTypeOperatorCall {
-                                                source = originFunSymbol.source
-                                                coneTypeOrNull = secondParameterTypeNotNullable
-                                                argumentList = buildResolvedArgumentList(
-                                                    null,
-                                                    mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
-                                                        put(
-                                                            buildThisReceiverExpression {
-                                                                coneTypeOrNull = originFunSymbol.dispatchReceiverType
-                                                                source = originFunSymbol.source
-                                                                calleeReference = buildImplicitThisReference {
-                                                                    boundSymbol = owner
-                                                                }
-                                                            },
-                                                            secondParameter.fir
-                                                        )
-                                                    }
-                                                )
-                                                operation = FirOperation.SAFE_AS
-                                                conversionTypeRef =
-                                                    secondParameterTypeNotNullable.toFirResolvedTypeRef()
-                                            },
-                                            secondParameter.fir
-                                        )
-
+                                    val parameterTypeNotNullable = if (parameterType.isMarkedNullable) {
+                                        parameterType.makeConeTypeDefinitelyNotNullOrNotNull(session.typeContext)
                                     } else {
-                                        // if this is CoroutineScope, put, or throw error?
+                                        parameterType
+                                    }
 
-                                        var ownerIsCoroutineScopeOrParameterIsOptional = secondParameter.hasDefaultValue
-
-                                        for (superType in owner.getSuperTypes(session, recursive = false)) {
-                                            if (superType.isCoroutineScope()) {
+                                    when {
+                                        // 参数是 CoroutineScope(?) 类型
+                                        parameterTypeNotNullable.isCoroutineScope() -> {
+                                            if (parameterType.isMarkedNullable) {
+                                                // scope = this as? CoroutineScope
                                                 put(
-                                                    buildThisReceiverExpression {
-                                                        coneTypeOrNull = originFunSymbol.dispatchReceiverType
+                                                    buildTypeOperatorCall {
                                                         source = originFunSymbol.source
-                                                        calleeReference = buildImplicitThisReference {
-                                                            boundSymbol = owner
-                                                        }
+                                                        coneTypeOrNull = parameterTypeNotNullable
+                                                        argumentList = buildResolvedArgumentList(
+                                                            null,
+                                                            mapping = linkedMapOf<FirExpression, FirValueParameter>().apply {
+                                                                put(thisReceiverExpression(), parameterFir)
+                                                            }
+                                                        )
+                                                        operation = FirOperation.SAFE_AS
+                                                        conversionTypeRef = parameterTypeNotNullable.toFirResolvedTypeRef()
                                                     },
-                                                    secondParameter.fir
+                                                    parameterFir
                                                 )
-                                                ownerIsCoroutineScopeOrParameterIsOptional = true
-                                                break
+                                            } else {
+                                                // coroutine not nullable
+                                                // put if this is `CoroutineScope` or it is optional, otherwise throw error
+                                                var ownerIsCoroutineScopeOrParameterIsOptional = parameterSymbol.hasDefaultValue
+                                                for (superType in owner.getSuperTypes(session, recursive = false)) {
+                                                    if (superType.isCoroutineScope()) {
+                                                        put(thisReceiverExpression(), parameterFir)
+                                                        ownerIsCoroutineScopeOrParameterIsOptional = true
+                                                        break
+                                                    }
+                                                }
+
+                                                // or throw error?
+                                                if (!ownerIsCoroutineScopeOrParameterIsOptional) {
+                                                    error(
+                                                        "Owner is not a CoroutineScope, " +
+                                                                "and the transformer function requires a `CoroutineScope` parameter."
+                                                    )
+                                                }
                                             }
                                         }
 
-                                        // or throw error?
-                                        if (!ownerIsCoroutineScopeOrParameterIsOptional) {
-                                            error(
-                                                "Owner is not a CoroutineScope, " +
-                                                        "and the transformer function requires a `CoroutineScope` parameter."
-                                            )
+                                        // 参数是 Any(?) 类型
+                                        parameterTypeNotNullable == session.builtinTypes.anyType.coneType -> {
+                                            // 直接把 this 放进去，不需要转换
+                                            put(thisReceiverExpression(), parameterFir)
                                         }
                                     }
-
                                 }
+
+
                             }
 
                         }
