@@ -69,6 +69,15 @@ private fun SuspendTransformGradleExtension.toSubpluginOptions(): List<Subplugin
 
 private fun Project.configureDependencies() {
     fun Project.include(platform: Platform, conf: SuspendTransformGradleExtension) {
+        if (!conf.enabled) {
+            logger.info(
+                "The `SuspendTransformGradleExtension.enable` in project {} for platform {} is `false`, skip config.",
+                this,
+                platform
+            )
+            return
+        }
+
         if (conf.includeAnnotation) {
             val notation = getDependencyNotation(
                 SuspendTransPluginConstants.ANNOTATION_GROUP,
@@ -79,7 +88,7 @@ private fun Project.configureDependencies() {
             if (platform == Platform.JVM) {
                 dependencies.add(conf.annotationConfigurationName, notation)
             } else {
-                // JS, native 似乎不支持其他的 name，例如 compileOnly
+                // JS, native 似乎不支持 compileOnly
                 dependencies.add("implementation", notation)
             }
             dependencies.add("testImplementation", notation)
@@ -137,6 +146,7 @@ private enum class DependencyConfigurationName {
 }
 
 fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtension) {
+    // 时间久远，已经忘记为什么要做这个判断了，也忘记这段是在哪儿参考来的了💀
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
         val multiplatformExtensions = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
 
@@ -202,16 +212,14 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
     } else {
         sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
             val platformTypes = compilations.map { it.platformType }.toSet()
-            logger.info("platformTypes: {}", platformTypes)
+            logger.info(
+                "Configure sourceSet [{}]. compilations: {}, platformTypes: {}",
+                sourceSet,
+                compilations,
+                platformTypes
+            )
 
-//            val compilationNames = compilations.map { it.compilationName }.toSet()
-//            logger.info("compilationNames: {}", compilationNames)
-//
-//            if (compilationNames.size != 1) {
-//                // TODO error or warn or nothing?
-//                //error("Source set '${sourceSet.name}' of project '$name' is part of several compilations $compilationNames")
-//            }
-
+            // TODO 可能同一个 sourceSet 会出现重复，但是需要处理吗？
             for (compilation in compilations) {
                 val platformType = compilation.platformType
                 val compilationName = compilation.compilationName
@@ -271,6 +279,12 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                     }
 
                     // dependencies.add(configurationName, notation)
+                    logger.debug(
+                        "Add annotation dependency: {} {} for sourceSet {}",
+                        configurationName,
+                        notation,
+                        sourceSet
+                    )
                 }
 
                 if (conf.includeRuntime) {
@@ -285,7 +299,13 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                     sourceSet.dependencies {
                         implementation(notation)
                     }
-                    // dependencies.add(configurationName, notation)
+
+                    logger.debug(
+                        "Add runtime dependency: {} {} for sourceSet {}",
+                        IMPLEMENTATION,
+                        notation,
+                        sourceSet
+                    )
                 }
             }
         }
