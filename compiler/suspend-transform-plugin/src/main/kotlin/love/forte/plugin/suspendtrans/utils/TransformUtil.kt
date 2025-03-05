@@ -11,5 +11,6 @@ import org.jetbrains.kotlin.name.Name
 fun ClassInfo.toClassId(): ClassId =
     ClassId(packageName.fqn, className.fqn, local)
 
+@Suppress("DEPRECATION")
 fun FunctionInfo.toCallableId(): CallableId =
     CallableId(packageName.fqn, className?.fqn, Name.identifier(functionName))
