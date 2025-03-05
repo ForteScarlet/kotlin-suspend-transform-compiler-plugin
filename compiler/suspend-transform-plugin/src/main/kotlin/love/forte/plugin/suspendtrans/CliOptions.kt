@@ -4,7 +4,6 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
-import kotlin.reflect.KMutableProperty
 
 private val defaultJson = Json {
     isLenient = true
@@ -84,15 +83,15 @@ private class ResolveBuilder {
         outc = block
     }
 
-    fun withProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String>) {
-        inc { block().setter.call(it) }
-        out { block().getter.call() }
-    }
-
-    fun withNullableProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String?>) {
-        inc { block().setter.call(it.takeIf { it.isNotEmpty() }) }
-        out { block().getter.call() ?: "" }
-    }
+//    fun withProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String>) {
+//        inc { block().setter.call(it) }
+//        out { block().getter.call() }
+//    }
+//
+//    fun withNullableProp(block: SuspendTransformConfiguration.() -> KMutableProperty<String?>) {
+//        inc { block().setter.call(it.takeIf { it.isNotEmpty() }) }
+//        out { block().getter.call() ?: "" }
+//    }
 }
 
 private fun option(
