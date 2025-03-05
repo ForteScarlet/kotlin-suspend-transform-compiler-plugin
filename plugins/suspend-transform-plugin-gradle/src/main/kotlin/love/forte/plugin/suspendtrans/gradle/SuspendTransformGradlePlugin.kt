@@ -151,6 +151,14 @@ private enum class DependencyConfigurationName {
 }
 
 fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtension) {
+    if (!conf.enabled) {
+        logger.info(
+            "The `SuspendTransformGradleExtension.enable` in project {} for multiplatform is `false`, skip config.",
+            this,
+        )
+        return
+    }
+
     // 时间久远，已经忘记为什么要做这个判断了，也忘记这段是在哪儿参考来的了💀
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
         val multiplatformExtensions = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
