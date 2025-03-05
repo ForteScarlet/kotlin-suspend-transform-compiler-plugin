@@ -19,7 +19,12 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        return kotlinCompilation.target.project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
+        val project = kotlinCompilation.target.project
+
+        val isApplicable = project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
+                && project.configOrNull?.enabled != false
+
+        return isApplicable
     }
 
     override fun getCompilerPluginId(): String = SuspendTransPluginConstants.KOTLIN_PLUGIN_ID
@@ -341,7 +346,10 @@ private fun String.compilationNameToType(): CompilationType? = when (this) {
 }
 
 private val Project.config: SuspendTransformGradleExtension
-    get() = extensions.findByType(SuspendTransformGradleExtension::class.java) ?: SuspendTransformGradleExtension()
+    get() = configOrNull ?: SuspendTransformGradleExtension()
+
+private val Project.configOrNull: SuspendTransformGradleExtension?
+    get() = extensions.findByType(SuspendTransformGradleExtension::class.java)
 
 private enum class Platform(val suffix: String) {
     JVM("-jvm"), JS("-js"), NATIVE(""), MULTIPLATFORM("")
