@@ -1,6 +1,7 @@
 package love.forte.plugin.suspendtrans.gradle
 
 import love.forte.plugin.suspendtrans.CliOptions
+import love.forte.plugin.suspendtrans.gradle.DependencyConfigurationName.*
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -131,6 +132,10 @@ fun Project.withPluginWhenEvaluatedConf(
     }
 }
 
+private enum class DependencyConfigurationName {
+    API, IMPLEMENTATION, COMPILE_ONLY
+}
+
 fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtension) {
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
         val multiplatformExtensions = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
@@ -197,51 +202,92 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
     } else {
         sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
             val platformTypes = compilations.map { it.platformType }.toSet()
-            val compilationNames = compilations.map { it.compilationName }.toSet()
-            if (compilationNames.size != 1)
-                error("Source set '${sourceSet.name}' of project '$name' is part of several compilations $compilationNames")
-            val compilationType = compilationNames.single().compilationNameToType()
-                ?: return@forEach // skip unknown compilations
-            val platform =
-                if (platformTypes.size > 1) Platform.MULTIPLATFORM else // mix of platform types -> "common"
-                    when (platformTypes.single()) {
+            logger.info("platformTypes: {}", platformTypes)
+
+//            val compilationNames = compilations.map { it.compilationName }.toSet()
+//            logger.info("compilationNames: {}", compilationNames)
+//
+//            if (compilationNames.size != 1) {
+//                // TODO error or warn or nothing?
+//                //error("Source set '${sourceSet.name}' of project '$name' is part of several compilations $compilationNames")
+//            }
+
+            for (compilation in compilations) {
+                val platformType = compilation.platformType
+                val compilationName = compilation.compilationName
+                val compilationType = compilationName.compilationNameToType()
+
+                logger.info(
+                    "compilation platformType: {}, compilationName: {}, compilationType: {}",
+                    platformType,
+                    compilationName,
+                    compilationType
+                )
+
+                val platform = if (platformTypes.size > 1) {
+                    Platform.MULTIPLATFORM
+                } else {
+                    // mix of platform types -> "common"
+                    when (platformType) {
                         KotlinPlatformType.common -> Platform.MULTIPLATFORM
                         KotlinPlatformType.jvm, KotlinPlatformType.androidJvm -> Platform.JVM
                         KotlinPlatformType.js -> Platform.JS
                         KotlinPlatformType.native, KotlinPlatformType.wasm -> Platform.NATIVE
                     }
-
-            if (conf.includeAnnotation) {
-                val configurationName = when {
-                    // impl dependency for native (there is no transformation)
-                    platform == Platform.NATIVE -> sourceSet.implementationConfigurationName
-                    // compileOnly dependency for main compilation (commonMain, jvmMain, jsMain)
-                    compilationType == CompilationType.MAIN -> sourceSet.compileOnlyConfigurationName
-                    // impl dependency for tests
-                    else -> sourceSet.implementationConfigurationName
                 }
 
-                val notation = getDependencyNotation(
-                    SuspendTransPluginConstants.ANNOTATION_GROUP,
-                    SuspendTransPluginConstants.ANNOTATION_NAME,
-                    platform,
-                    conf.annotationDependencyVersion
-                )
-                dependencies.add(configurationName, notation)
+                if (conf.includeAnnotation) {
+                    val configurationName = when {
+                        // impl dependency for native (there is no transformation)
+                        platform == Platform.NATIVE -> IMPLEMENTATION // sourceSet.implementationConfigurationName
+                        // compileOnly dependency for JVM main compilation (jvmMain, androidMain)
+                        compilationType == CompilationType.MAIN &&
+                                platform == Platform.JVM -> COMPILE_ONLY // sourceSet.compileOnlyConfigurationName
+                        // impl dependency for tests, and others
+                        else -> IMPLEMENTATION // sourceSet.implementationConfigurationName
+                    }
+
+                    val notation = getDependencyNotation(
+                        SuspendTransPluginConstants.ANNOTATION_GROUP,
+                        SuspendTransPluginConstants.ANNOTATION_NAME,
+                        platform,
+                        conf.annotationDependencyVersion
+                    )
+
+                    sourceSet.dependencies {
+                        when (configurationName) {
+                            API -> {
+                                api(notation)
+                            }
+
+                            IMPLEMENTATION -> {
+                                implementation(notation)
+                            }
+
+                            COMPILE_ONLY -> {
+                                compileOnly(notation)
+                            }
+                        }
+                    }
+
+                    // dependencies.add(configurationName, notation)
+                }
+
+                if (conf.includeRuntime) {
+                    // val configurationName = sourceSet.implementationConfigurationName
+
+                    val notation = getDependencyNotation(
+                        SuspendTransPluginConstants.RUNTIME_GROUP,
+                        SuspendTransPluginConstants.RUNTIME_NAME,
+                        platform,
+                        conf.runtimeDependencyVersion
+                    )
+                    sourceSet.dependencies {
+                        implementation(notation)
+                    }
+                    // dependencies.add(configurationName, notation)
+                }
             }
-
-            if (conf.includeRuntime) {
-                val configurationName = sourceSet.implementationConfigurationName
-
-                val notation = getDependencyNotation(
-                    SuspendTransPluginConstants.RUNTIME_GROUP,
-                    SuspendTransPluginConstants.RUNTIME_NAME,
-                    platform,
-                    conf.runtimeDependencyVersion
-                )
-                dependencies.add(configurationName, notation)
-            }
-
         }
     }
 }
@@ -255,7 +301,7 @@ fun Project.withKotlinTargets(fn: (KotlinTarget) -> Unit) {
 }
 
 fun Project.sourceSetsByCompilation(): Map<KotlinSourceSet, List<KotlinCompilation<*>>> {
-    val sourceSetsByCompilation = hashMapOf<KotlinSourceSet, MutableList<KotlinCompilation<*>>>()
+    val sourceSetsByCompilation = mutableMapOf<KotlinSourceSet, MutableList<KotlinCompilation<*>>>()
     withKotlinTargets { target ->
         target.compilations.forEach { compilation ->
             compilation.allKotlinSourceSets.forEach { sourceSet ->
