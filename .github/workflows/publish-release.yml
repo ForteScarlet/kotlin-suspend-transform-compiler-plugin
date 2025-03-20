@@ -17,6 +17,7 @@ env:
   IS_CI: true
   SIMBOT_LOCAL: false
   GRADLE_OPTS: "-Dfile.encoding=UTF-8"
+  GRADLE_VERSION: 8.10.2
 
 jobs:
   test:
@@ -34,7 +35,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.5
+          gradle-version: ${{ env.GRADLE_VERSION }}
       - run: gradle assemble build -s
 
   publish:
@@ -53,7 +54,7 @@ jobs:
       - name: Test and publish to sonatype
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.5
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments:
             publishToSonatype
             closeAndReleaseStagingRepositories
@@ -86,7 +87,7 @@ jobs:
       - name: Publish to gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.5
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: |
             build
             publishPlugins
@@ -117,7 +118,7 @@ jobs:
       - name: Create changelog
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.5
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: createChangelog
 
         # https://github.com/softprops/action-gh-release
