@@ -195,11 +195,13 @@ class SuspendTransformFirTransformer(
     }
 
     private fun List<FirValueParameter>.mapToNewValueParameters(
-        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
+        newContainingDeclarationSymbol: FirBasedSymbol<*>
     ): List<FirValueParameter> {
         return map { vp ->
             buildValueParameterCopy(vp) {
                 symbol = FirValueParameterSymbol(vp.symbol.name)
+                containingDeclarationSymbol = newContainingDeclarationSymbol
 
                 val copiedConeType = vp.returnTypeRef.coneTypeOrNull
                     ?.copyWithTypeParameters(originalTypeParameterCache)
@@ -211,11 +213,16 @@ class SuspendTransformFirTransformer(
         }
     }
 
-    private fun FirReceiverParameter.copyToNew(originalTypeParameterCache: MutableList<CopiedTypeParameterPair>): FirReceiverParameter? {
+    private fun FirReceiverParameter.copyToNew(
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
+        newContainingDeclarationSymbol: FirBasedSymbol<*>
+    ): FirReceiverParameter? {
         return typeRef.coneTypeOrNull
             ?.copyWithTypeParameters(originalTypeParameterCache)
             ?.let { foundCopied ->
                 buildReceiverParameterCopy(this) {
+                    symbol = FirReceiverParameterSymbol()
+                    containingDeclarationSymbol = newContainingDeclarationSymbol
                     typeRef = typeRef.withReplacedConeType(foundCopied)
                 }
             }
@@ -231,17 +238,28 @@ class SuspendTransformFirTransformer(
     }
 
     private fun FirSimpleFunctionBuilder.copyParameters() {
+        val newFunSymbol = symbol
         val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
-        val newTypeParameters = typeParameters.mapToNewTypeParameters(symbol, originalTypeParameterCache)
+        val newTypeParameters = typeParameters.mapToNewTypeParameters(newFunSymbol, originalTypeParameterCache)
         typeParameters.clear()
         typeParameters.addAll(newTypeParameters)
 
-        val newValueParameters = valueParameters.mapToNewValueParameters(originalTypeParameterCache)
+        val newContextParameters = contextParameters.mapToNewValueParameters(
+            originalTypeParameterCache,
+            newFunSymbol,
+        )
+        contextParameters.clear()
+        contextParameters.addAll(newContextParameters)
+
+        val newValueParameters = valueParameters.mapToNewValueParameters(
+            originalTypeParameterCache,
+            newFunSymbol
+        )
         valueParameters.clear()
         valueParameters.addAll(newValueParameters)
 
-        receiverParameter?.copyToNew(originalTypeParameterCache)?.also {
+        receiverParameter?.copyToNew(originalTypeParameterCache, newFunSymbol)?.also {
             this.receiverParameter = it
         }
 
@@ -254,13 +272,18 @@ class SuspendTransformFirTransformer(
 
     private fun FirPropertyAccessorBuilder.copyParameters(
         originalTypeParameterCache: MutableList<CopiedTypeParameterPair> = mutableListOf(),
-        copyReturnType: Boolean = true
+        copyReturnType: Boolean = true,
+        newFunSymbol: FirBasedSymbol<*>,
     ) {
-        val newTypeParameters = typeParameters.mapToNewTypeParameters(symbol, originalTypeParameterCache)
-        typeParameters.clear()
-        typeParameters.addAll(newTypeParameters)
+        // 的确，property 哪儿来的 type parameter
+//        val newTypeParameters = typeParameters.mapToNewTypeParameters(symbol, originalTypeParameterCache)
+//        typeParameters.clear()
+//        typeParameters.addAll(newTypeParameters)
 
-        val newValueParameters = valueParameters.mapToNewValueParameters(originalTypeParameterCache)
+        val newValueParameters = valueParameters.mapToNewValueParameters(
+            originalTypeParameterCache,
+            newFunSymbol
+        )
         valueParameters.clear()
         valueParameters.addAll(newValueParameters)
 
@@ -303,10 +326,12 @@ class SuspendTransformFirTransformer(
         originFunc: FirSimpleFunction,
         originFunSymbol: FirNamedFunctionSymbol,
         owner: FirClassSymbol<*>,
-        thisContextReceivers: MutableList<FirContextReceiver>,
+//        thisContextReceivers: MutableList<FirContextReceiver>,
+        thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
         newFunSymbol: FirBasedSymbol<*>,
-        thisValueParameters: MutableList<FirValueParameter>,
+//        newFunSymbol: FirNamedFunctionSymbol,
+        thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
         transformer: Transformer
@@ -347,13 +372,13 @@ class SuspendTransformFirTransformer(
                             }
                         }
 
-                        this.contextReceiverArguments.addAll(thisContextReceivers.map { receiver ->
+                        this.contextArguments.addAll(thisContextParameters.map { receiver ->
                             buildThisReceiverExpression {
-                                coneTypeOrNull = receiver.typeRef.coneTypeOrNull
+                                coneTypeOrNull = receiver.returnTypeRef.coneTypeOrNull
                                 source = receiver.source
                                 calleeReference = buildExplicitThisReference {
                                     source = receiver.source
-                                    labelName = receiver.labelName?.asString()
+                                    // labelName = receiver.labelName?.asString()
                                 }
                             }
                         })
@@ -364,7 +389,8 @@ class SuspendTransformFirTransformer(
                                 coneTypeOrNull = thisReceiverParameter.typeRef.coneTypeOrNull
                                 source = thisReceiverParameter.source
                                 calleeReference = buildImplicitThisReference {
-                                    boundSymbol = newFunSymbol
+                                    boundSymbol = thisReceiverParameter.symbol
+                                    println("[${newFunSymbol}] thisReceiverParameter.symbol: ${thisReceiverParameter.symbol}")
                                 }
                             }
                         }
@@ -596,7 +622,7 @@ class SuspendTransformFirTransformer(
                 returnTypeRef = resolveReturnType(funData.transformer, returnTypeRef)
 
                 val thisReceiverParameter = this.receiverParameter
-                val thisContextReceivers = this.contextReceivers
+                val thisContextParameters = this.contextParameters
                 val thisValueParameters = this.valueParameters
 
                 annotations.clear()
@@ -606,7 +632,7 @@ class SuspendTransformFirTransformer(
                     originFunc,
                     originFunSymbol,
                     owner,
-                    thisContextReceivers,
+                    thisContextParameters,
                     thisReceiverParameter,
                     newFunSymbol,
                     thisValueParameters,
@@ -713,7 +739,8 @@ class SuspendTransformFirTransformer(
                 deprecationsProvider = UnresolvedDeprecationProvider //original.deprecationsProvider
                 containerSource = original.containerSource
                 dispatchReceiverType = original.dispatchReceiverType
-                contextReceivers.addAll(original.contextReceivers)
+                contextParameters.addAll(original.contextParameters)
+//                contextReceivers.addAll(original.contextReceivers)
                 // annotations
                 annotations.addAll(propertyAnnotations)
                 typeParameters.addAll(original.typeParameters)
@@ -745,19 +772,19 @@ class SuspendTransformFirTransformer(
                     )
 
                     valueParameters.addAll(original.valueParameters)
-                    typeParameters.addAll(original.typeParameters)
-                    contextReceivers.addAll(original.contextReceivers)
+//                    typeParameters.addAll(original.typeParameters)
+//                    contextReceivers.addAll(original.contextReceivers)
 
-                    copyParameters(originalTypeParameterCache, false)
+                    copyParameters(originalTypeParameterCache, false, propertyAccessorSymbol)
 
-                    val thisContextReceivers = this.contextReceivers
+//                    val thisContextReceivers = this.contextReceivers
                     val thisValueParameters = this.valueParameters
 
                     body = generateSyntheticFunctionBody(
                         original,
                         originalFunSymbol,
                         owner,
-                        thisContextReceivers,
+                        emptyList(),
                         null,
                         propertyAccessorSymbol,
                         thisValueParameters,
@@ -991,7 +1018,6 @@ class SuspendTransformFirTransformer(
         transformer: Transformer,
         returnTypeRef: FirTypeRef
     ): ConeKotlinType {
-        val transformer = transformer
         val returnType = transformer.transformReturnType
             ?: return returnTypeRef.coneType // OrNull // original.symbol.resolvedReturnType
 
@@ -1370,12 +1396,13 @@ class SuspendTransformFirTransformer(
                         typeArguments = typeArguments,
                         nullable = isMarkedNullable
                     )
-                    // typeArguments.forEach { projection ->
-                    //     projection.type?.copyWithTypeParameters(parameters)
-                    // }
                 }
 
-                return null
+                if (isPrimitiveType()) {
+                    return this
+                }
+
+                return classId?.createConeType(session = session, nullable = isMarkedNullable)
             }
 
             is ConeTypeParameterType -> {

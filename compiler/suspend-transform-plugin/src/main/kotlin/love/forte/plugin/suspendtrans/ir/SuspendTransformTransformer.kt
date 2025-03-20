@@ -22,11 +22,10 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.util.file
-import org.jetbrains.kotlin.ir.util.isAnnotationWithEqualFqName
-import org.jetbrains.kotlin.ir.util.kotlinFqName
-import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.wasm.ir.source.location.SourceLocation
@@ -43,7 +42,8 @@ class SuspendTransformTransformer(
     // TODO What should be used in K2?
     private val reporter = kotlin.runCatching {
         // error: "This API is not supported for K2"
-        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
+        pluginContext.messageCollector
+//        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
     }.getOrNull()
 
 
@@ -344,14 +344,14 @@ private fun IrFunction.reportLocation(): CompilerMessageSourceLocation? {
     return when (val sourceLocation =
 //        getSourceLocation(runCatching { fileEntry }.getOrNull())) {
         getSourceLocation(declaration = symbol, file = file)) {
-        is SourceLocation.Location -> {
+
+        is SourceLocation.WithFileAndLineNumberInformation ->
             CompilerMessageLocation.create(
                 path = sourceLocation.file,
                 line = sourceLocation.line,
                 column = sourceLocation.column,
                 lineContent = null
             )
-        }
 
         else -> null
     }
@@ -460,7 +460,14 @@ private fun generateTransformBodyForFunctionLambda(
                 for (index in 1..ownerValueParameters.lastIndex) {
                     val valueParameter = ownerValueParameters[index]
                     val type = valueParameter.type
-                    tryResolveCoroutineScopeValueParameter(type, context, function, transformFunctionOwner, this@irBlockBody, index)
+                    tryResolveCoroutineScopeValueParameter(
+                        type,
+                        context,
+                        function,
+                        transformFunctionOwner,
+                        this@irBlockBody,
+                        index
+                    )
                 }
             }
 
