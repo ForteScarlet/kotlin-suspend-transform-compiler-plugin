@@ -43,7 +43,7 @@ jobs:
           arguments: |
             assemble
             build
-            allTests
+            test
             --info 
             --warning-mode all
 #            --build-cache
