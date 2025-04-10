@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 }
 
 include(":compiler:suspend-transform-plugin")
+include(":compiler:suspend-transform-plugin-cli")
 include(":compiler:suspend-transform-plugin-embeddable")
 
 include(":runtime:suspend-transform-annotation")
