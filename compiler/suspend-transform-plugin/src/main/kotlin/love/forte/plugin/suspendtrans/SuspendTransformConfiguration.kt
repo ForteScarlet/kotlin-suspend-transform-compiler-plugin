@@ -71,7 +71,7 @@ data class Transformer(
     /**
      * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。
      */
-    val transformReturnTypeGeneric: Boolean,
+        val transformReturnTypeGeneric: Boolean,
 
     /**
      * 函数生成后，需要在原函数上追加的注解信息。

@@ -30,7 +30,15 @@ dependencies {
     compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("gradle-plugin-api"))
     api(project(":compiler:suspend-transform-plugin"))
+    api(project(":compiler:suspend-transform-plugin-cli"))
+    api(project(":compiler:suspend-transform-plugin-configuration"))
 
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjvm-default=all")
+    }
 }
 
 buildConfig {

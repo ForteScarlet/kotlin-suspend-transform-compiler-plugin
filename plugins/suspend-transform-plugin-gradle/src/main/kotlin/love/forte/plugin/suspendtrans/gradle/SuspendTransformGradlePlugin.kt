@@ -15,6 +15,15 @@ import org.jetbrains.kotlin.gradle.plugin.*
 open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
         target.extensions.create("suspendTransform", SuspendTransformGradleExtension::class.java)
+
+        val createdExtensions = target.extensions.create(
+            "suspendTransformPlugin",
+            SuspendTransformPluginExtension::class.java,
+            // AbstractSuspendTransformPluginExtension::class.java,
+        )
+
+        createdExtensions.defaults(target.objects, target.providers)
+
         target.configureDependencies()
     }
 

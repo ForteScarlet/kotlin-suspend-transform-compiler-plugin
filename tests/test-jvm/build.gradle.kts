@@ -1,26 +1,19 @@
-import love.forte.plugin.suspendtrans.ClassInfo
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmAsyncTransformer
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmBlockingTransformer
-import love.forte.plugin.suspendtrans.TargetPlatform
-import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+// buildscript {
+//     this@buildscript.repositories {
+//         mavenLocal()
+//         mavenCentral()
+//     }
+//     dependencies {
+//         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.20-0.12.0")
+//     }
+// }
 
 plugins {
     `java-library`
     kotlin("jvm")
-//    id("love.forte.plugin.suspend-transform")
+    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
     // id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
-}
-
-
-buildscript {
-    this@buildscript.repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.0-0.11.1")
-    }
 }
 
 kotlin {
@@ -34,7 +27,7 @@ repositories {
     mavenLocal()
 }
 
-apply(plugin = "love.forte.plugin.suspend-transform")
+// apply(plugin = "love.forte.plugin.suspend-transform")
 
 dependencies {
     api(kotlin("stdlib"))
@@ -45,28 +38,65 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 }
 
-extensions.getByType<SuspendTransformGradleExtension>().apply {
-    includeRuntime = false
-    includeAnnotation = false
-//     useJvmDefault()
-    transformers[TargetPlatform.JVM] = mutableListOf(
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmBlockingTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmBlockingTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
-            }
-        ),
-
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmAsyncTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmAsyncTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
-            }
-        )
-    )
+suspendTransformPlugin {
+    transformers {
+        addJvm {
+            originFunctionIncludeAnnotations
+            // originFunctionIncludeAnnotations {
+                // create("demo1") {
+                //     classInfo { from(SuspendTransformConfigurations.jvmSyntheticClassInfo) }
+                // }
+            // }
+        }
+    }
 }
+
+// suspendTransformPlugin {
+//     includeRuntime = false
+//     transformers {
+//         // addJvm {
+//         //     originFunctionIncludeAnnotations {
+//         //         create("Hi~") {
+//         //             classInfo {
+//         //             }
+//         //         }
+//         //     }
+//         // }
+//     }
+//     // transformers {
+//     //     addJvm {
+//     //         originFunctionIncludeAnnotations.create("any name") {
+//     //
+//     //         }
+//     //     }
+//     // }
+//     // transformers.addJvm {
+//     //     originFunctionIncludeAnnotations
+//     // }
+// }
+
+// extensions.getByType<SuspendTransformGradleExtension>().apply {
+//     includeRuntime = false
+//     includeAnnotation = false
+// //     useJvmDefault()
+//     transformers[TargetPlatform.JVM] = mutableListOf(
+//         // Add `kotlin.OptIn` to copyAnnotationExcludes
+//         jvmBlockingTransformer.copy(
+//             copyAnnotationExcludes = buildList {
+//                 addAll(jvmBlockingTransformer.copyAnnotationExcludes)
+//                 add(ClassInfo("kotlin", "OptIn"))
+//             }
+//         ),
+//
+//         // Add `kotlin.OptIn` to copyAnnotationExcludes
+//         jvmAsyncTransformer.copy(
+//             copyAnnotationExcludes = buildList {
+//                 addAll(jvmAsyncTransformer.copyAnnotationExcludes)
+//                 add(ClassInfo("kotlin", "OptIn"))
+//             }
+//         )
+//     )
+// }
 
 tasks.withType<Test> {
     useJUnitPlatform()
