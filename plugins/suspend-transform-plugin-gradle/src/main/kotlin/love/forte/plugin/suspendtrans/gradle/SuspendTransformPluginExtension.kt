@@ -5,6 +5,7 @@ import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.*
+import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 abstract class TransformerContainer
@@ -59,24 +60,16 @@ abstract class TransformerContainer
     fun addCommon(transformer: Transformer) = addCommon { it.from(transformer) }
     fun addCommon(transformer: Provider<TransformerSpec>) = add(TargetPlatform.COMMON, transformer)
     fun addCommon(action: Action<in TransformerSpec>) = add(TargetPlatform.COMMON, action)
-
-    fun addJvmDefaults() {
-
-    }
 }
-
 
 interface SuspendTransformPluginExtension {
     val enabled: Property<Boolean>
 
+    @get:Nested
     val transformers: TransformerContainer
 
     fun transformers(action: Action<in TransformerContainer>) {
         action.execute(transformers)
-    }
-
-    fun transformers(block: TransformerContainer.() -> Unit) {
-        transformers.block()
     }
 
     fun useJvmDefault() {
@@ -146,11 +139,8 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val markAnnotation: Property<MarkAnnotationSpec>
 
     fun markAnnotation(action: Action<in MarkAnnotationSpec>) {
-        markAnnotation.set(markAnnotation.get().also(action::execute))
-    }
-
-    fun markAnnotation(block: MarkAnnotationSpec.() -> Unit) {
-        markAnnotation(Action(block))
+        val old = markAnnotation.getOrElse(objects.newInstance<MarkAnnotationSpec>())
+        markAnnotation.set(old.also(action::execute))
     }
 
     /**
@@ -178,11 +168,11 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val transformFunctionInfo: Property<FunctionInfoSpec>
 
     fun transformFunctionInfo(action: Action<in FunctionInfoSpec>) {
-        transformFunctionInfo.set(transformFunctionInfo.get().also(action::execute))
-    }
-
-    fun transformFunctionInfo(block: FunctionInfoSpec.() -> Unit) {
-        transformFunctionInfo(Action(block))
+        transformFunctionInfo.set(
+            transformFunctionInfo.getOrElse(
+                objects.newInstance()
+            ).also(action::execute)
+        )
     }
 
     /**
@@ -191,11 +181,11 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val transformReturnType: Property<ClassInfoSpec>
 
     fun transformReturnType(action: Action<in ClassInfoSpec>) {
-        transformReturnType.set(transformReturnType.get().also(action::execute))
-    }
-
-    fun transformReturnType(block: ClassInfoSpec.() -> Unit) {
-        transformReturnType(Action(block))
+        transformReturnType.set(
+            transformReturnType.getOrElse(
+                objects.newInstance()
+            ).also(action::execute)
+        )
     }
 
     /**
@@ -211,7 +201,7 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val originFunctionIncludeAnnotations: DomainObjectSet<IncludeAnnotationSpec>
 
     private fun newIncludeAnnotationSpec(): IncludeAnnotationSpec =
-        objects.newInstance(IncludeAnnotationSpec::class.java)
+        objects.newInstance()
 
     fun addOriginFunctionIncludeAnnotation(action: Action<IncludeAnnotationSpec>) {
         originFunctionIncludeAnnotations.add(
@@ -239,7 +229,7 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val copyAnnotationExcludes: DomainObjectSet<ClassInfoSpec>
 
     fun addCopyAnnotationExclude(action: Action<in ClassInfoSpec>) {
-        copyAnnotationExcludes.add(objects.newInstance(ClassInfoSpec::class.java).also(action::execute))
+        copyAnnotationExcludes.add(objects.newInstance<ClassInfoSpec>().also(action::execute))
     }
 
     /**
@@ -247,7 +237,8 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
      *
      * @since 0.9.0
      */
-    abstract val copyAnnotationsToSyntheticProperty: Property<Boolean> // = false
+    val copyAnnotationsToSyntheticProperty: Property<Boolean> =
+        objects.property(Boolean::class.java).convention(false)
 
     /**
      * Configures the current specification using a [Transformer].
@@ -256,9 +247,11 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
      * e.g. [SuspendTransformConfigurations.jvmBlockingTransformer].
      */
     fun from(transformer: Transformer) {
-        markAnnotation { from(transformer.markAnnotation) }
-        transformFunctionInfo { from(transformer.transformFunctionInfo) }
-        transformer.transformReturnType?.also { transformReturnType { from(it) } }
+        markAnnotation { it.from(transformer.markAnnotation) }
+        transformFunctionInfo { it.from(transformer.transformFunctionInfo) }
+        transformer.transformReturnType?.also { transformReturnType ->
+            transformReturnType { it.from(transformReturnType) }
+        }
         transformReturnTypeGeneric.set(transformer.transformReturnTypeGeneric)
         for (originFunctionIncludeAnnotation in transformer.originFunctionIncludeAnnotations) {
             addOriginFunctionIncludeAnnotation {
@@ -287,14 +280,14 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
 /**
  * @see MarkAnnotation
  */
-interface MarkAnnotationSpec {
+abstract class MarkAnnotationSpec @Inject constructor(private val objects: ObjectFactory) {
     /**
      * 注解类信息
      */
-    val classInfo: Property<ClassInfoSpec>
+    abstract val classInfo: Property<ClassInfoSpec>
 
     fun classInfo(action: Action<in ClassInfoSpec>) {
-        classInfo.set(classInfo.get().also(action::execute))
+        classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
     fun classInfo(block: ClassInfoSpec.() -> Unit) {
@@ -304,27 +297,32 @@ interface MarkAnnotationSpec {
     /**
      * 用于标记生成函数需要使用的基础函数名的注解属性名。
      */
-    val baseNameProperty: Property<String> // = "baseName",
+    val baseNameProperty: Property<String> =
+        objects.property(String::class.java).convention("baseName")
 
     /**
      * 用于标记生成函数需要使用的基础函数名之后的后缀的注解属性名。
      */
-    val suffixProperty: Property<String> // = "suffix",
+    val suffixProperty: Property<String> =
+        objects.property(String::class.java).convention("suffix")
 
     /**
      * 用于标记生成函数是否需要转化为 property 类型的注解属性名。
      */
-    val asPropertyProperty: Property<String> // = "asProperty",
+    val asPropertyProperty: Property<String> =
+        objects.property(String::class.java).convention("asProperty")
 
     /**
      * 当 [suffixProperty] 不存在时使用的默认后缀
      */
-    val defaultSuffix: Property<String> // = ""
+    val defaultSuffix: Property<String> =
+        objects.property(String::class.java).convention("")
 
     /**
      * 当 [asPropertyProperty] 不存在时使用的默认值
      */
-    val defaultAsProperty: Property<Boolean> // = false,
+    val defaultAsProperty: Property<Boolean> =
+        objects.property(Boolean::class.java).convention(false)
 
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
@@ -365,20 +363,20 @@ interface FunctionInfoSpec {
     }
 }
 
-interface IncludeAnnotationSpec {
-    val classInfo: Property<ClassInfoSpec>
+abstract class IncludeAnnotationSpec @Inject constructor(private val objects: ObjectFactory) {
+    abstract val classInfo: Property<ClassInfoSpec>
 
     fun classInfo(action: Action<in ClassInfoSpec>) {
-        classInfo.set(classInfo.get().also(action::execute))
+        classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
     fun classInfo(block: ClassInfoSpec.() -> Unit) {
         classInfo(Action(block))
     }
 
-    val repeatable: Property<Boolean>
+    abstract val repeatable: Property<Boolean>
 
-    val includeProperty: Property<Boolean>
+    abstract val includeProperty: Property<Boolean>
 
     fun from(includeAnnotation: IncludeAnnotation) {
         classInfo {
@@ -388,3 +386,6 @@ interface IncludeAnnotationSpec {
         includeProperty.set(includeAnnotation.includeProperty)
     }
 }
+
+
+private inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)

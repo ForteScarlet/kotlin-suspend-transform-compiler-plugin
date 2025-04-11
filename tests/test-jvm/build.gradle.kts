@@ -39,17 +39,25 @@ dependencies {
 }
 
 suspendTransformPlugin {
-    transformers {
-        addJvm {
-            originFunctionIncludeAnnotations
-            // originFunctionIncludeAnnotations {
-                // create("demo1") {
-                //     classInfo { from(SuspendTransformConfigurations.jvmSyntheticClassInfo) }
-                // }
-            // }
-        }
-    }
+
+    // transformers {
+    //     useJvmDefault()
+    //
+    // }
 }
+
+// suspendTransformPlugin {
+//     transformers {
+//         addJvm {
+//             originFunctionIncludeAnnotations
+//             // originFunctionIncludeAnnotations {
+//                 // create("demo1") {
+//                 //     classInfo { from(SuspendTransformConfigurations.jvmSyntheticClassInfo) }
+//                 // }
+//             // }
+//         }
+//     }
+// }
 
 // suspendTransformPlugin {
 //     includeRuntime = false
