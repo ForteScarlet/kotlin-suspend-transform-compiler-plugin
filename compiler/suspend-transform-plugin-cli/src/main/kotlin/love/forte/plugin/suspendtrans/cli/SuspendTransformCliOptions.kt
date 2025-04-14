@@ -3,11 +3,11 @@ package love.forte.plugin.suspendtrans.cli
 object SuspendTransformCliOptions {
     const val CONFIGURATION = "configuration"
 
-    val ENABLED = SuspendTransformCliOption(
-        optionName = "enabled",
-        valueDescription = "Whether to enable the plugin",
-        description = "Whether to enable the plugin",
+    val CLI_CONFIGURATION = SuspendTransformCliOption(
+        optionName = "configuration",
+        valueDescription = "Configuration hex string",
+        description = "Configuration serialized protobuf hex string value",
+        required = true,
+        allowMultipleOccurrences = false,
     )
-
-
 }

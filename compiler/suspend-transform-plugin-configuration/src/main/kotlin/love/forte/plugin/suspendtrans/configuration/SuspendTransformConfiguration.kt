@@ -2,6 +2,10 @@ package love.forte.plugin.suspendtrans.configuration
 
 import kotlinx.serialization.Serializable
 
+// NOTE:
+//   可序列号的配置信息均使用 `Protobuf` 进行序列化
+//   虽然序列化行为是内部的，但是还是应该尽可能避免出现字段的顺序错乱或删改。
+
 @RequiresOptIn(
     "This is an internal suspend transform config api. " +
             "It may be changed in the future without notice.", RequiresOptIn.Level.ERROR
@@ -12,7 +16,27 @@ annotation class InternalSuspendTransformConstructorApi
 class FunctionInfo @InternalSuspendTransformConstructorApi constructor(
     val packageName: String,
     val functionName: String
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FunctionInfo) return false
+
+        if (packageName != other.packageName) return false
+        if (functionName != other.functionName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = packageName.hashCode()
+        result = 31 * result + functionName.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "FunctionInfo(functionName='$functionName', packageName='$packageName')"
+    }
+}
 
 @Serializable
 class ClassInfo @InternalSuspendTransformConstructorApi constructor(
@@ -20,7 +44,31 @@ class ClassInfo @InternalSuspendTransformConstructorApi constructor(
     val className: String,
     val local: Boolean = false,
     val nullable: Boolean = false,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ClassInfo) return false
+
+        if (local != other.local) return false
+        if (nullable != other.nullable) return false
+        if (packageName != other.packageName) return false
+        if (className != other.className) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = local.hashCode()
+        result = 31 * result + nullable.hashCode()
+        result = 31 * result + packageName.hashCode()
+        result = 31 * result + className.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "ClassInfo(className='$className', packageName='$packageName', local=$local, nullable=$nullable)"
+    }
+}
 
 @Serializable
 enum class TargetPlatform {
@@ -56,7 +104,35 @@ class MarkAnnotation @InternalSuspendTransformConstructorApi constructor(
      * 当 [asPropertyProperty] 不存在时使用的默认值
      */
     val defaultAsProperty: Boolean = false,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MarkAnnotation) return false
+
+        if (defaultAsProperty != other.defaultAsProperty) return false
+        if (classInfo != other.classInfo) return false
+        if (baseNameProperty != other.baseNameProperty) return false
+        if (suffixProperty != other.suffixProperty) return false
+        if (asPropertyProperty != other.asPropertyProperty) return false
+        if (defaultSuffix != other.defaultSuffix) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = defaultAsProperty.hashCode()
+        result = 31 * result + classInfo.hashCode()
+        result = 31 * result + baseNameProperty.hashCode()
+        result = 31 * result + suffixProperty.hashCode()
+        result = 31 * result + asPropertyProperty.hashCode()
+        result = 31 * result + defaultSuffix.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty)"
+    }
+}
 
 @Serializable
 class IncludeAnnotation @InternalSuspendTransformConstructorApi constructor(
@@ -68,7 +144,29 @@ class IncludeAnnotation @InternalSuspendTransformConstructorApi constructor(
      * @since 0.9.0
      */
     val includeProperty: Boolean = false
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is IncludeAnnotation) return false
+
+        if (repeatable != other.repeatable) return false
+        if (includeProperty != other.includeProperty) return false
+        if (classInfo != other.classInfo) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = repeatable.hashCode()
+        result = 31 * result + includeProperty.hashCode()
+        result = 31 * result + classInfo.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "IncludeAnnotation(classInfo=$classInfo, repeatable=$repeatable, includeProperty=$includeProperty)"
+    }
+}
 
 @Serializable
 class Transformer @InternalSuspendTransformConstructorApi constructor(
@@ -142,13 +240,87 @@ class Transformer @InternalSuspendTransformConstructorApi constructor(
      * @since 0.9.0
      */
     val copyAnnotationsToSyntheticProperty: Boolean = false
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Transformer) return false
 
+        if (transformReturnTypeGeneric != other.transformReturnTypeGeneric) return false
+        if (copyAnnotationsToSyntheticFunction != other.copyAnnotationsToSyntheticFunction) return false
+        if (copyAnnotationsToSyntheticProperty != other.copyAnnotationsToSyntheticProperty) return false
+        if (markAnnotation != other.markAnnotation) return false
+        if (transformFunctionInfo != other.transformFunctionInfo) return false
+        if (transformReturnType != other.transformReturnType) return false
+        if (originFunctionIncludeAnnotations != other.originFunctionIncludeAnnotations) return false
+        if (syntheticFunctionIncludeAnnotations != other.syntheticFunctionIncludeAnnotations) return false
+        if (copyAnnotationExcludes != other.copyAnnotationExcludes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = transformReturnTypeGeneric.hashCode()
+        result = 31 * result + copyAnnotationsToSyntheticFunction.hashCode()
+        result = 31 * result + copyAnnotationsToSyntheticProperty.hashCode()
+        result = 31 * result + markAnnotation.hashCode()
+        result = 31 * result + transformFunctionInfo.hashCode()
+        result = 31 * result + (transformReturnType?.hashCode() ?: 0)
+        result = 31 * result + originFunctionIncludeAnnotations.hashCode()
+        result = 31 * result + syntheticFunctionIncludeAnnotations.hashCode()
+        result = 31 * result + copyAnnotationExcludes.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "Transformer(copyAnnotationExcludes=$copyAnnotationExcludes, markAnnotation=$markAnnotation, transformFunctionInfo=$transformFunctionInfo, transformReturnType=$transformReturnType, transformReturnTypeGeneric=$transformReturnTypeGeneric, originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticFunctionIncludeAnnotations=$syntheticFunctionIncludeAnnotations, copyAnnotationsToSyntheticFunction=$copyAnnotationsToSyntheticFunction, copyAnnotationsToSyntheticProperty=$copyAnnotationsToSyntheticProperty)"
+    }
+}
+
+/**
+ * 可序列化的配置信息。
+ */
 @Serializable
 class SuspendTransformConfiguration @InternalSuspendTransformConstructorApi constructor(
     val enabled: Boolean,
     val transformers: Map<TargetPlatform, List<Transformer>>
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SuspendTransformConfiguration) return false
+
+        if (enabled != other.enabled) return false
+        if (transformers != other.transformers) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = enabled.hashCode()
+        result = 31 * result + transformers.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "SuspendTransformConfiguration(enabled=$enabled, transformers=$transformers)"
+    }
+}
+
+/**
+ * Merge both
+ */
+@InternalSuspendTransformConstructorApi
+operator fun SuspendTransformConfiguration.plus(other: SuspendTransformConfiguration): SuspendTransformConfiguration {
+    return SuspendTransformConfiguration(
+        enabled = enabled && other.enabled,
+        transformers = transformers.toMutableMap().apply {
+            other.transformers.forEach { (platform, transformers) ->
+                compute(platform) { _, old ->
+                    if (old == null) transformers.toList() else old + transformers
+                }
+            }
+        }
+    )
+}
 
 /**
  * Some constants for configuration.

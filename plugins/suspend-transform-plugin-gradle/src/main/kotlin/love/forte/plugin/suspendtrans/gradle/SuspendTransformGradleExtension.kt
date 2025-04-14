@@ -7,6 +7,14 @@ import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
  *
  * @author ForteScarlet
  */
+@Deprecated(
+    "Use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
+            "(`suspendTransformPlugin { ... }`)",
+    ReplaceWith(
+        "SuspendTransformPluginExtension",
+        "love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension"
+    )
+)
 open class SuspendTransformGradleExtension : SuspendTransformConfiguration() {
 
     /**

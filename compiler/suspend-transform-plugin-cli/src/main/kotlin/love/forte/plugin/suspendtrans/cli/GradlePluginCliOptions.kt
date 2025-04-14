@@ -1,11 +1,25 @@
 package love.forte.plugin.suspendtrans.cli
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromHexString
+import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.protobuf.ProtoBuf
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration.Companion.serializer
+
 // Cli Options for gradle plugin
 
-interface GradlePluginSuspendTransformCliOption<T> : SuspendTransformCliOption {
-    /**
-     * Encode a value [T] to a String CLI option.
-     * _Should use base64(protobuf(value))_
-     */
-    fun encode(value: T): String
+@OptIn(ExperimentalSerializationApi::class)
+private val SERIALIZER = ProtoBuf {
+    encodeDefaults = true
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun SuspendTransformConfiguration.encodeToHex(): String {
+    return SERIALIZER.encodeToHexString(serializer(), this)
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun decodeSuspendTransformConfigurationFromHex(hex: String): SuspendTransformConfiguration {
+    return SERIALIZER.decodeFromHexString(serializer(), hex)
 }

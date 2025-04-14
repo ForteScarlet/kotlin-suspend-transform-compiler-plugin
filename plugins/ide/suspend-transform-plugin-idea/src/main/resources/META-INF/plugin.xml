@@ -9,7 +9,7 @@
 
     <!--<version>0.0.0.0</version>-->
 
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <!-- love.forte.plugin.suspendtrans.A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="ForteScarlet@163.com" url="https://github.com/ForteScarlet">ForteScarlet</vendor>
 
     <idea-version since-build="211"/>

@@ -29,7 +29,7 @@ dependencies {
     compileOnly(gradleApi())
     compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("gradle-plugin-api"))
-    api(project(":compiler:suspend-transform-plugin"))
+    compileOnly(project(":compiler:suspend-transform-plugin"))
     api(project(":compiler:suspend-transform-plugin-cli"))
     api(project(":compiler:suspend-transform-plugin-configuration"))
 

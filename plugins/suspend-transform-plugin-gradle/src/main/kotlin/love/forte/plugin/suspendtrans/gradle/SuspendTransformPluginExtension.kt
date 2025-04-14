@@ -5,7 +5,6 @@ import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.*
-import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 abstract class TransformerContainer
@@ -62,11 +61,17 @@ abstract class TransformerContainer
     fun addCommon(action: Action<in TransformerSpec>) = add(TargetPlatform.COMMON, action)
 }
 
-interface SuspendTransformPluginExtension {
-    val enabled: Property<Boolean>
+abstract class SuspendTransformPluginExtension @Inject constructor(objects: ObjectFactory) {
+    /**
+     * Enabled plugin.
+     *
+     * Default is `true`.
+     */
+    abstract val enabled: Property<Boolean>
 
-    @get:Nested
-    val transformers: TransformerContainer
+
+    val transformers: TransformerContainer =
+        objects.newInstance()
 
     fun transformers(action: Action<in TransformerContainer>) {
         action.execute(transformers)
@@ -86,16 +91,31 @@ interface SuspendTransformPluginExtension {
         useJsDefault()
     }
 
-    val includeAnnotation: Property<Boolean>
-    val includeRuntime: Property<Boolean>
+    /**
+     * Include the `love.forte.plugin.suspend-transform:suspend-transform-annotation`.
+     * Default is `true`.
+     */
+    abstract val includeAnnotation: Property<Boolean>
 
-    val annotationDependency: Property<AnnotationDependencySpec>
+    /**
+     * Include the `love.forte.plugin.suspend-transform:suspend-transform-runtime`.
+     * Default is `true`.
+     */
+    abstract val includeRuntime: Property<Boolean>
+
+    /**
+     * Default is `compileOnly` with [SuspendTransPluginConstants.ANNOTATION_VERSION]
+     */
+    abstract val annotationDependency: Property<AnnotationDependencySpec>
 
     fun annotationDependency(action: Action<in AnnotationDependencySpec>) {
         annotationDependency.set(annotationDependency.get().also(action::execute))
     }
 
-    val runtimeDependency: Property<RuntimeDependencySpec>
+    /**
+     * Default is `implementation` with [SuspendTransPluginConstants.RUNTIME_VERSION]
+     */
+    abstract val runtimeDependency: Property<RuntimeDependencySpec>
 
     fun runtimeDependency(action: Action<in RuntimeDependencySpec>) {
         runtimeDependency.set(runtimeDependency.get().also(action::execute))
@@ -106,13 +126,44 @@ interface SuspendTransformPluginExtension {
     }
 }
 
-interface DependencySpec {
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
+    return SuspendTransformConfiguration(
+        enabled = enabled.getOrElse(true),
+        transformers = transformers.transformers.mapValuesTo(mutableMapOf()) { (_, values) ->
+            values.map { valueList -> valueList.map { it.toTransformer() } }.getOrElse(emptyList())
+        }
+    )
+}
+
+sealed interface DependencySpec {
     val version: Property<String>
     val configurationName: Property<String>
 }
 
-interface AnnotationDependencySpec : DependencySpec
-interface RuntimeDependencySpec : DependencySpec
+interface AnnotationDependencySpec : DependencySpec {
+    /**
+     * Default is `compileOnly`.
+     */
+    override val configurationName: Property<String>
+
+    /**
+     * Default is [SuspendTransPluginConstants.ANNOTATION_VERSION]
+     */
+    override val version: Property<String>
+}
+
+interface RuntimeDependencySpec : DependencySpec {
+    /**
+     * Default is `implementation`.
+     */
+    override val configurationName: Property<String>
+
+    /**
+     * Default is [SuspendTransPluginConstants.RUNTIME_VERSION]
+     */
+    override val version: Property<String>
+}
 
 internal fun SuspendTransformPluginExtension.defaults(
     objects: ObjectFactory,
@@ -274,6 +325,10 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
         }
 
         copyAnnotationsToSyntheticProperty.set(transformer.copyAnnotationsToSyntheticProperty)
+    }
+
+    internal fun toTransformer(): Transformer {
+        TODO()
     }
 }
 

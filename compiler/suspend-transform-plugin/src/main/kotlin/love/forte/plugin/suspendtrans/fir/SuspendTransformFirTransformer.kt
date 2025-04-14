@@ -1,6 +1,9 @@
 package love.forte.plugin.suspendtrans.fir
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.configuration.MarkAnnotation
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.Transformer
+import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.*
@@ -74,7 +77,8 @@ class SuspendTransformFirTransformer(
     private val suspendTransformConfiguration: SuspendTransformConfiguration
 ) : FirDeclarationGenerationExtension(session) {
 
-    private val transformerFunctionSymbolMap = ConcurrentHashMap<Transformer, FirNamedFunctionSymbol>()
+    private val transformerFunctionSymbolMap =
+        ConcurrentHashMap<Transformer, FirNamedFunctionSymbol>()
 
     private lateinit var coroutineScopeSymbol: FirClassLikeSymbol<*>
 
@@ -113,15 +117,6 @@ class SuspendTransformFirTransformer(
                     val transformFunctionInfo = transformer.transformFunctionInfo
                     val packageName = transformFunctionInfo.packageName
                     val functionName = transformFunctionInfo.functionName
-
-                    @Suppress("DEPRECATION")
-                    val className = transformFunctionInfo.className
-                    if (className != null) {
-                        error(
-                            "Not support `className` (`$className`) in transformer function info: " +
-                                    "top level function supported only."
-                        )
-                    }
 
                     // TODO 校验funcs?
 
@@ -509,14 +504,16 @@ class SuspendTransformFirTransformer(
                                                             }
                                                         )
                                                         operation = FirOperation.SAFE_AS
-                                                        conversionTypeRef = parameterTypeNotNullable.toFirResolvedTypeRef()
+                                                        conversionTypeRef =
+                                                            parameterTypeNotNullable.toFirResolvedTypeRef()
                                                     },
                                                     parameterFir
                                                 )
                                             } else {
                                                 // coroutine not nullable
                                                 // put if this is `CoroutineScope` or it is optional, otherwise throw error
-                                                var ownerIsCoroutineScopeOrParameterIsOptional = parameterSymbol.hasDefaultValue
+                                                var ownerIsCoroutineScopeOrParameterIsOptional =
+                                                    parameterSymbol.hasDefaultValue
                                                 for (superType in owner.getSuperTypes(session, recursive = false)) {
                                                     if (superType.isCoroutineScope()) {
                                                         put(thisReceiverExpression(), parameterFir)
@@ -611,11 +608,11 @@ class SuspendTransformFirTransformer(
 
                 // Copy the typeParameters.
                 // Otherwise, in functions like the following, an error will occur
-                // suspend fun <A> data(value: A): T = ...
-                // Functions for which function-scoped generalizations (`<A>`) exist.
-                // In the generated IR, data and dataBlocking will share an `A`, generating the error.
+                // suspend fun <love.forte.plugin.suspendtrans.A> data(value: love.forte.plugin.suspendtrans.A): T = ...
+                // Functions for which function-scoped generalizations (`<love.forte.plugin.suspendtrans.A>`) exist.
+                // In the generated IR, data and dataBlocking will share an `love.forte.plugin.suspendtrans.A`, generating the error.
                 // The error: Duplicate IR node
-                //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:love.forte.plugin.suspendtrans.A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
                 copyParameters()
 
                 // resolve returnType (with wrapped) after copyParameters
@@ -904,15 +901,15 @@ class SuspendTransformFirTransformer(
     ): Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>? {
         if (declaredScope == null) return null
 
-        fun check(targetPlatform: TargetPlatform): Boolean {
+        fun check(targetPlatform: love.forte.plugin.suspendtrans.configuration.TargetPlatform): Boolean {
             val platform = classSymbol.moduleData.platform
 
             return when {
-                platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
-                platform.isJs() && targetPlatform == TargetPlatform.JS -> true
-                platform.isWasm() && targetPlatform == TargetPlatform.WASM -> true
-                platform.isNative() && targetPlatform == TargetPlatform.NATIVE -> true
-                platform.isCommon() && targetPlatform == TargetPlatform.COMMON -> true
+                platform.isJvm() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.JVM -> true
+                platform.isJs() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.JS -> true
+                platform.isWasm() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.WASM -> true
+                platform.isNative() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.NATIVE -> true
+                platform.isCommon() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.COMMON -> true
                 else -> false
             }
         }

@@ -11,7 +11,7 @@
 plugins {
     `java-library`
     kotlin("jvm")
-    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
+    id("love.forte.plugin.suspend-transform") version "2.1.20-0.11.1"
     // id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
 }
@@ -38,73 +38,13 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 }
 
-suspendTransformPlugin {
+suspendTransform {
 
     // transformers {
     //     useJvmDefault()
     //
     // }
 }
-
-// suspendTransformPlugin {
-//     transformers {
-//         addJvm {
-//             originFunctionIncludeAnnotations
-//             // originFunctionIncludeAnnotations {
-//                 // create("demo1") {
-//                 //     classInfo { from(SuspendTransformConfigurations.jvmSyntheticClassInfo) }
-//                 // }
-//             // }
-//         }
-//     }
-// }
-
-// suspendTransformPlugin {
-//     includeRuntime = false
-//     transformers {
-//         // addJvm {
-//         //     originFunctionIncludeAnnotations {
-//         //         create("Hi~") {
-//         //             classInfo {
-//         //             }
-//         //         }
-//         //     }
-//         // }
-//     }
-//     // transformers {
-//     //     addJvm {
-//     //         originFunctionIncludeAnnotations.create("any name") {
-//     //
-//     //         }
-//     //     }
-//     // }
-//     // transformers.addJvm {
-//     //     originFunctionIncludeAnnotations
-//     // }
-// }
-
-// extensions.getByType<SuspendTransformGradleExtension>().apply {
-//     includeRuntime = false
-//     includeAnnotation = false
-// //     useJvmDefault()
-//     transformers[TargetPlatform.JVM] = mutableListOf(
-//         // Add `kotlin.OptIn` to copyAnnotationExcludes
-//         jvmBlockingTransformer.copy(
-//             copyAnnotationExcludes = buildList {
-//                 addAll(jvmBlockingTransformer.copyAnnotationExcludes)
-//                 add(ClassInfo("kotlin", "OptIn"))
-//             }
-//         ),
-//
-//         // Add `kotlin.OptIn` to copyAnnotationExcludes
-//         jvmAsyncTransformer.copy(
-//             copyAnnotationExcludes = buildList {
-//                 addAll(jvmAsyncTransformer.copyAnnotationExcludes)
-//                 add(ClassInfo("kotlin", "OptIn"))
-//             }
-//         )
-//     )
-// }
 
 tasks.withType<Test> {
     useJUnitPlatform()

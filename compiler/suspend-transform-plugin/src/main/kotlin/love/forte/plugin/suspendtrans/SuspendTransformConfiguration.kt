@@ -3,9 +3,12 @@ package love.forte.plugin.suspendtrans
 import kotlinx.serialization.Serializable
 
 // TODO 序列化改成二进制的，比如 protobuf，
-//  然后使用base64或hash进行传递，避免谜之转义
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.FunctionInfo` instead.",
+    ReplaceWith("FunctionInfo", "love.forte.plugin.suspendtrans.configuration.FunctionInfo")
+)
 data class FunctionInfo(
     var packageName: String,
     @Deprecated("Top-Level function supported only")
@@ -14,6 +17,10 @@ data class FunctionInfo(
 )
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.ClassInfo` instead.",
+    ReplaceWith("ClassInfo", "love.forte.plugin.suspendtrans.configuration.ClassInfo")
+)
 data class ClassInfo @JvmOverloads constructor(
     var packageName: String,
     var className: String,
@@ -22,6 +29,10 @@ data class ClassInfo @JvmOverloads constructor(
 )
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.TargetPlatform` instead.",
+    ReplaceWith("TargetPlatform", "love.forte.plugin.suspendtrans.configuration.TargetPlatform")
+)
 enum class TargetPlatform {
     COMMON, JVM, JS, WASM, NATIVE
 }
@@ -32,6 +43,13 @@ enum class TargetPlatform {
  *
  */
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.Transformer` instead.",
+    replaceWith = ReplaceWith(
+        "Transformer",
+        "love.forte.plugin.suspendtrans.configuration.Transformer"
+    )
+)
 data class Transformer(
     /** 函数上的某种标记。 */
     val markAnnotation: MarkAnnotation,
@@ -71,7 +89,7 @@ data class Transformer(
     /**
      * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。
      */
-        val transformReturnTypeGeneric: Boolean,
+    val transformReturnTypeGeneric: Boolean,
 
     /**
      * 函数生成后，需要在原函数上追加的注解信息。
@@ -108,6 +126,10 @@ data class Transformer(
  * 用于标记的注解信息.
  */
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.MarkAnnotation` instead.",
+    ReplaceWith("MarkAnnotation", "love.forte.plugin.suspendtrans.configuration.MarkAnnotation")
+)
 data class MarkAnnotation @JvmOverloads constructor(
     /**
      * 注解类信息
@@ -141,6 +163,10 @@ data class MarkAnnotation @JvmOverloads constructor(
 
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.IncludeAnnotation` instead.",
+    ReplaceWith("IncludeAnnotation", "love.forte.plugin.suspendtrans.configuration.IncludeAnnotation")
+)
 data class IncludeAnnotation(
     val classInfo: ClassInfo, val repeatable: Boolean = false
 ) {
@@ -158,6 +184,13 @@ data class IncludeAnnotation(
  */
 @Suppress("unused")
 @Serializable
+@Deprecated(
+    message = "Use new `love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration` instead.",
+    replaceWith = ReplaceWith(
+        "SuspendTransformConfiguration",
+        "love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration"
+    )
+)
 open class SuspendTransformConfiguration {
     open var enabled: Boolean = true
 
