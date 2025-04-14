@@ -23,6 +23,7 @@ dependencyResolutionManagement {
 
 include(":compiler:suspend-transform-plugin")
 include(":compiler:suspend-transform-plugin-cli")
+include(":compiler:suspend-transform-plugin-deprecated-configuration")
 include(":compiler:suspend-transform-plugin-configuration")
 include(":compiler:suspend-transform-plugin-embeddable")
 

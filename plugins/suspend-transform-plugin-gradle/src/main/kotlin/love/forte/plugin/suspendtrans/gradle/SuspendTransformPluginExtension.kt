@@ -77,13 +77,25 @@ abstract class SuspendTransformPluginExtension @Inject constructor(objects: Obje
         action.execute(transformers)
     }
 
-    fun useJvmDefault() {
+    fun addJvmBlockingTransformer() {
         transformers.addJvm(SuspendTransformConfigurations.jvmBlockingTransformer)
+    }
+
+    fun addJvmAsyncTransformer() {
         transformers.addJvm(SuspendTransformConfigurations.jvmAsyncTransformer)
     }
 
-    fun useJsDefault() {
+    fun useJvmDefault() {
+        addJvmBlockingTransformer()
+        addJvmAsyncTransformer()
+    }
+
+    fun addJsPromiseTransformer() {
         transformers.addJs(SuspendTransformConfigurations.jsPromiseTransformer)
+    }
+
+    fun useJsDefault() {
+        addJsPromiseTransformer()
     }
 
     fun useDefault() {
@@ -187,6 +199,9 @@ internal fun SuspendTransformPluginExtension.defaults(
 }
 
 abstract class TransformerSpec @Inject constructor(private val objects: ObjectFactory) {
+    /**
+     * @see Transformer.markAnnotation
+     */
     abstract val markAnnotation: Property<MarkAnnotationSpec>
 
     fun markAnnotation(action: Action<in MarkAnnotationSpec>) {
@@ -228,6 +243,8 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
 
     /**
      * 转化后的返回值类型, 为null时代表与原函数一致。
+     *
+     * Will be used when [transformReturnTypeGeneric] is `true`.
      */
     abstract val transformReturnType: Property<ClassInfoSpec>
 
@@ -241,8 +258,13 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
 
     /**
      * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。
+     * 这里指的是返回值类型中嵌套的范型，例如 `CompletableFuture<T>` 中的 `T`。
+     * 如果是直接返回 `T`，则不需要设置为 `true`。
+     *
+     * Default value is `false`.
      */
-    abstract val transformReturnTypeGeneric: Property<Boolean>
+    val transformReturnTypeGeneric: Property<Boolean> =
+        objects.property(Boolean::class.java).convention(false)
 
     /**
      * 函数生成后，需要在原函数上追加的注解信息。
@@ -271,8 +293,11 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     /**
      * 是否复制源函数上的注解到新的函数上。
      * 如果生成的是属性类型，则表示是否复制到 `getter` 上。
+     *
+     * Default value is `false`.
      */
-    abstract val copyAnnotationsToSyntheticFunction: Property<Boolean>
+    val copyAnnotationsToSyntheticFunction: Property<Boolean> =
+        objects.property(Boolean::class.java).convention(false)
 
     /**
      * 复制原函数上注解时需要排除掉的注解。
@@ -326,10 +351,6 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
 
         copyAnnotationsToSyntheticProperty.set(transformer.copyAnnotationsToSyntheticProperty)
     }
-
-    internal fun toTransformer(): Transformer {
-        TODO()
-    }
 }
 
 /**
@@ -337,7 +358,7 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
  */
 abstract class MarkAnnotationSpec @Inject constructor(private val objects: ObjectFactory) {
     /**
-     * 注解类信息
+     * The mark annotation's class info.
      */
     abstract val classInfo: Property<ClassInfoSpec>
 
@@ -345,30 +366,34 @@ abstract class MarkAnnotationSpec @Inject constructor(private val objects: Objec
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(block: ClassInfoSpec.() -> Unit) {
-        classInfo(Action(block))
-    }
-
     /**
      * 用于标记生成函数需要使用的基础函数名的注解属性名。
+     *
+     * Default value is `"baseName"`
      */
     val baseNameProperty: Property<String> =
         objects.property(String::class.java).convention("baseName")
 
     /**
      * 用于标记生成函数需要使用的基础函数名之后的后缀的注解属性名。
+     *
+     * Default value is `"suffix"`
      */
     val suffixProperty: Property<String> =
         objects.property(String::class.java).convention("suffix")
 
     /**
      * 用于标记生成函数是否需要转化为 property 类型的注解属性名。
+     *
+     * Default value is `"asProperty"`
      */
     val asPropertyProperty: Property<String> =
         objects.property(String::class.java).convention("asProperty")
 
     /**
      * 当 [suffixProperty] 不存在时使用的默认后缀
+     *
+     * Default value is `""`
      */
     val defaultSuffix: Property<String> =
         objects.property(String::class.java).convention("")
@@ -381,7 +406,7 @@ abstract class MarkAnnotationSpec @Inject constructor(private val objects: Objec
 
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
-            from(markAnnotation.classInfo)
+            it.from(markAnnotation.classInfo)
         }
         baseNameProperty.set(markAnnotation.baseNameProperty)
         suffixProperty.set(markAnnotation.suffixProperty)
@@ -397,7 +422,15 @@ abstract class MarkAnnotationSpec @Inject constructor(private val objects: Objec
 interface ClassInfoSpec {
     val packageName: Property<String>
     val className: Property<String>
+
+    /**
+     * Default value is `false`
+     */
     val local: Property<Boolean>
+
+    /**
+     * Default value is `false`
+     */
     val nullable: Property<Boolean>
 
     fun from(classInfo: ClassInfo) {
@@ -425,22 +458,77 @@ abstract class IncludeAnnotationSpec @Inject constructor(private val objects: Ob
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(block: ClassInfoSpec.() -> Unit) {
-        classInfo(Action(block))
-    }
-
+    /**
+     * Default value is `false`
+     */
     abstract val repeatable: Property<Boolean>
 
+    /**
+     * Default value is `false`
+     */
     abstract val includeProperty: Property<Boolean>
 
     fun from(includeAnnotation: IncludeAnnotation) {
         classInfo {
-            from(includeAnnotation.classInfo)
+            it.from(includeAnnotation.classInfo)
         }
         repeatable.set(includeAnnotation.repeatable)
         includeProperty.set(includeAnnotation.includeProperty)
     }
 }
 
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun TransformerSpec.toTransformer(): Transformer {
+    return Transformer(
+        markAnnotation = markAnnotation.get().toMarkAnnotation(),
+        transformFunctionInfo = transformFunctionInfo.get().toFunctionInfo(),
+        transformReturnType = transformReturnType.orNull?.toClassInfo(),
+        transformReturnTypeGeneric = transformReturnTypeGeneric.getOrElse(false),
+        originFunctionIncludeAnnotations = originFunctionIncludeAnnotations.map { it.toIncludeAnnotation() }.toList(),
+        syntheticFunctionIncludeAnnotations = syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() }.toList(),
+        copyAnnotationsToSyntheticFunction = copyAnnotationsToSyntheticFunction.getOrElse(false),
+        copyAnnotationExcludes = copyAnnotationExcludes.map { it.toClassInfo() }.toList(),
+        copyAnnotationsToSyntheticProperty = copyAnnotationsToSyntheticProperty.get()
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
+    return MarkAnnotation(
+        classInfo = classInfo.get().toClassInfo(),
+        baseNameProperty = baseNameProperty.get(),
+        suffixProperty = suffixProperty.get(),
+        asPropertyProperty = asPropertyProperty.get(),
+        defaultSuffix = defaultSuffix.get(),
+        defaultAsProperty = defaultAsProperty.get()
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun ClassInfoSpec.toClassInfo(): ClassInfo {
+    return ClassInfo(
+        packageName = packageName.get(),
+        className = className.get(),
+        local = local.getOrElse(false),
+        nullable = nullable.getOrElse(false)
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun FunctionInfoSpec.toFunctionInfo(): FunctionInfo {
+    return FunctionInfo(
+        packageName = packageName.get(),
+        functionName = functionName.get()
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+internal fun IncludeAnnotationSpec.toIncludeAnnotation(): IncludeAnnotation {
+    return IncludeAnnotation(
+        classInfo = classInfo.get().toClassInfo(),
+        repeatable = repeatable.getOrElse(false),
+        includeProperty = includeProperty.getOrElse(false)
+    )
+}
 
 private inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)

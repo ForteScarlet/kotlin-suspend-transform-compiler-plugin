@@ -11,7 +11,7 @@
 plugins {
     `java-library`
     kotlin("jvm")
-    id("love.forte.plugin.suspend-transform") version "2.1.20-0.11.1"
+    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
     // id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
 }
@@ -40,10 +40,7 @@ dependencies {
 
 suspendTransform {
 
-    // transformers {
-    //     useJvmDefault()
-    //
-    // }
+    enabled = true
 }
 
 tasks.withType<Test> {

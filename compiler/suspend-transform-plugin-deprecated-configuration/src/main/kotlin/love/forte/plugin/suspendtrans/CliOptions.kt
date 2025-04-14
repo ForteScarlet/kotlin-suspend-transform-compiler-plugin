@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package love.forte.plugin.suspendtrans
 
 import kotlinx.serialization.builtins.ListSerializer

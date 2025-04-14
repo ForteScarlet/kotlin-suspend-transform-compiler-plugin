@@ -139,7 +139,7 @@ class IncludeAnnotation @InternalSuspendTransformConstructorApi constructor(
     val classInfo: ClassInfo,
     val repeatable: Boolean = false,
     /**
-     * 如果是追加，是否追加到property上
+     * 是否追加到property上
      *
      * @since 0.9.0
      */

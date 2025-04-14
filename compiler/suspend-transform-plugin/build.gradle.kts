@@ -13,8 +13,7 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     implementation(kotlin("compiler"))
     compileOnly(libs.kotlinx.coroutines.core)
-    // TODO remove JSON
-    api(libs.kotlinx.serialization.json)
+    api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
     api(project(":compiler:suspend-transform-plugin-cli"))
 
     testImplementation(kotlin("stdlib"))

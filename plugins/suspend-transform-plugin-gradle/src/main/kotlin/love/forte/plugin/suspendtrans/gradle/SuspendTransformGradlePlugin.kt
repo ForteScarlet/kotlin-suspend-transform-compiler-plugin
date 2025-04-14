@@ -1,6 +1,5 @@
 package love.forte.plugin.suspendtrans.gradle
 
-import love.forte.plugin.suspendtrans.CliOptions
 import love.forte.plugin.suspendtrans.cli.SuspendTransformCliOptions
 import love.forte.plugin.suspendtrans.cli.encodeToHex
 import love.forte.plugin.suspendtrans.gradle.DependencyConfigurationName.*
@@ -15,19 +14,21 @@ import org.jetbrains.kotlin.gradle.plugin.*
  * @author ForteScarlet
  */
 open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
+    companion object {
+        const val EXTENSION_NAME = "suspendTransform"
+        const val PLUGIN_EXTENSION_NAME = "suspendTransformPlugin"
+    }
+
     override fun apply(target: Project) {
-        // TODO 想办法兼容过渡一下
-        // try {
-        //     Class.forName("love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension")
-        //     target.extensions.create("suspendTransform", SuspendTransformGradleExtension::class.java)
-        // } catch (ignore: ClassNotFoundException) {
-        // } catch (ignore: NoClassDefFoundError) {
-        // }
+        @Suppress("DEPRECATION")
+        target.extensions.create(
+            EXTENSION_NAME,
+            SuspendTransformGradleExtension::class.java
+        )
 
         val createdExtensions = target.extensions.create(
-            "suspendTransformPlugin",
+            PLUGIN_EXTENSION_NAME,
             SuspendTransformPluginExtension::class.java,
-            // AbstractSuspendTransformPluginExtension::class.java,
         )
 
         createdExtensions.defaults(target.objects, target.providers)
@@ -59,18 +60,40 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val target = kotlinCompilation.target
         val project = target.project
 
+        val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
+
         @Suppress("DEPRECATION") val oldExtension =
             project.extensions.getByType(SuspendTransformGradleExtension::class.java)
-        if (oldExtension.transformers.isNotEmpty()) {
-            project.logger.warn(
-                "The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
-                        "(`suspendTransform { ... }`) is deprecated, " +
-                        "please use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
-                        "(`suspendTransformPlugin { ... }`) instead."
-            )
-        }
+        @Suppress("DEPRECATION")
+        if (oldExtension.enabled || oldExtension.transformers.isNotEmpty()) {
+            val showError =
+                project.providers.gradleProperty("love.forte.plugin.suspend-transform.deprecatedExtensionError")
+                    .map { it.toBoolean() }.getOrElse(true)
 
-        val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
+            val showWarn =
+                project.providers.gradleProperty("love.forte.plugin.suspend-transform.deprecatedExtensionWarn")
+                    .map { it.toBoolean() }.getOrElse(false)
+
+            val msg = "The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
+                    "(`suspendTransform { ... }`) is deprecated, " +
+                    "please use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
+                    "(`suspendTransformPlugin { ... }`) instead. " +
+                    "The SuspendTransformGradleExtension property " +
+                    "will currently be aggregated with `SuspendTransformPluginExtension`, " +
+                    "but it will soon be deprecated completely."
+
+            when {
+                showError -> {
+                    project.logger.error(msg)
+                }
+
+                showWarn -> {
+                    project.logger.warn(msg)
+                }
+            }
+
+            oldExtension.mergeTo(extension)
+        }
 
         return project.provider {
             extension.toSubpluginOptions()
@@ -78,19 +101,9 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 }
 
-
-@Deprecated(
-    message = "Use `SuspendTransformPluginExtension`",
-    replaceWith = ReplaceWith(
-        "SuspendTransformPluginExtension",
-        "love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension"
-    )
-)
-private fun SuspendTransformGradleExtension.toSubpluginOptions(): List<SubpluginOption> {
-    return CliOptions.allOptions.map {
-        SubpluginOption(it.oName, it.resolveToValue(this))
-    }
-
+@Suppress("DEPRECATION")
+private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformPluginExtension) {
+    TODO()
 }
 
 private fun SuspendTransformPluginExtension.toSubpluginOptions(): List<SubpluginOption> {
@@ -98,7 +111,6 @@ private fun SuspendTransformPluginExtension.toSubpluginOptions(): List<Subplugin
     val configuration = toConfiguration()
     return listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
 }
-
 
 private fun Project.configureDependencies() {
     fun Project.include(platform: Platform, conf: SuspendTransformPluginExtension) {
@@ -404,7 +416,12 @@ private enum class Platform(val suffix: String) {
 private fun getDependencyNotation(group: String, name: String, platform: Platform, version: String): String =
     "$group:$name${platform.suffix}:$version"
 
-private fun getDependencyNotation(group: String, name: String, platform: Platform, version: Provider<String>): Provider<String> =
+private fun getDependencyNotation(
+    group: String,
+    name: String,
+    platform: Platform,
+    version: Provider<String>
+): Provider<String> =
     version.map { versionValue -> getDependencyNotation(group, name, platform, versionValue) }
 
 private fun Project.getBooleanProperty(name: String) =
