@@ -42,6 +42,7 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
             backendKind = BackendKinds.IrBackendForK1AndK2
 //            this.languageVersionSettings
 
+
 //            languageSettings {
 //                languageVersion = LanguageVersion.KOTLIN_2_1
 //                apiVersion = ApiVersion.KOTLIN_2_1
@@ -54,7 +55,6 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
 
         builder.defaultDirectives {
             FIR_PARSER with FirParser.LightTree
-
         }
 
         when (targetFrontend) {

@@ -275,9 +275,9 @@ private fun SuspendTransformPluginExtension.toSubpluginOptions(target: KotlinTar
 
 private fun Project.configureDependencies() {
     fun Project.include(platform: Platform, conf: SuspendTransformPluginExtension) {
-        if (conf.enabled.get()) {
+        if (!conf.enabled.get()) {
             logger.info(
-                "The `SuspendTransformGradleExtension.enable` in project {} for platform {} is `false`, skip config.",
+                "The `SuspendTransformPluginExtension.enable` in project {} for platform {} is `false`, skip config.",
                 this,
                 platform
             )

@@ -35,8 +35,8 @@ private data class AbstractCliOptionImpl(
  * Creates an instance of [SuspendTransformCliOption] to describe and define a CLI option.
  *
  * @param optionName The name of the option used to identify it in the CLI.
- * @param valueDescription love.forte.plugin.suspendtrans.A description of the option's value, defaults to the option name.
- * @param description love.forte.plugin.suspendtrans.A textual description of the option, defaults to an empty string.
+ * @param valueDescription A description of the option's value, defaults to the option name.
+ * @param description A textual description of the option, defaults to an empty string.
  * @param required Whether this option is mandatory, defaults to not required (`false`).
  * @param allowMultipleOccurrences Whether this option can appear multiple times in the CLI,
  * defaults to not allowed (`false`).

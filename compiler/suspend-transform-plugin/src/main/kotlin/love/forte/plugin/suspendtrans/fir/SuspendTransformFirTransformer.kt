@@ -385,7 +385,7 @@ class SuspendTransformFirTransformer(
                                 source = thisReceiverParameter.source
                                 calleeReference = buildImplicitThisReference {
                                     boundSymbol = thisReceiverParameter.symbol
-                                    println("[${newFunSymbol}] thisReceiverParameter.symbol: ${thisReceiverParameter.symbol}")
+                                    // println("[${newFunSymbol}] thisReceiverParameter.symbol: ${thisReceiverParameter.symbol}")
                                 }
                             }
                         }
@@ -608,11 +608,11 @@ class SuspendTransformFirTransformer(
 
                 // Copy the typeParameters.
                 // Otherwise, in functions like the following, an error will occur
-                // suspend fun <love.forte.plugin.suspendtrans.A> data(value: love.forte.plugin.suspendtrans.A): T = ...
-                // Functions for which function-scoped generalizations (`<love.forte.plugin.suspendtrans.A>`) exist.
-                // In the generated IR, data and dataBlocking will share an `love.forte.plugin.suspendtrans.A`, generating the error.
+                // suspend fun <A> data(value: A): T = ...
+                // Functions for which function-scoped generalizations (`<A>`) exist.
+                // In the generated IR, data and dataBlocking will share an `A`, generating the error.
                 // The error: Duplicate IR node
-                //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:love.forte.plugin.suspendtrans.A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
+                //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
                 copyParameters()
 
                 // resolve returnType (with wrapped) after copyParameters

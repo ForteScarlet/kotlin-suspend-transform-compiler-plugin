@@ -17,7 +17,10 @@ abstract class AbstractCodeGenTestRunner : AbstractTestRunner() {
     override fun TestConfigurationBuilder.configureHandlers() {
         configureFirHandlersStep {
             useHandlers(
-                ::FirDumpHandler, ::FirCfgDumpHandler, ::FirResolvedTypesVerifier, ::FirDiagnosticsHandler,
+                ::FirDumpHandler,
+                ::FirCfgDumpHandler,
+                ::FirResolvedTypesVerifier,
+                ::FirDiagnosticsHandler,
             )
         }
 

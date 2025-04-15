@@ -16,6 +16,7 @@ dependencies {
     api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
     api(project(":compiler:suspend-transform-plugin-cli"))
 
+    testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("stdlib"))
     testImplementation(kotlin("test-junit5"))
 
