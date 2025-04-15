@@ -1,17 +1,7 @@
-// buildscript {
-//     this@buildscript.repositories {
-//         mavenLocal()
-//         mavenCentral()
-//     }
-//     dependencies {
-//         classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.20-0.12.0")
-//     }
-// }
-
 plugins {
     `java-library`
     kotlin("jvm")
-    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
+    id("love.forte.plugin.suspend-transform")
     // id("suspend-transform.jvm-maven-publish")
     // id(project(":suspend-transform-plugin-gradle"))
 }
@@ -38,10 +28,63 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 }
 
-suspendTransform {
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        // For blocking
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "com.example"
+                    className = "JTrans"
+                }
+                baseNameProperty = "blockingBaseName"
+                suffixProperty = "blockingSuffix"
+                asPropertyProperty = "blockingAsProperty"
+                defaultSuffix = "Blocking"
+                defaultAsProperty = false
+            }
 
-    enabled = true
+            transformFunctionInfo {
+                packageName = "com.example"
+                functionName = "inBlock"
+            }
+
+            // other config...
+        }
+
+        // For async
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "com.example"
+                    className = "JTrans"
+                }
+                baseNameProperty = "asyncBaseName"
+                suffixProperty = "asyncSuffix"
+                asPropertyProperty = "asyncAsProperty"
+                defaultSuffix = "Async"
+                defaultAsProperty = false
+            }
+
+            transformFunctionInfo {
+                packageName = "com.example"
+                functionName = "inAsync"
+            }
+        }
+    }
 }
+
+/*
+>     val blockingBaseName: String = "",
+>     val blockingSuffix: String = "Blocking",
+>     val blockingAsProperty: Boolean = false,
+>
+>     val asyncBaseName: String = "",
+>     val asyncSuffix: String = "Async",
+>     val asyncAsProperty: Boolean = false
+ */
 
 tasks.withType<Test> {
     useJUnitPlatform()

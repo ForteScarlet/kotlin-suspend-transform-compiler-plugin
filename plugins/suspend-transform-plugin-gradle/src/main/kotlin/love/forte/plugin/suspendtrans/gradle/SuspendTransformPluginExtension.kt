@@ -1,18 +1,37 @@
 package love.forte.plugin.suspendtrans.gradle
 
 import love.forte.plugin.suspendtrans.configuration.*
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.*
 import javax.inject.Inject
 
+/**
+ * @since 0.12.0
+ */
+@DslMarker
+annotation class SuspendTransformPluginExtensionSpecDslMarker
+
+/**
+ * @since 0.12.0
+ */
+@SuspendTransformPluginExtensionSpecDslMarker
+interface SuspendTransformPluginExtensionSpec
+
+/**
+ * @since 0.12.0
+ */
 abstract class TransformerContainer
-@Inject constructor(private val objects: ObjectFactory) {
+@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     internal val transformers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> = mutableMapOf()
 
-    private fun getTransformers(platform: TargetPlatform): ListProperty<TransformerSpec> =
-        transformers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
+    private fun getTransformers(platform: TargetPlatform): ListProperty<TransformerSpec> {
+        return transformers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
+    }
 
     fun add(platform: TargetPlatform, action: Action<in TransformerSpec>) {
         val listProperty = getTransformers(platform)
@@ -59,9 +78,70 @@ abstract class TransformerContainer
     fun addCommon(transformer: Transformer) = addCommon { it.from(transformer) }
     fun addCommon(transformer: Provider<TransformerSpec>) = add(TargetPlatform.COMMON, transformer)
     fun addCommon(action: Action<in TransformerSpec>) = add(TargetPlatform.COMMON, action)
+
+
+    // JVM defaults
+    fun addJvmBlocking() {
+        addJvm(jvmBlockingTransformer)
+    }
+
+    fun addJvmBlocking(action: Action<in TransformerSpec>) {
+        addJvm {
+            it.from(jvmBlockingTransformer)
+            action.execute(it)
+        }
+    }
+
+    fun addJvmAsync() {
+        addJvm(jvmAsyncTransformer)
+    }
+
+    fun addJvmAsync(action: Action<in TransformerSpec>) {
+        addJvm {
+            it.from(jvmAsyncTransformer)
+            action.execute(it)
+        }
+    }
+
+    // JS defaults
+
+    /**
+     * Add [jsPromiseTransformer]
+     */
+    fun addJsPromise() {
+        addJs(jsPromiseTransformer)
+    }
+
+    /**
+     * Add a js transformer based on [jsPromiseTransformer]
+     */
+    fun addJsPromise(action: Action<in TransformerSpec>) {
+        addJs {
+            it.from(jsPromiseTransformer)
+            action.execute(it)
+        }
+    }
+
+    fun useJvmDefault() {
+        addJvmBlocking()
+        addJvmAsync()
+    }
+
+    fun useJsDefault() {
+        addJsPromise()
+    }
+
+    fun useDefault() {
+        useJvmDefault()
+        useJsDefault()
+    }
 }
 
-abstract class SuspendTransformPluginExtension @Inject constructor(objects: ObjectFactory) {
+/**
+ * @since 0.12.0
+ */
+abstract class SuspendTransformPluginExtension
+@Inject constructor(objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     /**
      * Enabled plugin.
      *
@@ -69,38 +149,10 @@ abstract class SuspendTransformPluginExtension @Inject constructor(objects: Obje
      */
     abstract val enabled: Property<Boolean>
 
-
-    val transformers: TransformerContainer =
-        objects.newInstance()
+    val transformers: TransformerContainer = objects.newInstance()
 
     fun transformers(action: Action<in TransformerContainer>) {
         action.execute(transformers)
-    }
-
-    fun addJvmBlockingTransformer() {
-        transformers.addJvm(SuspendTransformConfigurations.jvmBlockingTransformer)
-    }
-
-    fun addJvmAsyncTransformer() {
-        transformers.addJvm(SuspendTransformConfigurations.jvmAsyncTransformer)
-    }
-
-    fun useJvmDefault() {
-        addJvmBlockingTransformer()
-        addJvmAsyncTransformer()
-    }
-
-    fun addJsPromiseTransformer() {
-        transformers.addJs(SuspendTransformConfigurations.jsPromiseTransformer)
-    }
-
-    fun useJsDefault() {
-        addJsPromiseTransformer()
-    }
-
-    fun useDefault() {
-        useJvmDefault()
-        useJsDefault()
     }
 
     /**
@@ -142,17 +194,28 @@ abstract class SuspendTransformPluginExtension @Inject constructor(objects: Obje
 internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
     return SuspendTransformConfiguration(
         enabled = enabled.getOrElse(true),
-        transformers = transformers.transformers.mapValuesTo(mutableMapOf()) { (_, values) ->
-            values.map { valueList -> valueList.map { it.toTransformer() } }.getOrElse(emptyList())
-        }
+        transformers = buildMap {
+            transformers.transformers.forEach { (k, values) ->
+                val list = values.map { valueList -> valueList.map { it.toTransformer() } }.getOrElse(emptyList())
+                if (list.isNotEmpty()) {
+                    put(k, list)
+                }
+            }
+        },
     )
 }
 
-sealed interface DependencySpec {
+/**
+ * @since 0.12.0
+ */
+sealed interface DependencySpec : SuspendTransformPluginExtensionSpec {
     val version: Property<String>
     val configurationName: Property<String>
 }
 
+/**
+ * @since 0.12.0
+ */
 interface AnnotationDependencySpec : DependencySpec {
     /**
      * Default is `compileOnly`.
@@ -165,6 +228,9 @@ interface AnnotationDependencySpec : DependencySpec {
     override val version: Property<String>
 }
 
+/**
+ * @since 0.12.0
+ */
 interface RuntimeDependencySpec : DependencySpec {
     /**
      * Default is `implementation`.
@@ -198,7 +264,11 @@ internal fun SuspendTransformPluginExtension.defaults(
     })
 }
 
-abstract class TransformerSpec @Inject constructor(private val objects: ObjectFactory) {
+/**
+ * @since 0.12.0
+ */
+abstract class TransformerSpec
+@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     /**
      * @see Transformer.markAnnotation
      */
@@ -266,6 +336,10 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     val transformReturnTypeGeneric: Property<Boolean> =
         objects.property(Boolean::class.java).convention(false)
 
+    fun transformReturnTypeGeneric() {
+        transformReturnTypeGeneric.set(true)
+    }
+
     /**
      * 函数生成后，需要在原函数上追加的注解信息。
      *
@@ -276,6 +350,10 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     private fun newIncludeAnnotationSpec(): IncludeAnnotationSpec =
         objects.newInstance()
 
+    fun createIncludeAnnotation(action: Action<IncludeAnnotationSpec>): IncludeAnnotationSpec {
+        return newIncludeAnnotationSpec().also(action::execute)
+    }
+
     fun addOriginFunctionIncludeAnnotation(action: Action<IncludeAnnotationSpec>) {
         originFunctionIncludeAnnotations.add(
             newIncludeAnnotationSpec().also(action::execute)
@@ -285,9 +363,7 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     abstract val syntheticFunctionIncludeAnnotations: DomainObjectSet<IncludeAnnotationSpec>
 
     fun addSyntheticFunctionIncludeAnnotation(action: Action<IncludeAnnotationSpec>) {
-        syntheticFunctionIncludeAnnotations.add(
-            newIncludeAnnotationSpec().also(action::execute)
-        )
+        syntheticFunctionIncludeAnnotations.add(createIncludeAnnotation(action))
     }
 
     /**
@@ -299,13 +375,27 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
     val copyAnnotationsToSyntheticFunction: Property<Boolean> =
         objects.property(Boolean::class.java).convention(false)
 
+    fun copyAnnotationsToSyntheticFunction() {
+        copyAnnotationsToSyntheticFunction.set(true)
+    }
+
     /**
      * 复制原函数上注解时需要排除掉的注解。
      */
     abstract val copyAnnotationExcludes: DomainObjectSet<ClassInfoSpec>
 
+    /**
+     * Add a [ClassInfoSpec] into [copyAnnotationExcludes]
+     */
     fun addCopyAnnotationExclude(action: Action<in ClassInfoSpec>) {
-        copyAnnotationExcludes.add(objects.newInstance<ClassInfoSpec>().also(action::execute))
+        copyAnnotationExcludes.add(createCopyAnnotationExclude(action))
+    }
+
+    /**
+     * Create a [ClassInfoSpec] but does not add.
+     */
+    fun createCopyAnnotationExclude(action: Action<in ClassInfoSpec>): ClassInfoSpec {
+        return objects.newInstance<ClassInfoSpec>().also(action::execute)
     }
 
     /**
@@ -315,6 +405,10 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
      */
     val copyAnnotationsToSyntheticProperty: Property<Boolean> =
         objects.property(Boolean::class.java).convention(false)
+
+    fun copyAnnotationsToSyntheticProperty() {
+        copyAnnotationsToSyntheticProperty.set(true)
+    }
 
     /**
      * Configures the current specification using a [Transformer].
@@ -356,7 +450,11 @@ abstract class TransformerSpec @Inject constructor(private val objects: ObjectFa
 /**
  * @see MarkAnnotation
  */
-abstract class MarkAnnotationSpec @Inject constructor(private val objects: ObjectFactory) {
+/**
+ * @since 0.12.0
+ */
+abstract class MarkAnnotationSpec
+@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     /**
      * The mark annotation's class info.
      */
@@ -419,7 +517,10 @@ abstract class MarkAnnotationSpec @Inject constructor(private val objects: Objec
 /**
  * @see ClassInfo
  */
-interface ClassInfoSpec {
+/**
+ * @since 0.12.0
+ */
+interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
     val packageName: Property<String>
     val className: Property<String>
 
@@ -441,7 +542,10 @@ interface ClassInfoSpec {
     }
 }
 
-interface FunctionInfoSpec {
+/**
+ * @since 0.12.0
+ */
+interface FunctionInfoSpec : SuspendTransformPluginExtensionSpec {
     val packageName: Property<String>
     val functionName: Property<String>
 
@@ -451,7 +555,11 @@ interface FunctionInfoSpec {
     }
 }
 
-abstract class IncludeAnnotationSpec @Inject constructor(private val objects: ObjectFactory) {
+/**
+ * @since 0.12.0
+ */
+abstract class IncludeAnnotationSpec
+@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     abstract val classInfo: Property<ClassInfoSpec>
 
     fun classInfo(action: Action<in ClassInfoSpec>) {
@@ -485,7 +593,8 @@ internal fun TransformerSpec.toTransformer(): Transformer {
         transformReturnType = transformReturnType.orNull?.toClassInfo(),
         transformReturnTypeGeneric = transformReturnTypeGeneric.getOrElse(false),
         originFunctionIncludeAnnotations = originFunctionIncludeAnnotations.map { it.toIncludeAnnotation() }.toList(),
-        syntheticFunctionIncludeAnnotations = syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() }.toList(),
+        syntheticFunctionIncludeAnnotations = syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() }
+            .toList(),
         copyAnnotationsToSyntheticFunction = copyAnnotationsToSyntheticFunction.getOrElse(false),
         copyAnnotationExcludes = copyAnnotationExcludes.map { it.toClassInfo() }.toList(),
         copyAnnotationsToSyntheticProperty = copyAnnotationsToSyntheticProperty.get()

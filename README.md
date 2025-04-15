@@ -152,9 +152,9 @@ If the version is less than or equal to `0.9.0`, you can refer to this compariso
 
 _build.gradle.kts_
 
-```kotlin
+```Kotlin
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION" // or js? or multiplatform?
+    kotlin("jvm") version "$KOTLIN_VERSION" // or multiplatform
     id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
     // other...
 }
@@ -162,56 +162,8 @@ plugins {
 // other...
 
 // config it.
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-    includeAnnotation = true // default: true
-    // Note: If you disable includeAnnotation, you need to customise the `targetMarker` or set it to `null`.
-    //  see also: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
-    // targetMarker = ...
-
-    /*
-     * Use both `useJvmDefault` and `useJsDefault`.
-     * Need to include the runtime and annotation.
-     */
-    // useDefault()
-    
-    /*
-     * Use the default configuration for JVM platform,
-     * Equivalent:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jvmBlockingTransformer,
-     *     SuspendTransformConfiguration.jvmAsyncTransformer,
-     * )
-     *
-     * Need to include the runtime and annotation.
-     */
-    useJvmDefault()
-    
-    // or custom by yourself 
-    jvm {
-        // ...
-    }
-    // or 
-    addJvmTransformers(...)
-
-    /*
-     * Use the default configuration for JS platform,
-     * Equivalent:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jsPromiseTransformer,
-     * )
-     *
-     * Need to include the runtime and annotation.
-     */
-    useJsDefault()
-
-    // or custom by yourself 
-    js {
-        // ...
-    }
-    // or 
-    addJsTransformers(...)
+suspendTransformPlugin {
+    // Config the SuspendTransformPluginExtension ...
 }
 ```
 
@@ -219,7 +171,7 @@ suspendTransform {
 
 _build.gradle.kts_
 
-```kotlin
+```Kotlin
 buildscript {
     repositories {
         mavenCentral()
@@ -231,7 +183,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") // or js? or multiplatform?
+    id("org.jetbrains.kotlin.jvm") // or multiplatform?
     id("love.forte.plugin.suspend-transform") 
     // other...
 }
@@ -239,58 +191,663 @@ plugins {
 // other...
 
 // config it.
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-    includeAnnotation = true // default: true
-
-    /*
-     * Use both `useJvmDefault` and `useJsDefault`.
-     * Need to include the runtime and annotation.
-     */
-    // useDefault()
-
-    /*
-     * Use the default configuration for JVM platform,
-     * Equivalent:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jvmBlockingTransformer,
-     *     SuspendTransformConfiguration.jvmAsyncTransformer,
-     * )
-     *
-     * Need to include the runtime and annotation.
-     */
-    useJvmDefault()
-
-    // or custom by yourself 
-    jvm {
-        // ...
-    }
-    // or 
-    addJvmTransformers(...)
-
-    /*
-     * Use the default configuration for JS platform,
-     * Equivalent:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jsPromiseTransformer,
-     * )
-     *
-     * Need to include the runtime and annotation.
-     */
-    useJsDefault()
-
-    // or custom by yourself 
-    js {
-        // ...
-    }
-    // or 
-    addJsTransformers(...)
+suspendTransformPlugin {
+    // Config the SuspendTransformPluginExtension ...
 }
 ```
 
-## Cautions
+## Config the extension
 
+### Enabled
+
+Enable the Kotlin compiler plugin.
+Default value is `true`.
+
+```Kotlin
+suspendTransformPlugin {
+    enabled = true
+}
+```
+
+### Include the default annotations and runtime
+
+If you wish to use the Transformer we provide, then you may need to add the `annotation` and `runtime` dependencies.
+
+You can add them automatically via configuration.
+
+```Kotlin
+suspendTransformPlugin {
+    // include the annotation
+    // Default is `true`
+    includeAnnotation = true
+    // The default can be left unconfigured and the default values are used exclusively.
+    annotationDependency {
+        // Default is `compileOnly`
+        configurationName = "compileOnly"
+        // Default is same as the plugin version
+        version = "<ANNOTATION_VERSION>"
+    }
+    
+    // Include the runtime
+    // Default is `true`
+    includeRuntime = true
+    // The default can be left unconfigured and the default values are used exclusively.
+    runtimeDependency {
+        // Default is `implementation`
+        configurationName = "implementation"
+        // Default is same as the plugin version
+        version = "<RUNTIME_VERSION>"
+    }
+}
+```
+
+You can also disable them and add dependencies manually.
+
+```Kotlin
+plugin {
+    kotlin("jvm") version "..." // Take the Kotlin/JVM as an example
+    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
+}
+
+dependencies {
+    // annotation
+    compileOnly("love.forte.plugin.suspend-transform:suspend-transform-annotation:<VERSION>")
+    // runtime
+    implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:<VERSION>")
+}
+
+suspendTransformPlugin {
+    // Disable them
+    includeAnnotation = false
+    includeRuntime = false
+}
+```
+
+### Add transformers
+
+`Transformer` is the type used to describe how the suspend function is transformed. 
+You need to add some `Transformer`s to make the compiler plugin actually work.
+
+
+```Kotlin
+suspendTransformPlugin {
+    // Config the transformers
+    transformers {
+        add(TargetPlatform.JVM) { // this: TransformerSpec
+            // Config the TransformerSpec...
+        }
+
+        addJvm { // this: TransformerSpec
+            // Config the TransformerSpec...
+        }
+
+        // Use a default transformer we provided from `SuspendTransformConfigurations`
+        add(TargetPlatform.JVM, SuspendTransformConfigurations.jvmBlockingTransformer)
+
+        addJvm { // this: TransformerSpec
+            // Modify and adjust from a Transformer
+            from(SuspendTransformConfigurations.jvmBlockingTransformer)
+            // Further configurations...
+        }
+    }
+}
+```
+
+#### Add the default transformers
+
+First, we provide some simple and commonly used implementations.
+You can use them simply and quickly through configuration.
+
+> [!note]
+> The default `Transformer`s depend on the `annotation` and `runtime` we provide. 
+> Make sure you include them before using it.
+
+**JVM blocking**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // The 1st way:
+        addJvmBlocking()
+
+        // Or the 2ed way:
+        addJvm(SuspendTransformConfigurations.jvmBlockingTransformer)
+        // Or use transformers.add(TargetPlatform.JVM, jvmBlockingTransformer), etc.
+    }
+}
+```
+
+`JvmBlocking` allows you to mark `@JvmBlocking` on the suspend function, 
+which generates a `xxxBlocking` function.
+
+```Kotlin
+class Cat {
+    @JvmBLocking
+    suspend fun meow() {
+        // ...
+    }
+    
+    // Generated:
+    fun meowBlocking() {
+        `$runInBlocking$` { meow() }
+    }
+}
+```
+
+The `$runInBlocking$` based on `kotlinx.coroutines.runBlocking` 。
+
+**JVM Async**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // The 1st way:
+        addJvmAsync()
+
+        // Or the 2ed way:
+        addJvm(SuspendTransformConfigurations.jvmAsyncTransformer)
+        // Or use transformers.add(TargetPlatform.JVM, jvmAsyncTransformer), etc.
+    }
+}
+```
+
+`JvmAsync` allows you to mark `@JvmAsync` on the suspend function,
+which generates a `xxxAsync` function.
+
+```Kotlin
+class Cat {
+    @JvmBLocking
+    suspend fun meow(): String = "Meow!"
+    
+    // Generated:
+    fun meowAsync(): CompletableFuture<out String> {
+        `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
+    }
+}
+```
+
+The `block` is the original suspend function that needs to be executed 
+and the `scope` is the `CoroutineScope` that will be used.
+
+If the current scope is a `CoroutineScope`, it takes precedence over itself.
+Otherwise, `GlobalScope` is used internally.
+
+Why use `GlobalScope`: When using an internal scope, this scope qualifies:
+1. global.
+2. is never visible externally, so it is not artificially closed.
+3. is not intended for IO and does not require a custom dispatcher.
+
+We believe `GlobalScope` meets these conditions.
+
+_Have a different point? Feel free to create issue!_
+
+**JS Promise**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // The 1st way:
+        addJsPromise()
+
+        // Or the 2ed way:
+        addJs(SuspendTransformConfigurations.jsPromiseTransformer)
+        // Or use transformers.add(TargetPlatform.JS, jsPromiseTransformer), etc.
+    }
+}
+```
+
+```Kotlin
+class Cat {
+    @JsPromise
+    suspend fun meow(): String = "Meow!"
+    
+    // Generated:
+    fun meowAsync(): Promise<String> {
+        `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
+    }
+}
+```
+
+The `block` is the original suspend function that needs to be executed
+and the `scope` is the `CoroutineScope` that will be used.
+
+#### Use the defaults
+
+The `addJvmBlocking()` and `addJvmAsync()` may be combined as `useJvmDefault()`.
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // Includes addJvmBlocking() and addJvmAsync()
+        useJvmDefault()
+    }
+}
+```
+
+The `addJsPromise()` may be combined as `useJsDefault()`.
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // Includes addJsPromise()
+        useJsDefault()
+    }
+}
+```
+
+The `useJvmDefault()` and `useJsDefault()` may be combined as `useDefault()`.
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // Includes useJvmDefault() and useJsDefault()
+        useDefault()
+    }
+}
+```
+
+#### Use custom transformers
+
+You can also customize your `Transformer` if the default `Transformer`s don't meet your needs, 
+e.g. if you want to fully implement blocking logic and don't want to use `kotlinx.coroutines.runBlocking`.
+
+> A fully customized implementation of JVM Blocking/Async Transformers reference: 
+> https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt
+
+```Kotlin
+suspendTransformPlugin {
+    // If customized, then you may not use the annotation and runtime we provide.
+    includeAnnotation = false
+    includeRuntime = false
+    
+    transformer {
+        // See below for details
+    }
+}
+```
+
+As an example, you intend to create a custom annotation: `@JBlock`, 
+which is executed via the function `inBlock` when the suspend function uses this annotation.
+
+```Kotlin
+// Your annotation
+annotation class JBlock(...)
+
+// Your top-level transform function
+fun <T> inBlock(block: suspend () -> T): T {
+    TODO("Your impl")
+}
+```
+
+First, let's agree that the following properties should be included in the annotation:
+
+- `baseName`: The generated function's **base name**. 
+  When the value of this property is empty, the name of the original function is used by default.
+  ```Kotlin
+  @JBlock(baseName = "")
+  suspend fun meow1() // Generated function name: ${baseName}${suffix} -> meow1Blocking
+  
+  @JBlock(baseName = "meow999")
+  suspend fun meow2() // Generated function name: ${baseName}${suffix} -> meow999Blocking
+  ```
+- `suffix`: The generated function name's suffix.
+- `asProperty`: Make the generated function a property. 
+  Can be used in cases where the original function has no arguments.
+  ```Kotlin
+  @JBlock
+  suspend fun value(): Int
+  
+  // Generated:
+  val valueBlocking: Int
+      get() = inBlock { value() }
+  ```
+
+So your annotation should look like this:
+
+```Kotlin
+annotation class JBlock(
+    val baseName: String = "",
+    val suffix: String = "Blocking",
+    val asProperty: Boolean = false
+)
+```
+
+The configuration:
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+                // Your annotation class's info.
+                classInfo {
+                    packageName = "com.example"
+                    className = "JBlock"
+                }
+
+                // The property names.
+                baseNameProperty = "baseName"  // Default is `baseName`
+                suffixProperty = "suffix"      // Default is `suffix`
+                asPropertyProperty = "asProperty" // Default is `asProperty`
+
+                // The compiler plugin doesn't seem to be able to get the default values for annotations 
+                // (or I haven't found a way to do it yet). 
+                // So here you need to configure the default value of the annotation, which needs to be consistent with your definition.
+                defaultSuffix = "Blocking" 
+                defaultAsProperty = false  // For the same reasons as above. 
+            }
+        }
+    }
+}
+```
+
+However, the property names do not have to be the same as these three, as long as the function and type correspond. So we can adjust it like this:
+
+```Kotlin
+annotation class JBlock(
+    val myBaseName: String = "",
+    val mySuffix: String = "Blocking",
+    val myAsProperty: Boolean = false
+)
+```
+
+The configuration:
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+                // Your annotation class's info.
+                classInfo {
+                    packageName = "com.example"
+                    className = "JBlock"
+                }
+
+                // The property names.
+                baseNameProperty = "myBaseName"
+                suffixProperty = "mySuffix"
+                asPropertyProperty = "myAsProperty"
+                
+                // The default values.
+                defaultSuffix = "Blocking" 
+                defaultAsProperty = false 
+            }
+        }
+    }
+}
+```
+
+Then configure the information for your transform function.
+
+```Kotlin
+// Your top-level transform function
+fun <T> inBlock(block: suspend () -> T): T {
+    TODO("Your impl")
+}
+```
+
+The configuration:
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+                // ...
+            }
+
+            // The function info
+            transformFunctionInfo {
+                packageName = "com.example"
+                functionName = "inBlock"
+            }
+
+            // The return type configs
+
+            // The return type.
+            // If `null` it means the same type as the original function return.
+            // If you return a specific type (e.g. `CompletableFuture`) you need to configure that type.
+            // 
+            // Default value is null.
+            transformReturnType = null
+
+            // Whether the returned type contains a generic type that is of the same type as the original function.
+            // e.g. CompletableFuture<T>, The `T` represents the value returned by the original function.
+            // In this case it is set to `true`.
+            //
+            // Set to `false` if the return type is of a specific type, 
+            // but without a generic (a rare case, an example: `Job`).
+            // Valid if `transformReturnType` is not null.
+            // 
+            // Default value is false.
+            transformReturnTypeGeneric = false
+        }
+    }
+}
+```
+
+Finally, in the process of generating the function, we allow some manipulation of the annotations.
+- Copy annotations from original function to generated synthetic function.
+  - exclude some annotations from copying.
+- Include some annotations to original function.
+- Include some annotations to generated synthetic function.
+
+Now let's assume:
+- We want to add `@JvmSynthetic` to the original function.
+- We want to add `@JApi` to the generated synthetic function.
+- Copy the annotations without copying `@JvmSynthetic` (exclude `@JvmSynthetic`).
+
+The `@JApi`:
+
+```Kotlin
+@RequiresOptIn(message = "Api for Java", level = RequiresOptIn.Level.WARNING)
+@Retention(AnnotationRetention.BINARY)
+annotation class JApi
+```
+
+The configuration:
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+                // ...
+            }
+            transformFunctionInfo {
+                // ...
+            }
+          
+            // Enabling annotated copies
+            // Default is FALSE
+            copyAnnotationsToSyntheticFunction = true
+            // If the generated synthetic function is property (asProperty=true),
+            // Copy annotations to the property. 
+            // Otherwise, copy to the property's getter function.
+            // Default is FALSE
+            copyAnnotationsToSyntheticProperty = true
+
+            // Include `@kotlin.jvm.JvmSynthetic` to original function.
+            addOriginFunctionIncludeAnnotation {
+              // Some common types are defined in SuspendTransformConfigurations. See below.
+              classInfo {
+                packageName = "kotlin.jvm"
+                className = "JvmSynthetic"
+              }
+              // Default is false
+              repeatable = false
+            }
+
+            // Include `@com.example.JApi` to generated synthetic function
+            addSyntheticFunctionIncludeAnnotation {
+              classInfo {
+                packageName = "com.example"
+                className = "JApi"
+              }
+              // Marks whether this annotation supports being added to a property.
+              // Default is FALSE
+              includeProperty = true
+            }
+
+            // Exclude `@kotlin.jvm.JvmSynthetic` when copying.
+            addCopyAnnotationExclude {
+              // SuspendTransformConfigurations provides a small number of
+              // common annotations or type definitions that can be used directly.
+              from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+            }
+        }
+    }
+}
+```
+
+The full example:
+
+Code:
+
+```Kotlin
+annotation class JBlock(
+    val myBaseName: String = "",
+    val mySuffix: String = "Blocking",
+    val myAsProperty: Boolean = false
+)
+
+@RequiresOptIn(message = "Api for Java", level = RequiresOptIn.Level.WARNING)
+@Retention(AnnotationRetention.BINARY)
+annotation class JApi
+
+fun <T> inBlock(block: suspend () -> T): T {
+  TODO("Your impl")
+}
+```
+
+Configuration:
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+              classInfo {
+                packageName = "com.example"
+                className = "JBlock"
+              }
+
+              baseNameProperty = "myBaseName"
+              suffixProperty = "mySuffix"
+              asPropertyProperty = "myAsProperty"
+
+              defaultSuffix = "Blocking"
+              defaultAsProperty = false
+            }
+          
+            transformFunctionInfo {
+              packageName = "com.example"
+              functionName = "inBlock"
+            }
+          
+            copyAnnotationsToSyntheticFunction = true
+            copyAnnotationsToSyntheticProperty = true
+
+            addOriginFunctionIncludeAnnotation {
+              classInfo {
+                from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+              }
+              repeatable = false
+            }
+
+            addSyntheticFunctionIncludeAnnotation {
+              classInfo {
+                packageName = "com.example"
+                className = "JApi"
+              }
+              includeProperty = true
+            }
+
+            addCopyAnnotationExclude {
+              from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+            }
+        }
+    }
+}
+```
+
+> [!note]
+> Since the property name is configurable, the same annotation can be reused on multiple transformers.
+> Annotation:
+> ```Kotlin
+> annotation class JTrans(
+>     val blockingBaseName: String = "",
+>     val blockingSuffix: String = "Blocking",
+>     val blockingAsProperty: Boolean = false,
+>     
+>     val asyncBaseName: String = "",
+>     val asyncSuffix: String = "Async",
+>     val asyncAsProperty: Boolean = false
+> )
+> ```
+> Configuration:
+> ```Kotlin
+> suspendTransformPlugin {
+>    includeAnnotation = false
+>    includeRuntime = false
+>    transformers {
+>        // For blocking
+>        addJvm {
+>            markAnnotation {
+>                classInfo {
+>                    packageName = "com.example"
+>                    className = "JTrans"
+>                }
+>                baseNameProperty = "blockingBaseName"
+>                suffixProperty = "blockingSuffix"
+>                asPropertyProperty = "blockingAsProperty"
+>                defaultSuffix = "Blocking"
+>                defaultAsProperty = false
+>            }
+>
+>            transformFunctionInfo {
+>                packageName = "com.example"
+>                functionName = "inBlock"
+>            }
+>
+>            // other config...
+>        }
+>
+>        // For async
+>        addJvm {
+>            markAnnotation {
+>                classInfo {
+>                    packageName = "com.example"
+>                    className = "JTrans"
+>                }
+>                baseNameProperty = "asyncBaseName"
+>                suffixProperty = "asyncSuffix"
+>                asPropertyProperty = "asyncAsProperty"
+>                defaultSuffix = "Async"
+>                defaultAsProperty = false
+>            }
+>
+>            transformFunctionInfo {
+>                packageName = "com.example"
+>                functionName = "inAsync"
+>            }
+>        }
+>    }
+>}
+> ```
+
+## Cautions
 ### Gradle JVM
 
 **Gradle JVM** must be JDK11+
@@ -298,9 +855,6 @@ suspendTransform {
 ### K2
 
 K2 is supported since `v0.7.0`.
-
-> [!warning]
-> In experiments.
 
 ### JsExport
 
@@ -311,18 +865,18 @@ _build.gradle.kts_
 
 ```kotlin
 plugins {
-    ...
+    // ...
 }
 
-suspendTransform {
-    addJsTransformers(
-        SuspendTransformConfiguration.jsPromiseTransformer.copy(
-            copyAnnotationExcludes = listOf(
-                // The generated function does not include `@JsExport.Ignore`.
-                ClassInfo("kotlin.js", "JsExport.Ignore")
-            )
-        )
-    )
+suspendTransformPlugin {
+  transformers {
+    addJsPromise {
+      addCopyAnnotationExclude {
+        // The generated function does not include `@JsExport.Ignore`.
+        from(kotlinJsExportIgnoreClassInfo)
+      }
+    }
+  }
 }
 ```
 
@@ -489,234 +1043,6 @@ class Bar {
     fun noTrans(): Int { /* compiled code */ }
 }
 ```
-
-## Customization
-
-```kotlin
-plugin {
-    id("love.forte.plugin.suspend-transform") version "$VERSION"
-}
-
-suspendTransform {
-    // enabled suspend transform plugin
-    enabled = true
-    // include 'love.forte.plugin.suspend-transform:suspend-transform-runtime' to the runtime environment
-    includeRuntime = true
-    // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
-    runtimeConfigurationName = "implementation"
-
-    val customJvmTransformer = Transformer(
-        // mark annotation info, e.g. `@JvmBlocking`
-        markAnnotation = MarkAnnotation(
-            classInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking"), // class info for this annotation
-            baseNameProperty = "baseName",      // The property used to represent the 'base name' in the annotation, e.g. `@JvmBlocking(baseName = ...)`
-            suffixProperty = "suffix",          // The property used to represent the 'suffix' in the annotation, e.g. `@JvmBlocking(suffix = ...)`
-            asPropertyProperty = "asProperty",  // The property used to represent the 'asProperty' in the annotation, e.g. `@JvmBlocking(asProperty = true|false)`
-            defaultSuffix = "Blocking",         // Default value used when property 'suffix' (the value of suffixProperty) does not exist (when not specified by the user) (the compiler plugin cannot detect property defaults directly, so the default value must be specified from here)
-            // e.g. @JvmBlocking(suffix = "Abc"), the suffix is 'Abc', but `@JvmBlocking()`, the suffix is null in compiler plugin, so use the default suffix value.
-            defaultAsProperty = false,          // Default value used when property 'suffix' (the value of suffixProperty) does not exist (Similar to defaultSuffix)
-        ),
-        // the transform function, e.g. 
-        // 👇 `love.forte.plugin.suspendtrans.runtime.$runInBlocking$`
-        // it will be like 
-        // ```
-        // @JvmBlocking suspend fun runXxx() { ... }
-        // fun runXxxBlocking() = `$runInBlocking$` { runXxx() /* suspend  */ } // generated function
-        // ```
-        transformFunctionInfo = FunctionInfo(
-            packageName = "love.forte.plugin.suspendtrans.runtime", 
-            className = null, // null if top-level function
-            functionName = "\$runInBlocking\$"
-        ),
-        transformReturnType = null, // return type, or null if return the return type of origin function, e.g. `ClassInfo("java.util.concurrent", "CompletableFuture")`
-        transformReturnTypeGeneric = false, // if you return like `CompletableFuture<T>`, make it `true`
-        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))), // include into origin function
-        copyAnnotationsToSyntheticFunction = true,
-        copyAnnotationExcludes = listOf(ClassInfo("kotlin.jvm", "JvmSynthetic")), // do not copy from origin function
-        syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo)) // include into synthetic function
-    )
-    
-    addJvmTransformers(
-        customJvmTransformer, ...
-    )
-    
-    // or addJsTransformers(...)
-    
-}
-```
-
-For example, you want to use a single annotation to do the work of `@JvmAsync`, `@JvmBlocking`, and `@JsPromise`:
-
-```kotlin
-// Your JVM transform functions
-// e.g. com.example.Transforms.jvm.kt
-
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-fun <T> runInBlocking(block: suspend () -> T): T {
-    // run the `block` in blocking
-    runBlocking { block() }
-}
-
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null): CompletableFuture<T> {
-    // run the `block` in async
-    val scope0 = scope ?: GlobalScope
-    return scope0.future { block() }
-    
-    /*
-     *  the `scope` is the `block`'s container:
-     *  ```
-     *  interface Container {
-     *      @JvmAsync
-     *      suspend fun run()
-     *      👇 compiled
-     *      
-     *      fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
-     *  }
-     *  ``` 
-     */
-}
-
-// Your JS transform function
-// e.g. com.example.Transforms.js.kt
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-fun <T> runInPromise(block: suspend () -> T, scope: CoroutineScope? = null): T {
-    val scope0 = scope ?: GlobalScope
-    return scope0.promise { block() }
-}
-```
-
-Create your annotation:
-
-```kotlin
-// Your single annotation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.BINARY)
-public annotation class SuspendTrans(
-    val blockingBaseName: String = "",
-    val blockingSuffix: String = "Blocking",
-    val blockingAsProperty: Boolean = false,
-
-    val asyncBaseName: String = "",
-    val asyncSuffix: String = "Async",
-    val asyncAsProperty: Boolean = false,
-
-    val jsPromiseBaseName: String = "",
-    val jsPromiseSuffix: String = "Async",
-    val jsPromiseAsProperty: Boolean = false,
-)
-```
-
-Then, config your build script:
-
-```kotlin
-// The annotation type
-val suspendTransMarkAnnotationClassInfo = ClassInfo("love.forte.simbot.suspendrunner", "SuspendTrans")
-
-// The mark annotations
-val jvmSuspendTransMarkAnnotationForBlocking = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "blockingBaseName",
-    suffixProperty = "blockingSuffix",
-    asPropertyProperty = "blockingAsProperty",
-    defaultSuffix = "Blocking",
-)
-val jvmSuspendTransMarkAnnotationForAsync = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "asyncBaseName",
-    suffixProperty = "asyncSuffix",
-    asPropertyProperty = "asyncAsProperty",
-    defaultSuffix = "Async",
-)
-val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "jsPromiseBaseName",
-    suffixProperty = "jsPromiseSuffix",
-    asPropertyProperty = "jsPromiseAsProperty",
-    defaultSuffix = "Async",
-)
-
-// The transform functions
-val jvmBlockingFunction = FunctionInfo("com.example", null, "runInBlocking")
-val jvmAsyncFunction = FunctionInfo("com.example", null, "runInAsync")
-val jsPromiseFunction = FunctionInfo("com.example", null, "runInPromise")
-
-// The transformers
-val suspendTransTransformerForJvmBlocking: Transformer = Transformer(
-    markAnnotation = jvmSuspendTransMarkAnnotationForBlocking,
-    transformFunctionInfo = jvmBlockingFunction,
-    transformReturnType = null, // same as origin function
-    transformReturnTypeGeneric = false,
-    // include @JvmSynthetic into origin function
-    originFunctionIncludeAnnotations = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-    ),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-    ),
-    // Include into synthetic function's annotations
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-val suspendTransTransformerForJvmAsync: Transformer = Transformer(
-    markAnnotation = jvmSuspendTransMarkAnnotationForAsync,
-    transformFunctionInfo = jvmAsyncFunction,
-    transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
-    transformReturnTypeGeneric = true, // Future's generic type is origin function's return type.
-    // include @JvmSynthetic into origin function
-    originFunctionIncludeAnnotations = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-    ),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-    ),
-    // Include into synthetic function's annotations
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-val suspendTransTransformerForJsPromise: Transformer = Transformer(
-    markAnnotation = jsSuspendTransMarkAnnotationForPromise,
-    transformFunctionInfo = jsPromiseFunction,
-    transformReturnType = ClassInfo("kotlin.js", "Promise"),
-    transformReturnTypeGeneric = true, // Promise's generic type is origin function's return type.
-    originFunctionIncludeAnnotations = listOf(),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-    ),
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-// The above section can also be considered to be defined in `buildSrc`.
-
-suspendTransform {
-    // disable, use the runtime and the annotation by yourself
-    includeRuntime = false     
-    includeAnnotation = false
-    // Note: If you disable includeAnnotation, you need to customise the `targetMarker` or set it to `null`.
-    //  see also: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
-    targetMarker = null // or customise
-
-    addJvmTransformers(
-        suspendTransTransformerForJvmBlocking,
-        suspendTransTransformerForJvmAsync
-    )
-    addJsTransformers(
-        suspendTransTransformerForJsPromise
-    )
-}
-```
-
 
 ## Use Cases
 

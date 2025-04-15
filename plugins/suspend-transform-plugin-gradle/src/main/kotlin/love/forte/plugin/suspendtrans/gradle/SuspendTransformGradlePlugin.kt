@@ -2,12 +2,27 @@ package love.forte.plugin.suspendtrans.gradle
 
 import love.forte.plugin.suspendtrans.cli.SuspendTransformCliOptions
 import love.forte.plugin.suspendtrans.cli.encodeToHex
+import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.gradle.DependencyConfigurationName.*
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 
+@Suppress("DEPRECATION")
+private typealias DeprecatedClassInfo = love.forte.plugin.suspendtrans.ClassInfo
+@Suppress("DEPRECATION")
+private typealias DeprecatedFunctionInfo = love.forte.plugin.suspendtrans.FunctionInfo
+@Suppress("DEPRECATION")
+private typealias DeprecatedIncludeAnnotation = love.forte.plugin.suspendtrans.IncludeAnnotation
+@Suppress("DEPRECATION")
+private typealias DeprecatedMarkAnnotation = love.forte.plugin.suspendtrans.MarkAnnotation
+@Suppress("DEPRECATION")
+private typealias DeprecatedSuspendTransformConfiguration = love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+@Suppress("DEPRECATION")
+private typealias DeprecatedTargetPlatform = love.forte.plugin.suspendtrans.TargetPlatform
+@Suppress("DEPRECATION")
+private typealias DeprecatedTransformer = love.forte.plugin.suspendtrans.Transformer
 
 /**
  *
@@ -20,7 +35,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun apply(target: Project) {
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         target.extensions.create(
             EXTENSION_NAME,
             SuspendTransformGradleExtension::class.java
@@ -60,9 +75,13 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val target = kotlinCompilation.target
         val project = target.project
 
+        return project.provider { resolveSubpluginOptions(target, project) }
+    }
+
+    private fun resolveSubpluginOptions(target: KotlinTarget, project: Project): List<SubpluginOption> {
         val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
 
-        @Suppress("DEPRECATION") val oldExtension =
+        @Suppress("DEPRECATION_ERROR") val oldExtension =
             project.extensions.getByType(SuspendTransformGradleExtension::class.java)
         @Suppress("DEPRECATION")
         if (oldExtension.enabled || oldExtension.transformers.isNotEmpty()) {
@@ -80,7 +99,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
                     "(`suspendTransformPlugin { ... }`) instead. " +
                     "The SuspendTransformGradleExtension property " +
                     "will currently be aggregated with `SuspendTransformPluginExtension`, " +
-                    "but it will soon be deprecated completely."
+                    "but it will soon be deprecated completely. "
 
             when {
                 showError -> {
@@ -95,21 +114,163 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
             oldExtension.mergeTo(extension)
         }
 
-        return project.provider {
-            extension.toSubpluginOptions()
+        return extension.toSubpluginOptions(target, project)
+    }
+}
+
+@Suppress("DEPRECATION", "DEPRECATION_ERROR", "TYPEALIAS_EXPANSION_DEPRECATION")
+private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformPluginExtension) {
+    if (this.enabled) {
+        extension.enabled.convention(true)
+    }
+    if (this.includeAnnotation) {
+        extension.includeAnnotation.convention(true)
+    }
+
+    // Annotation
+    val deprecatedAnnotationVersion = this.annotationDependencyVersion
+    // Not the default value
+    if (deprecatedAnnotationVersion != SuspendTransPluginConstants.ANNOTATION_VERSION) {
+        extension.annotationDependency {
+            it.version.convention(deprecatedAnnotationVersion)
+        }
+    }
+    val deprecatedAnnotationConfigurationName = this.annotationConfigurationName
+    if (deprecatedAnnotationConfigurationName != "compileOnly") {
+        extension.annotationDependency {
+            it.configurationName.convention(deprecatedAnnotationConfigurationName)
+        }
+    }
+
+    if (this.includeRuntime) {
+        extension.includeRuntime.convention(true)
+    }
+
+    // Runtime
+    val deprecatedRuntimeVersion = this.runtimeDependencyVersion
+    if (deprecatedRuntimeVersion != SuspendTransPluginConstants.RUNTIME_VERSION) {
+        extension.runtimeDependency {
+            it.version.convention(deprecatedRuntimeVersion)
+        }
+    }
+    val deprecatedRuntimeConfigurationName = this.runtimeConfigurationName
+    if (deprecatedRuntimeConfigurationName != "implementation") {
+        extension.runtimeDependency {
+            it.configurationName.convention(deprecatedRuntimeConfigurationName)
+        }
+    }
+
+    // Transformers
+    if (this.transformers.isNotEmpty()) {
+        extension.transformers { transformerContainer ->
+            for ((deprecatedTarget, deprecatedTransformers) in this.transformers) {
+                val target = deprecatedTarget.toTarget()
+                deprecatedTransformers.forEach { deprecatedTransformer ->
+                    when (deprecatedTransformer) {
+                        DeprecatedSuspendTransformConfiguration.jvmBlockingTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmBlockingTransformer)
+                        }
+
+                        DeprecatedSuspendTransformConfiguration.jvmAsyncTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmAsyncTransformer)
+                        }
+
+                        DeprecatedSuspendTransformConfiguration.jsPromiseTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jsPromiseTransformer)
+                        }
+
+                        else -> transformerContainer.add(target, deprecatedTransformer.toTransformer())
+                    }
+                }
+            }
         }
     }
 }
 
-@Suppress("DEPRECATION")
-private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformPluginExtension) {
-    TODO()
+@Suppress("DEPRECATION", "TYPEALIAS_EXPANSION_DEPRECATION", "KotlinRedundantDiagnosticSuppress")
+private fun DeprecatedTargetPlatform.toTarget(): TargetPlatform {
+    return when (this) {
+        DeprecatedTargetPlatform.COMMON -> TargetPlatform.COMMON
+        DeprecatedTargetPlatform.JVM -> TargetPlatform.JVM
+        DeprecatedTargetPlatform.JS -> TargetPlatform.JS
+        DeprecatedTargetPlatform.WASM -> TargetPlatform.WASM
+        DeprecatedTargetPlatform.NATIVE -> TargetPlatform.NATIVE
+    }
 }
 
-private fun SuspendTransformPluginExtension.toSubpluginOptions(): List<SubpluginOption> {
+@OptIn(InternalSuspendTransformConstructorApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedTransformer.toTransformer(): Transformer {
+    return Transformer(
+        markAnnotation = this.markAnnotation.toMarkAnnotation(),
+        transformFunctionInfo = this.transformFunctionInfo.toFunctionInfo(),
+        transformReturnType = this.transformReturnType?.toClassInfo(),
+        transformReturnTypeGeneric = this.transformReturnTypeGeneric,
+        originFunctionIncludeAnnotations = this.originFunctionIncludeAnnotations.map { it.toIncludeAnnotation() },
+        syntheticFunctionIncludeAnnotations = this.syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() },
+        copyAnnotationsToSyntheticFunction = this.copyAnnotationsToSyntheticFunction,
+        copyAnnotationExcludes = this.copyAnnotationExcludes.map { it.toClassInfo() },
+        copyAnnotationsToSyntheticProperty = this.copyAnnotationsToSyntheticProperty
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
+    return MarkAnnotation(
+        classInfo = this.classInfo.toClassInfo(),
+        baseNameProperty = this.baseNameProperty,
+        suffixProperty = this.suffixProperty,
+        asPropertyProperty = this.asPropertyProperty,
+        defaultSuffix = this.defaultSuffix,
+        defaultAsProperty = this.defaultAsProperty
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedFunctionInfo.toFunctionInfo(): FunctionInfo {
+    return FunctionInfo(
+        packageName = this.packageName,
+        functionName = this.functionName
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedClassInfo.toClassInfo(): ClassInfo {
+    return ClassInfo(
+        packageName = this.packageName,
+        className = this.className,
+        local = this.local,
+        nullable = this.nullable
+    )
+}
+
+@OptIn(InternalSuspendTransformConstructorApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedIncludeAnnotation.toIncludeAnnotation(): IncludeAnnotation {
+    return IncludeAnnotation(
+        classInfo = this.classInfo.toClassInfo(),
+        repeatable = this.repeatable,
+        includeProperty = this.includeProperty
+    )
+}
+
+private fun SuspendTransformPluginExtension.toSubpluginOptions(target: KotlinTarget, project: Project): List<SubpluginOption> {
+    // If not enabled or transformer is empty.
     val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
     val configuration = toConfiguration()
-    return listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+    return if (configuration.enabled && configuration.transformers.isNotEmpty()) {
+        if (project.logger.isInfoEnabled) {
+            val count = configuration.transformers.values.sumOf { it.size }
+            project.logger.info("The suspend transform is enabled with {} transformer(s) for {}", count, target)
+        }
+        listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+    } else {
+        project.logger.info("The suspend transform is disabled or transformers are empty for {}.", target)
+        emptyList()
+    }
 }
 
 private fun Project.configureDependencies() {

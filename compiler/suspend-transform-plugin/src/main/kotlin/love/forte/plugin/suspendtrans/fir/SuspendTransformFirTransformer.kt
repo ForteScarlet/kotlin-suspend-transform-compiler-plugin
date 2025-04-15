@@ -871,28 +871,29 @@ class SuspendTransformFirTransformer(
         return isOverride
     }
 
-    private val annotationPredicates = DeclarationPredicate.create {
-        var predicate: DeclarationPredicate? = null
-        for (value in suspendTransformConfiguration.transformers.values) {
-            for (transformer in value) {
-                val afq = transformer.markAnnotation.fqName
-                predicate = if (predicate == null) {
-                    annotated(afq)
-                } else {
-                    predicate or annotated(afq)
+    private val annotationPredicates: DeclarationPredicate? =
+        if (suspendTransformConfiguration.transformers.values.isEmpty()) {
+            null
+        } else {
+            DeclarationPredicate.create {
+                var predicate: DeclarationPredicate? = null
+                for (value in suspendTransformConfiguration.transformers.values) {
+                    for (transformer in value) {
+                        val afq = transformer.markAnnotation.fqName
+                        predicate = predicate?.also { p -> p or annotated(afq) } ?: annotated(afq)
+                    }
                 }
+
+                predicate ?: annotated()
             }
         }
-
-        predicate ?: annotated()
-    }
 
     /**
      * NB: The predict needs to be *registered* in order to parse the [@XSerializable] type
      * otherwise, the annotation remains unresolved
      */
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-        register(annotationPredicates)
+        annotationPredicates?.also { register(it) }
     }
 
     private fun createCache(

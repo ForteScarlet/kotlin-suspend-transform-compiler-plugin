@@ -1,22 +1,9 @@
-import love.forte.plugin.suspendtrans.ClassInfo
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmAsyncTransformer
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmBlockingTransformer
-import love.forte.plugin.suspendtrans.TargetPlatform
-import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinOptInClassInfo
 
 plugins {
     kotlin("multiplatform")
-}
-
-
-buildscript {
-    this@buildscript.repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.0-0.11.1")
-    }
+    id("love.forte.plugin.suspend-transform")
 }
 
 kotlin {
@@ -36,6 +23,19 @@ kotlin {
     jvm()
     js {
         nodejs()
+
+        useEsModules()
+        generateTypeScriptDefinitions()
+        binaries.executable()
+
+        compilerOptions {
+            target = "es2015"
+            useEsClasses = true
+            freeCompilerArgs.addAll(
+                // https://kotlinlang.org/docs/whatsnew20.html#per-file-compilation-for-kotlin-js-projects
+                "-Xir-per-file",
+            )
+        }
     }
 
     sourceSets {
@@ -48,28 +48,54 @@ kotlin {
     }
 }
 
-extensions.getByType<SuspendTransformGradleExtension>().apply {
+suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
-//     useJvmDefault()
-    transformers[TargetPlatform.JVM] = mutableListOf(
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmBlockingTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmBlockingTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
+    transformers {
+        addJvmBlocking {
+            addCopyAnnotationExclude {
+                from(kotlinOptInClassInfo)
             }
-        ),
+        }
+        addJvmAsync {
+            addCopyAnnotationExclude {
+                from(kotlinOptInClassInfo)
+            }
+        }
 
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmAsyncTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmAsyncTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
+        addJsPromise {
+            addCopyAnnotationExclude {
+                from(kotlinOptInClassInfo)
             }
-        )
-    )
+            addCopyAnnotationExclude {
+                from(kotlinJsExportIgnoreClassInfo)
+            }
+        }
+    }
 }
+
+// extensions.getByType<SuspendTransformGradleExtension>().apply {
+//     includeRuntime = false
+//     includeAnnotation = false
+// //     useJvmDefault()
+//     transformers[TargetPlatform.JVM] = mutableListOf(
+//         // Add `kotlin.OptIn` to copyAnnotationExcludes
+//         jvmBlockingTransformer.copy(
+//             copyAnnotationExcludes = buildList {
+//                 addAll(jvmBlockingTransformer.copyAnnotationExcludes)
+//                 add(ClassInfo("kotlin", "OptIn"))
+//             }
+//         ),
+//
+//         // Add `kotlin.OptIn` to copyAnnotationExcludes
+//         jvmAsyncTransformer.copy(
+//             copyAnnotationExcludes = buildList {
+//                 addAll(jvmAsyncTransformer.copyAnnotationExcludes)
+//                 add(ClassInfo("kotlin", "OptIn"))
+//             }
+//         )
+//     )
+// }
 
 tasks.withType<Test> {
     useJUnitPlatform()

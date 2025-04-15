@@ -339,17 +339,19 @@ object SuspendTransformConfigurations {
 
     private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync\$"
 
+    //region Commons
+    @JvmStatic
+    val kotlinOptInClassInfo = ClassInfo(
+        packageName = KOTLIN,
+        className = "OptIn"
+    )
+    //endregion
+
     //region JVM Defaults
     @JvmStatic
     val jvmSyntheticClassInfo = ClassInfo(
         packageName = KOTLIN_JVM,
         className = "JvmSynthetic"
-    )
-
-    @JvmStatic
-    val kotlinOptInClassInfo = ClassInfo(
-        packageName = KOTLIN,
-        className = "OptIn"
     )
 
     @JvmStatic
@@ -437,6 +439,18 @@ object SuspendTransformConfigurations {
     //endregion
 
     //region JS Defaults
+    @JvmStatic
+    val kotlinJsExportClassInfo = ClassInfo(
+        packageName = KOTLIN_JS,
+        className = "JsExport"
+    )
+
+    @JvmStatic
+    val kotlinJsExportIgnoreClassInfo = ClassInfo(
+        packageName = KOTLIN_JS,
+        className = "JsExport.Ignore"
+    )
+
     @JvmStatic
     val jsApi4JsAnnotationInfo = ClassInfo(
         packageName = SUSPENDTRANS_ANNOTATION_PACKAGE,

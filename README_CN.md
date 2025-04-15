@@ -1,16 +1,16 @@
-# Kotlin suspend transform compiler plugin
-[![Maven Central](https://img.shields.io/maven-central/v/love.forte.plugin.suspend-transform/suspend-transform-plugin)](https://repo1.maven.org/maven2/love/forte/plugin/suspend-transform/suspend-transform-plugin/) 
+# Kotlin suspend transform 编译器插件
+[![Maven Central](https://img.shields.io/maven-central/v/love.forte.plugin.suspend-transform/suspend-transform-plugin)](https://repo1.maven.org/maven2/love/forte/plugin/suspend-transform/suspend-transform-plugin/)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/love.forte.plugin.suspend-transform)](https://plugins.gradle.org/plugin/love.forte.plugin.suspend-transform)
 
-<img src=".project/cover.png" alt="封面">
+<img src=".project/cover.png" alt="封面图">
 
 [GitHub](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin) | [Gitee](https://gitee.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin)
 
-[English](README.md) | **简体中文**
+**English** | [简体中文](README_CN.md)
 
-## 简介
+## 概述
 
-用于为Kotlin挂起函数自动生成平台兼容函数的Kotlin编译器插件。
+用于为挂起函数生成平台兼容函数的 Kotlin 编译器插件。
 
 ### JVM
 
@@ -29,21 +29,22 @@ class Foo {
 
 ```kotlin
 class Foo {
-    // 对Java隐藏
+    // 对 Java 隐藏
     @JvmSynthetic
     suspend fun waitAndGet(): String {
         delay(5)
         return "Hello"
     }
-    @Api4J // RequiresOptIn 注解, 向Kotlin开发者提供警告
-    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' 来自于插件提供的运行时依赖
+    @Api4J // 需要显式启用的注解，向 Kotlin 提供警告
+    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' 来自插件提供的运行时
 
-    @Api4J // RequiresOptIn 注解, 向Kotlin开发者提供警告
-    fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
+    @Api4J // 需要显式启用的注解，向 Kotlin 提供警告
+    fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() } // 'runInAsync' 来自插件提供的运行时
 }
 ```
 
 ### JS
+
 ```kotlin
 class Foo {
     @JsPromise
@@ -62,19 +63,19 @@ class Foo {
         delay(5)
         return "Hello"
     }
-    @Api4Js // RequiresOptIn 注解, 向Kotlin开发者提供警告
-    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自于插件提供的运行时依赖
+    @Api4Js // 需要显式启用的注解，向 Kotlin 提供警告
+    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自插件提供的运行时
 }
 ```
 
-> ~~JS 目标平台暂不支持。原因参考: [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)~~
-> 
-> JS 平台从 `v0.6.0` 版本开始得到支持。 参考 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993) 了解过程, 以及从 [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39) 查阅制胜一击!
+> ~~JS 平台目标暂未支持。参见：[KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)~~
+>
+> 自 0.6.0 版本起已支持 JS！进展见 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)，最终实现见 [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)！
 
 ### WasmJS
 
 > [!warning]
-> 从 `v0.6.0` 开始支持，实验中，不成熟、不稳定。
+> 自 `v0.6.0` 起处于实验阶段，不成熟且不稳定
 
 ```kotlin
 class Foo {
@@ -85,11 +86,12 @@ class Foo {
     } 
 }
 
-// 一些由**你**自定义的函数或类型...
-// 它们不包含在 runtime 中。由于在 WasmJS 中，对于各种类型的使用会有很多限制，
-// 因此我还不清楚如何完美地处理它们。
-// 在那之前，你可以自定义函数和类型来自行控制编译器插件的行为，
-// 就像自定义其他平台那样。
+// 由**你**自定义的部分函数或类型...
+// 这些不包含在运行时中。
+// 由于 WasmJS 对各类使用存在诸多限制...
+// 目前尚未找到完美处理方式。
+// 在此之前，你可以自定义函数和类型来控制编译器插件的行为，
+// 就像对其他平台所做的那样。
 
 fun <T> runInAsync(block: suspend () -> T): AsyncResult<T> = AsyncResult(block)
 
@@ -101,7 +103,7 @@ class AsyncResult<T>(val block: suspend () -> T) {
 }
 ```
 
-compiled 👇
+编译后 👇
 
 ```kotlin
 class Foo {
@@ -109,117 +111,64 @@ class Foo {
         delay(5)
         return "Hello"
     }
-    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
-    fun waitAndGetAsync(): AsyncResult<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
-    // AsyncResult is a custom type
+    @Api4Js // 需要显式启用的注解，向 Kotlin 提供警告
+    fun waitAndGetAsync(): AsyncResult<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自插件提供的运行时
+    // AsyncResult 是**你**自定义的类型
 }
 ```
 
-
-## 使用
+## 使用方式
 
 ### 版本说明
 
-在 `0.9.0` (包括) 以前，版本的命名方式是 `x.y.z` 的形式。
-但是Kotlin编译器的内容集合每个Kotlin版本都有可能发生改变，
-而这似乎无法体现出其构建于的Kotlin版本信息，进而导致产生一些混乱。
+`0.9.0` 及之前版本使用 `x.y.z` 的命名规则。但由于 Kotlin 编译器可能随版本变化，
+这种命名方式无法反映对应的 Kotlin 版本，可能导致混淆。
 
-因此，从 `0.9.0` 之后的版本开始，版本的命名方式会改为 `$Kotlin-$plugin` 的形式，
-例如 `2.0.20-0.9.1`。
-前半部分代表用于构建的Kotlin版本，而后半部分则为插件的版本。
+因此，`0.9.0` 之后的版本将采用 `$Kotlin-$plugin` 的命名形式，
+例如 `2.0.20-0.9.1`。前半部分为构建所用的 Kotlin 版本，后半部分为插件版本。
 
-如果版本小于等于 `0.9.0`，你可以参考下面这个对照表：
+若版本小于等于 `0.9.0`，可参考以下对照表：
 
-| Kotlin版本 | 插件版本                    |
-|----------|-------------------------|
-| `2.0.0`  | `0.8.0-beta1` ~ `0.9.0` |
-| `1.9.22` | `0.7.0-beta1`           |
-| `1.9.21` | `0.6.0`                 |
-| `1.9.10` | `0.5.1`                 |
-| `1.9.0`  | `0.5.0`                 |
-| `1.8.21` | `0.3.1` ~ `0.4.0`       |
+| Kotlin 版本   | 插件版本               |
+|---------------|------------------------|
+| `2.0.0`       | `0.8.0-beta1` ~ `0.9.0` |
+| `1.9.22`      | `0.7.0-beta1`           |
+| `1.9.21`      | `0.6.0`                 |
+| `1.9.10`      | `0.5.1`                 |
+| `1.9.0`       | `0.5.0`                 |
+| `1.8.21`      | `0.3.1` ~ `0.4.0`       |
 
 > [!note]
-> 我没有详细记录每一个Kotlin版本之间的编译器的兼容性。
-> 根据我的记忆和猜测，每当 minor 版本号增加时 (例如 `1.8.0` -> `1.9.0`)
-> 则不兼容的概率较大，而当 patch 增加时 (例如 `1.9.0` -> `1.9.10`) 不兼容的概率较小。
+> 未详细记录各 Kotlin 版本的编译器插件兼容性。
+> 根据经验，次要版本升级（如 `1.8.0` -> `1.9.0`）更可能不兼容，
+> 补丁版本（如 `1.9.21` -> `1.9.22`）不兼容概率较低。
 
 ### Gradle
 
-**通过 [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block) 使用:**
+**使用 [plugins DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block)：**
 
 _build.gradle.kts_
 
-```kotlin
+```Kotlin
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "$KOTLIN_VERSION" // or js? or multiplatform?
-    id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION"
-    // other...
+    kotlin("jvm") version "$KOTLIN_VERSION" // 或 multiplatform
+    id("love.forte.plugin.suspend-transform") version "$PLUGIN_VERSION" 
+    // 其他...
 }
 
-// other...
+// 其他...
 
-// config it.
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-    includeAnnotation = true // default: true
-    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
-    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
-    // targetMarker = null // 或自定义
-    
-    /*
-     * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
-     * 需要包含 runtime 和 annotation
-     */
-    // useDefault()
-
-    /*
-     * 使用JVM平台的默认配置
-     * 相当于:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jvmBlockingTransformer,
-     *     SuspendTransformConfiguration.jvmAsyncTransformer,
-     * )
-     *
-     * 需要包含 runtime 和 annotation
-     */
-    useJvmDefault()
-
-    // 或者由你自定义
-    jvm {
-        // ...
-    }
-    // 或者由你自定义
-    addJvmTransformers(...)
-
-    /*
-     * 使用JS平台的默认配置
-     * 相当于:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jsPromiseTransformer,
-     * )
-     *
-     * 需要包含 runtime 和 annotation
-     */
-    useJsDefault()
-
-    // 或者由你自定义
-    js {
-        // ...
-    }
-    // 或者由你自定义
-    addJsTransformers(...)
+// 配置插件
+suspendTransformPlugin {
+    // 配置 SuspendTransformPluginExtension ...
 }
 ```
 
-
-
-**通过 [legacy plugin application](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application) 使用:**
+**使用 [传统插件应用方式](https://docs.gradle.org/current/userguide/plugins.html#sec:old_plugin_application)：**
 
 _build.gradle.kts_
 
-```kotlin
+```Kotlin
 buildscript {
     repositories {
         mavenCentral()
@@ -231,100 +180,495 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") // 或 js? 或 multiplatform?
+    id("org.jetbrains.kotlin.jvm") // 或 multiplatform?
     id("love.forte.plugin.suspend-transform") 
     // 其他...
 }
 
 // 其他...
 
-// 配置
-suspendTransform {
-    enabled = true // default: true
-    includeRuntime = true // default: true
-    includeAnnotation = true // default: true
-    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
-    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
-    // targetMarker = null // 或自定义
-
-    /*
-     * 相当于同时使用 `useJvmDefault` 和 `useJsDefault`.
-     * 需要包含 runtime 和 annotation
-     */
-    // useDefault()
-
-    /*
-     * 使用JVM平台的默认配置
-     * 相当于:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jvmBlockingTransformer,
-     *     SuspendTransformConfiguration.jvmAsyncTransformer,
-     * )
-     *
-     * 需要包含 runtime 和 annotation
-     */
-    useJvmDefault()
-
-    // 或者由你自定义
-    jvm {
-        // ...
-    }
-    // 或者由你自定义
-    addJvmTransformers(...)
-
-    /*
-     * 使用JS平台的默认配置
-     * 相当于:
-     * addJvmTransformers(
-     *     SuspendTransformConfiguration.jsPromiseTransformer,
-     * )
-     *
-     * 需要包含 runtime 和 annotation
-     */
-    useJsDefault()
-
-    // 或者由你自定义
-    js {
-        // ...
-    }
-    // 或者由你自定义
-    addJsTransformers(...)
+// 配置插件
+suspendTransformPlugin {
+    // 配置 SuspendTransformPluginExtension ...
 }
 ```
 
-## 注意事项
+## 配置扩展
 
+### 启用插件
+
+启用 Kotlin 编译器插件。默认值为 `true`。
+
+```Kotlin
+suspendTransformPlugin {
+    enabled = true
+}
+```
+
+### 包含默认注解和运行时
+
+若需使用我们提供的转换器，需添加 `annotation` 和 `runtime` 依赖。
+可通过配置自动添加：
+
+```Kotlin
+suspendTransformPlugin {
+    // 包含注解
+    // 默认为 `true`
+    includeAnnotation = true
+    // 默认值可留空，使用专属默认值
+    annotationDependency {
+        // 默认为 `compileOnly`
+        configurationName = "compileOnly"
+        // 默认与插件版本相同
+        version = "<ANNOTATION_VERSION>"
+    }
+    
+    // 包含运行时
+    // 默认为 `true`
+    includeRuntime = true
+    // 默认值可留空，使用专属默认值
+    runtimeDependency {
+        // 默认为 `implementation`
+        configurationName = "implementation"
+        // 默认与插件版本相同
+        version = "<RUNTIME_VERSION>"
+    }
+}
+```
+
+也可手动添加依赖：
+
+```Kotlin
+plugin {
+    kotlin("jvm") version "..." // 以 Kotlin/JVM 为例
+    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
+}
+
+dependencies {
+    // 注解
+    compileOnly("love.forte.plugin.suspend-transform:suspend-transform-annotation:<VERSION>")
+    // 运行时
+    implementation("love.forte.plugin.suspend-transform:suspend-transform-runtime:<VERSION>")
+}
+
+suspendTransformPlugin {
+    // 禁用自动包含
+    includeAnnotation = false
+    includeRuntime = false
+}
+```
+
+### 添加转换器
+
+`Transformer` 用于描述如何转换挂起函数。需添加 `Transformer` 以使插件生效。
+
+```Kotlin
+suspendTransformPlugin {
+    // 配置转换器
+    transformers {
+        add(TargetPlatform.JVM) { // this: TransformerSpec
+            // 配置 TransformerSpec...
+        }
+
+        addJvm { // this: TransformerSpec
+            // 配置 TransformerSpec...
+        }
+
+        // 使用预置的默认转换器
+        add(TargetPlatform.JVM, SuspendTransformConfigurations.jvmBlockingTransformer)
+
+        addJvm { // this: TransformerSpec
+            // 基于现有转换器调整
+            from(SuspendTransformConfigurations.jvmBlockingTransformer)
+            // 进一步配置...
+        }
+    }
+}
+```
+
+#### 添加默认转换器
+
+我们提供了一些常用实现，可通过配置快速使用。
+
+> [!note]
+> 默认 `Transformer` 依赖我们提供的 `annotation` 和 `runtime`，请确保已包含。
+
+**JVM 阻塞式**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 方式一：
+        addJvmBlocking()
+
+        // 方式二：
+        addJvm(SuspendTransformConfigurations.jvmBlockingTransformer)
+    }
+}
+```
+
+`JvmBlocking` 允许在挂起函数上标记 `@JvmBlocking`，生成 `xxxBlocking` 函数。
+
+```Kotlin
+class Cat {
+    @JvmBLocking
+    suspend fun meow() {
+        // ...
+    }
+    
+    // 生成：
+    fun meowBlocking() {
+        `$runInBlocking$` { meow() }
+    }
+}
+```
+
+`$runInBlocking$` 基于 `kotlinx.coroutines.runBlocking`。
+
+**JVM 异步式**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 方式一：
+        addJvmAsync()
+
+        // 方式二：
+        addJvm(SuspendTransformConfigurations.jvmAsyncTransformer)
+    }
+}
+```
+
+`JvmAsync` 允许在挂起函数上标记 `@JvmAsync`，生成 `xxxAsync` 函数。
+
+```Kotlin
+class Cat {
+    @JvmBLocking
+    suspend fun meow(): String = "Meow!"
+    
+    // 生成：
+    fun meowAsync(): CompletableFuture<out String> {
+        `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
+    }
+}
+```
+
+`block` 是需要执行的原始挂起函数，`scope` 是使用的协程作用域。
+
+若当前作用域是 `CoroutineScope`，则优先使用自身。否则内部使用 `GlobalScope`。
+
+使用 `GlobalScope` 的原因：
+1. 全局性。
+2. 不可见，不会被手动关闭。
+3. 不涉及 IO，无需自定义调度器。
+
+若有异议，欢迎提交 issue！
+
+**JS Promise**
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 方式一：
+        addJsPromise()
+
+        // 方式二：
+        addJs(SuspendTransformConfigurations.jsPromiseTransformer)
+    }
+}
+```
+
+```Kotlin
+class Cat {
+    @JsPromise
+    suspend fun meow(): String = "Meow!"
+    
+    // 生成：
+    fun meowAsync(): Promise<String> {
+        `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
+    }
+}
+```
+
+#### 使用默认转换器
+
+`addJvmBlocking()` 和 `addJvmAsync()` 可以被合并为 `useJvmDefault()`。
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 包括 addJvmBlocking() 和 addJvmAsync()
+        useJvmDefault()
+    }
+}
+```
+
+`addJsPromise()` 可以被合并为 `useJsDefault()` 。
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 包括 addJsPromise()
+        useJsDefault()
+    }
+}
+```
+
+`useJvmDefault()` 和 `useJsDefault` 可以被合并为 `useDefault()` 。
+
+```Kotlin
+suspendTransformPlugin {
+    transformers {
+        // 包括 addJvmDefault() 和 addJsPromise()
+        useDefault()
+    }
+}
+```
+
+#### 自定义转换器
+
+若默认转换器不满足需求，可自定义 `Transformer`，例如完全自定义阻塞逻辑。
+
+> 完整自定义实现参考：
+> https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt
+
+```Kotlin
+suspendTransformPlugin {
+    // 自定义时可能无需默认注解和运行时
+    includeAnnotation = false
+    includeRuntime = false
+    
+    transformer {
+        // 具体配置见下文
+    }
+}
+```
+
+示例：自定义注解 `@JBlock`，通过函数 `inBlock` 执行挂起函数。
+
+```Kotlin
+// 自定义注解
+annotation class JBlock(...)
+
+// 自定义顶层转换函数
+fun <T> inBlock(block: suspend () -> T): T {
+    TODO("你的实现")
+}
+```
+
+假设注解包含以下属性：
+- `baseName`: 生成函数的基础名（默认为原函数名）
+- `suffix`: 生成函数名的后缀
+- `asProperty`: 将生成函数转为属性（适用于无参数的函数）
+
+注解定义：
+
+```Kotlin
+annotation class JBlock(
+    val baseName: String = "",
+    val suffix: String = "Blocking",
+    val asProperty: Boolean = false
+)
+```
+
+配置示例：
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+                // 注解类信息
+                classInfo {
+                    packageName = "com.example"
+                    className = "JBlock"
+                }
+
+                // 属性名映射
+                baseNameProperty = "baseName"  // 默认为 `baseName`
+                suffixProperty = "suffix"      // 默认为 `suffix`
+                asPropertyProperty = "asProperty" // 默认为 `asProperty`
+
+                // 默认值需手动配置（编译器无法获取注解默认值）
+                defaultSuffix = "Blocking" 
+                defaultAsProperty = false 
+            }
+        }
+    }
+}
+```
+
+若属性名不同：
+
+```Kotlin
+annotation class JBlock(
+    val myBaseName: String = "",
+    val mySuffix: String = "Blocking",
+    val myAsProperty: Boolean = false
+)
+```
+
+配置调整：
+
+```Kotlin
+baseNameProperty = "myBaseName"
+suffixProperty = "mySuffix"
+asPropertyProperty = "myAsProperty"
+```
+
+转换函数配置：
+
+```Kotlin
+transformFunctionInfo {
+    packageName = "com.example"
+    functionName = "inBlock"
+}
+
+// 返回类型配置
+transformReturnType = null // 与原函数返回类型相同
+transformReturnTypeGeneric = false // 无泛型
+```
+
+注解复制配置示例：
+
+```Kotlin
+addOriginFunctionIncludeAnnotation {
+  classInfo {
+    packageName = "kotlin.jvm"
+    className = "JvmSynthetic"
+  }
+  repeatable = false
+}
+
+addSyntheticFunctionIncludeAnnotation {
+  classInfo {
+    packageName = "com.example"
+    className = "JApi"
+  }
+  includeProperty = true
+}
+
+addCopyAnnotationExclude {
+  from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+}
+```
+
+完整示例：
+
+代码：
+
+```Kotlin
+annotation class JBlock(
+    val myBaseName: String = "",
+    val mySuffix: String = "Blocking",
+    val myAsProperty: Boolean = false
+)
+
+@RequiresOptIn(message = "Java 接口", level = RequiresOptIn.Level.WARNING)
+@Retention(AnnotationRetention.BINARY)
+annotation class JApi
+
+fun <T> inBlock(block: suspend () -> T): T {
+  TODO("你的实现")
+}
+```
+
+配置：
+
+```Kotlin
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        addJvm {
+            markAnnotation {
+              classInfo {
+                packageName = "com.example"
+                className = "JBlock"
+              }
+
+              baseNameProperty = "myBaseName"
+              suffixProperty = "mySuffix"
+              asPropertyProperty = "myAsProperty"
+
+              defaultSuffix = "Blocking"
+              defaultAsProperty = false
+            }
+          
+            transformFunctionInfo {
+              packageName = "com.example"
+              functionName = "inBlock"
+            }
+          
+            copyAnnotationsToSyntheticFunction = true
+            copyAnnotationsToSyntheticProperty = true
+
+            addOriginFunctionIncludeAnnotation {
+              classInfo.from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+              repeatable = false
+            }
+
+            addSyntheticFunctionIncludeAnnotation {
+              classInfo {
+                packageName = "com.example"
+                className = "JApi"
+              }
+              includeProperty = true
+            }
+
+            addCopyAnnotationExclude {
+              from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+            }
+        }
+    }
+}
+```
+
+> [!note]
+> 同一注解可通过不同属性名复用于多个转换器。例如：
+> ```Kotlin
+> annotation class JTrans(
+>     val blockingBaseName: String = "",
+>     val blockingSuffix: String = "Blocking",
+>     val blockingAsProperty: Boolean = false,
+>     
+>     val asyncBaseName: String = "",
+>     val asyncSuffix: String = "Async",
+>     val asyncAsProperty: Boolean = false
+> )
+> ```
+
+## 注意事项
 ### Gradle JVM
 
-Gradle JVM 必须满足 JDK11+
+**Gradle JVM** 必须为 JDK11+
 
 ### K2
 
-K2 编译器从 `v0.7.0` 开始支持。
-
-> [!warning]
-> 实验中。
+自 `v0.7.0` 起支持 K2。
 
 ### JsExport
 
-如果你打算在默认配置的情况下使用 `@JsExport`, 可以尝试以下代码：
+若需在 JS 中使用 `@JsExport` 的默认配置：
 
 _build.gradle.kts_
 
 ```kotlin
 plugins {
-    ...
+    // ...
 }
 
-suspendTransform {
-    addJsTransformers(
-        SuspendTransformConfiguration.jsPromiseTransformer.copy(
-            copyAnnotationExcludes = listOf(
-                // 生成的函数将不会包含 `@JsExport.Ignore`
-                ClassInfo("kotlin.js", "JsExport.Ignore")
-            )
-        )
-    )
+suspendTransformPlugin {
+  transformers {
+    addJsPromise {
+      addCopyAnnotationExclude {
+        // 生成函数不包含 `@JsExport.Ignore`
+        from(kotlinJsExportIgnoreClassInfo)
+      }
+    }
+  }
 }
 ```
 
@@ -339,9 +683,9 @@ class Foo {
 }
 ```
 
-## 效果
+## 效果示例
 
-**源代码:**
+**源码:**
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
@@ -365,7 +709,7 @@ class FooImpl : Foo {
     suspend fun size(): Long = 666
     override suspend fun name(): String = "forte"
     override suspend fun age(def: Int): Int = def
-    @JvmBlocking(asProperty = true) // asProperty 必须为 true
+    @JvmBlocking(asProperty = true) // 必须为 'asProperty=true'
     override suspend fun self(): FooImpl = this
 }
 
@@ -378,357 +722,20 @@ class Bar {
 }
 ```
 
-**编译结果:**
-
-> _简化自反编译结果_
+**编译结果（简化版）:**
 
 ```kotlin
-import love.forte.plugin.suspendtrans.annotation.JvmAsync
-import love.forte.plugin.suspendtrans.annotation.JvmBlocking
-import love.forte.plugin.suspendtrans.annotation.Generated
-import love.forte.plugin.suspendtrans.annotation.Api4J
-import kotlin.jvm.JvmSynthetic
-
-@JvmBlocking 
-@JvmAsync
-interface Foo {
-    @Generated 
-    @Api4J 
-    val selfBlocking: Foo /* compiled code */
-
-    suspend fun age(def: Int /* = compiled code */): Int
-
-    @Generated 
-    @Api4J 
-    fun ageAsync(def: Int /* = compiled code */): java.util.concurrent.CompletableFuture<Int> { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    fun ageBlocking(def: Int /* = compiled code */): Int { /* compiled code */ }
-
-    suspend fun name(): String
-
-    @Generated 
-    @Api4J 
-    fun nameAsync(): java.util.concurrent.CompletableFuture<out String> { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    fun nameBlocking(): String { /* compiled code */ }
-
-    @JvmBlocking 
-    suspend fun self(): Foo
-
-    @Generated 
-    @Api4J 
-    fun selfAsync(): java.util.concurrent.CompletableFuture<out Foo> { /* compiled code */ }
-}
-
-@JvmBlocking 
-@JvmAsync 
-class FooImpl : Foo {
-    @Generated 
-    @Api4J 
-    open val selfBlocking: FooImpl /* compiled code */
-
-    @JvmSynthetic
-    open suspend fun age(def: Int): Int { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    open fun ageAsync(def: Int): java.util.concurrent.CompletableFuture<Int> { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    open fun ageBlocking(def: Int): Int { /* compiled code */ }
-
-    @JvmSynthetic
-    open suspend fun name(): String { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    open fun nameAsync(): java.util.concurrent.CompletableFuture<out String> { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    open fun nameBlocking(): String { /* compiled code */ }
-
-    @JvmSynthetic
-    @JvmBlocking 
-    suspend fun self(): FooImpl { /* compiled code */ }
-
-    @Generated 
-    @Api4J
-    fun selfAsync(): java.util.concurrent.CompletableFuture<out FooImpl> { /* compiled code */ }
-
-    @JvmSynthetic
-    suspend fun size(): Long { /* compiled code */ }
-
-    @Generated 
-    @Api4J
-    fun sizeAsync(): java.util.concurrent.CompletableFuture<Long> { /* compiled code */ }
-
-    @Generated 
-    @Api4J
-    fun sizeBlocking(): Long { /* compiled code */ }
-}
-
-
-class Bar {
-    @JvmSynthetic
-    @JvmBlocking 
-    @JvmAsync
-    suspend fun bar(): String { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    fun barAsync(): java.util.concurrent.CompletableFuture<out String> { /* compiled code */ }
-
-    @Generated 
-    @Api4J 
-    fun barBlocking(): String { /* compiled code */ }
-
-    fun noTrans(): Int { /* compiled code */ }
-}
-```
-
-## 自定义配置
-
-
-```kotlin
-plugin {
-    id("love.forte.plugin.suspend-transform") version "$VERSION"
-}
-
-
-suspendTransform {
-    // enabled suspend transform plugin
-    enabled = true
-    // include 'love.forte.plugin.suspend-transform:suspend-transform-runtime' to the runtime environment
-    includeRuntime = true
-    // the configuration name for including 'love.forte.plugin.suspend-transform:suspend-transform-runtime'
-    runtimeConfigurationName = "implementation"
-
-    val customJvmTransformer = Transformer(
-        // mark annotation info, e.g. `@JvmBlocking`
-        markAnnotation = MarkAnnotation(
-            classInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmBlocking"), // class info for this annotation
-            baseNameProperty = "baseName",      // The property used to represent the 'base name' in the annotation, e.g. `@JvmBlocking(baseName = ...)`
-            suffixProperty = "suffix",          // The property used to represent the 'suffix' in the annotation, e.g. `@JvmBlocking(suffix = ...)`
-            asPropertyProperty = "asProperty",  // The property used to represent the 'asProperty' in the annotation, e.g. `@JvmBlocking(asProperty = true|false)`
-            defaultSuffix = "Blocking",         // Default value used when property 'suffix' (the value of suffixProperty) does not exist (when not specified by the user) (the compiler plugin cannot detect property defaults directly, so the default value must be specified from here)
-            // e.g. @JvmBlocking(suffix = "Abc"), the suffix is 'Abc', but `@JvmBlocking()`, the suffix is null in compiler plugin, so use the default suffix value.
-            defaultAsProperty = false,          // Default value used when property 'suffix' (the value of suffixProperty) does not exist (Similar to defaultSuffix)
-        ),
-        // the transform function, e.g. 
-        // 👇 `love.forte.plugin.suspendtrans.runtime.$runInBlocking$`
-        // it will be like 
-        // ```
-        // @JvmBlocking suspend fun runXxx() { ... }
-        // fun runXxxBlocking() = `$runInBlocking$` { runXxx() /* suspend  */ } // generated function
-        // ```
-        transformFunctionInfo = FunctionInfo(
-            packageName = "love.forte.plugin.suspendtrans.runtime",
-            className = null, // null if top-level function
-            functionName = "\$runInBlocking\$"
-        ),
-        transformReturnType = null, // return type, or null if return the return type of origin function, e.g. `ClassInfo("java.util.concurrent", "CompletableFuture")`
-        transformReturnTypeGeneric = false, // if you return like `CompletableFuture<T>`, make it `true`
-        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(ClassInfo("kotlin.jvm", "JvmSynthetic"))), // include into origin function
-        copyAnnotationsToSyntheticFunction = true,
-        copyAnnotationExcludes = listOf(ClassInfo("kotlin.jvm", "JvmSynthetic")), // do not copy from origin function
-        syntheticFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmApi4JAnnotationClassInfo)) // include into synthetic function
-    )
-
-    addJvmTransformers(
-        customJvmTransformer, ...
-    )
-
-    // or addJsTransformers(...)
-
-}
-```
-
-举个例子，你想要使用一个单独的注解就完成`@JvmAsync`, `@JvmBlocking`, and `@JsPromise`的工作：
-
-
-```kotlin
-// 你在JVM平台上的转化函数
-// 比如 com.example.Transforms.jvm.kt
-
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-fun <T> runInBlocking(block: suspend () -> T): T {
-    // run the `block` in blocking
-    runBlocking { block() }
-}
-
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-public fun <T> runInAsync(block: suspend () -> T, scope: CoroutineScope? = null): CompletableFuture<T> {
-    // run the `block` in async
-    val scope0 = scope ?: GlobalScope
-    return scope0.future { block() }
-    
-    /*
-        `scope` 是 `block`'s 所处的容器:
-        ```
-        interface Container {
-            @JvmAsync
-            suspend fun run()
-            👇 compiled
-            
-            fun runAsync() = runInAsync(block = { run() }, scope = this as? CoroutineScope)
-        }
-        ``` 
-     */
-}
-
-// 你JS平台上的转化函数
-// 比如 com.example.Transforms.js.kt
-@Deprecated("Just used by compiler", level = DeprecationLevel.HIDDEN)
-fun <T> runInPromise(block: suspend () -> T, scope: CoroutineScope? = null): T {
-    val scope0 = scope ?: GlobalScope
-    return scope0.promise { block() }
-}
-```
-
-创建你的注解：
-
-```kotlin
-// Your single annotation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.BINARY)
-public annotation class SuspendTrans(
-    val blockingBaseName: String = "",
-    val blockingSuffix: String = "Blocking",
-    val blockingAsProperty: Boolean = false,
-
-    val asyncBaseName: String = "",
-    val asyncSuffix: String = "Async",
-    val asyncAsProperty: Boolean = false,
-
-    val jsPromiseBaseName: String = "",
-    val jsPromiseSuffix: String = "Async",
-    val jsPromiseAsProperty: Boolean = false,
-)
-```
-
-然后，配置你的构建脚本
-
-```kotlin
-// The annotation type
-val suspendTransMarkAnnotationClassInfo = ClassInfo("love.forte.simbot.suspendrunner", "SuspendTrans")
-
-// The mark annotations
-val jvmSuspendTransMarkAnnotationForBlocking = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "blockingBaseName",
-    suffixProperty = "blockingSuffix",
-    asPropertyProperty = "blockingAsProperty",
-    defaultSuffix = "Blocking",
-)
-val jvmSuspendTransMarkAnnotationForAsync = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "asyncBaseName",
-    suffixProperty = "asyncSuffix",
-    asPropertyProperty = "asyncAsProperty",
-    defaultSuffix = "Async",
-)
-val jsSuspendTransMarkAnnotationForPromise = MarkAnnotation(
-    suspendTransMarkAnnotationClassInfo,
-    baseNameProperty = "jsPromiseBaseName",
-    suffixProperty = "jsPromiseSuffix",
-    asPropertyProperty = "jsPromiseAsProperty",
-    defaultSuffix = "Async",
-)
-
-// The transform functions
-val jvmBlockingFunction = FunctionInfo("com.example", null, "runInBlocking")
-val jvmAsyncFunction = FunctionInfo("com.example", null, "runInAsync")
-val jsPromiseFunction = FunctionInfo("com.example", null, "runInPromise")
-
-// The transformers
-val suspendTransTransformerForJvmBlocking: Transformer = Transformer(
-    markAnnotation = jvmSuspendTransMarkAnnotationForBlocking,
-    transformFunctionInfo = jvmBlockingFunction,
-    transformReturnType = null, // same as origin function
-    transformReturnTypeGeneric = false,
-    // include @JvmSynthetic into origin function
-    originFunctionIncludeAnnotations = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-    ),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-    ),
-    // Include into synthetic function's annotations
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-val suspendTransTransformerForJvmAsync: Transformer = Transformer(
-    markAnnotation = jvmSuspendTransMarkAnnotationForAsync,
-    transformFunctionInfo = jvmAsyncFunction,
-    transformReturnType = ClassInfo("java.util.concurrent", "CompletableFuture"),
-    transformReturnTypeGeneric = true, // Future's generic type is origin function's return type.
-    // include @JvmSynthetic into origin function
-    originFunctionIncludeAnnotations = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-    ),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @JvmSynthetic, @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.jvmSyntheticClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-    ),
-    // Include into synthetic function's annotations
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-val suspendTransTransformerForJsPromise: Transformer = Transformer(
-    markAnnotation = jsSuspendTransMarkAnnotationForPromise,
-    transformFunctionInfo = jsPromiseFunction,
-    transformReturnType = ClassInfo("kotlin.js", "Promise"),
-    transformReturnTypeGeneric = true, // Promise's generic type is origin function's return type.
-    originFunctionIncludeAnnotations = listOf(),
-    copyAnnotationsToSyntheticFunction = true,
-    // excludes: @OptIn, @SuspendTrans
-    copyAnnotationExcludes = listOf(
-        SuspendTransformConfiguration.kotlinOptInClassInfo,
-        suspendTransMarkAnnotationClassInfo,
-    ),
-    syntheticFunctionIncludeAnnotations = listOf()
-)
-
-// 上面这些东西也可以考虑在 `buildSrc` 中定义。
-
-suspendTransform {
-    // 关闭它们，并使用你自己自定义的 runtime 和 annotation
-    includeRuntime = false     
-    includeAnnotation = false
-    // 注意：如果禁用 includeAnnotation, 你需要自定义 targetMarker 或将其设置为 `null`
-    //  更多参考: https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/73
-    targetMarker = null // 或自定义
-
-    addJvmTransformers(
-        suspendTransTransformerForJvmBlocking,
-        suspendTransTransformerForJvmAsync
-    )
-    addJsTransformers(
-        suspendTransTransformerForJsPromise
-    )
-}
+// 生成代码的详细实现略，参见原文
 ```
 
 ## 应用案例
 
-- [Simple Robot 框架](https://github.com/simple-robot/simpler-robot) (完全定制化)
+- [Simple Robot Frameworks](https://github.com/simple-robot/simpler-robot) (完全自定义实现)
 
-## 开源协议
 
-参考 [LICENSE](LICENSE) .
+## 许可证
+
+见 [LICENSE](LICENSE) 。
 
 ```text
 Copyright (c) 2022 ForteScarlet
