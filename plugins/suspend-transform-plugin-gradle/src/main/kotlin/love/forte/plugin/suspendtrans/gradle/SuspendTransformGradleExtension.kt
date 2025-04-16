@@ -14,8 +14,7 @@ const val USE_NEW_EXTENSION = "Use the new extension " +
     replaceWith = ReplaceWith(
         "SuspendTransformPluginExtension",
         "love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension"
-    ),
-    level = DeprecationLevel.ERROR
+    )
 )
 open class SuspendTransformGradleExtension : love.forte.plugin.suspendtrans.SuspendTransformConfiguration() {
     @Deprecated("Please use the " +

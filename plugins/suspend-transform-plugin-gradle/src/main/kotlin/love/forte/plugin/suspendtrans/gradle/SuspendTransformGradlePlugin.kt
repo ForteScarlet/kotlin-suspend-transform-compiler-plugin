@@ -35,7 +35,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun apply(target: Project) {
-        @Suppress("DEPRECATION_ERROR")
+        @Suppress("DEPRECATION")
         target.extensions.create(
             EXTENSION_NAME,
             SuspendTransformGradleExtension::class.java
@@ -81,7 +81,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     private fun resolveSubpluginOptions(target: KotlinTarget, project: Project): List<SubpluginOption> {
         val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
 
-        @Suppress("DEPRECATION_ERROR") val oldExtension =
+        @Suppress("DEPRECATION") val oldExtension =
             project.extensions.getByType(SuspendTransformGradleExtension::class.java)
         @Suppress("DEPRECATION")
         if (oldExtension.enabled || oldExtension.transformers.isNotEmpty()) {
