@@ -6,6 +6,8 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.*
 import javax.inject.Inject
@@ -22,29 +24,69 @@ annotation class SuspendTransformPluginExtensionSpecDslMarker
 @SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionSpec
 
+interface NamedTransformerSpecListContainer : Named {
+    val platform: Provider<TargetPlatform>
+    val transformers: ListProperty<TransformerSpec>
+}
+
+internal interface NamedTransformerSpecListContainerInternal : NamedTransformerSpecListContainer {
+    override val platform: Property<TargetPlatform>
+}
+
 /**
  * @since 0.12.0
  */
-abstract class TransformerContainer
-@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
-    internal val transformers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> = mutableMapOf()
+abstract class TransformersContainer
+@Inject constructor(
+    private val objects: ObjectFactory
+) : SuspendTransformPluginExtensionSpec {
+    private val _containers: NamedDomainObjectContainer<NamedTransformerSpecListContainerInternal> =
+        objects.domainObjectContainer(NamedTransformerSpecListContainerInternal::class.java) { name ->
+            val targetPlatform = try {
+                TargetPlatform.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException(
+                    "The name '$name' is not a valid TargetPlatform name. " +
+                            "Valid names: ${TargetPlatform.entries.joinToString { it.name }}",
+                    e
+                )
+            }
 
-    private fun getTransformers(platform: TargetPlatform): ListProperty<TransformerSpec> {
-        return transformers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
+            objects.newInstance(
+                NamedTransformerSpecListContainerInternal::class.java,
+                name
+            ).apply {
+                platform.set(targetPlatform)
+            }
+        }
+
+    internal val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
+        get() = _containers
+
+    private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
+        val container = _containers.findByName(platform.name)
+        return container?.transformers ?: _containers.create(platform.name).transformers
+    }
+
+    /**
+     * Create a [TransformerSpec] but not add.
+     */
+    private fun createTransformer(action: Action<in TransformerSpec>): TransformerSpec {
+        return objects.newInstance<TransformerSpec>().also(action::execute)
     }
 
     fun add(platform: TargetPlatform, action: Action<in TransformerSpec>) {
-        val listProperty = getTransformers(platform)
-        listProperty.add(objects.newInstance(TransformerSpec::class.java).also(action::execute))
+        val listProperty = getTransformersInternal(platform)
+        listProperty.add(createTransformer(action))
     }
 
     fun add(platform: TargetPlatform, transformer: TransformerSpec) {
-        val listProperty = getTransformers(platform)
+        val listProperty = getTransformersInternal(platform)
         listProperty.add(transformer)
     }
 
     fun add(platform: TargetPlatform, transformer: Provider<TransformerSpec>) {
-        val listProperty = getTransformers(platform)
+        val listProperty = getTransformersInternal(platform)
         listProperty.add(transformer)
     }
 
@@ -149,9 +191,9 @@ abstract class SuspendTransformPluginExtension
      */
     abstract val enabled: Property<Boolean>
 
-    val transformers: TransformerContainer = objects.newInstance()
+    val transformers: TransformersContainer = objects.newInstance()
 
-    fun transformers(action: Action<in TransformerContainer>) {
+    fun transformers(action: Action<in TransformersContainer>) {
         action.execute(transformers)
     }
 
@@ -195,10 +237,16 @@ internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransform
     return SuspendTransformConfiguration(
         enabled = enabled.getOrElse(true),
         transformers = buildMap {
-            transformers.transformers.forEach { (k, values) ->
-                val list = values.map { valueList -> valueList.map { it.toTransformer() } }.getOrElse(emptyList())
-                if (list.isNotEmpty()) {
-                    put(k, list)
+            val transformers = transformers.containers
+            for (targetPlatform in TargetPlatform.entries) {
+                transformers.findByName(targetPlatform.name)?.also { container ->
+                    val list = container.transformers.map { valueList ->
+                        valueList.map { it.toTransformer() }
+                    }.getOrElse(emptyList())
+
+                    if (list.isNotEmpty()) {
+                        put(targetPlatform, list)
+                    }
                 }
             }
         },
