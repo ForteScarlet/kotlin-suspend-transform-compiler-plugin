@@ -322,7 +322,7 @@ which generates a `xxxBlocking` function.
 
 ```Kotlin
 class Cat {
-    @JvmBLocking
+    @JvmBlocking
     suspend fun meow() {
         // ...
     }
@@ -356,7 +356,7 @@ which generates a `xxxAsync` function.
 
 ```Kotlin
 class Cat {
-    @JvmBLocking
+    @JvmBlocking
     suspend fun meow(): String = "Meow!"
     
     // Generated:
@@ -494,7 +494,7 @@ First, let's agree that the following properties should be included in the annot
 - `asProperty`: Make the generated function a property. 
   Can be used in cases where the original function has no arguments.
   ```Kotlin
-  @JBlock
+  @JBlock(asProperty = true)
   suspend fun value(): Int
   
   // Generated:
