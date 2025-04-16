@@ -33,6 +33,10 @@ internal interface NamedTransformerSpecListContainerInternal : NamedTransformerS
     override val platform: Property<TargetPlatform>
 }
 
+@RequiresOptIn("This API is an experimental public TransformersContainer's api. " +
+        "It may be changed in the future without notice.")
+annotation class ExperimentalTransformersContainerApi
+
 /**
  * @since 0.12.0
  */
@@ -60,7 +64,8 @@ abstract class TransformersContainer
             }
         }
 
-    internal val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
+    @ExperimentalTransformersContainerApi
+    val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
         get() = _containers
 
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
@@ -232,7 +237,7 @@ abstract class SuspendTransformPluginExtension
     }
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConstructorApi::class, ExperimentalTransformersContainerApi::class)
 internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
     return SuspendTransformConfiguration(
         enabled = enabled.getOrElse(true),
