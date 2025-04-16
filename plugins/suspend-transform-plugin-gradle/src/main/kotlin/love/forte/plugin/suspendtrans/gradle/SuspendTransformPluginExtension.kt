@@ -76,11 +76,23 @@ abstract class TransformersContainer
     /**
      * Create a [TransformerSpec] but not add.
      */
-    private fun createTransformer(action: Action<in TransformerSpec>): TransformerSpec {
+    fun createTransformer(action: Action<in TransformerSpec>): TransformerSpec {
         return objects.newInstance<TransformerSpec>().also(action::execute)
     }
 
+    /**
+     * Create a [TransformerSpec] but not add.
+     */
+    fun createTransformer(action: (TransformerSpec) -> Unit): TransformerSpec {
+        return objects.newInstance<TransformerSpec>().also(action)
+    }
+
     fun add(platform: TargetPlatform, action: Action<in TransformerSpec>) {
+        val listProperty = getTransformersInternal(platform)
+        listProperty.add(createTransformer(action))
+    }
+
+    fun add(platform: TargetPlatform, action: (TransformerSpec) -> Unit) {
         val listProperty = getTransformersInternal(platform)
         listProperty.add(createTransformer(action))
     }
@@ -105,26 +117,30 @@ abstract class TransformersContainer
     fun addJvm(transformer: Transformer) = addJvm { it.from(transformer) }
     fun addJvm(transformer: Provider<TransformerSpec>) = add(TargetPlatform.JVM, transformer)
     fun addJvm(action: Action<in TransformerSpec>) = add(TargetPlatform.JVM, action)
+    fun addJvm(action: (TransformerSpec) -> Unit) = add(TargetPlatform.JVM, action)
 
     fun addJs(transformer: TransformerSpec) = add(TargetPlatform.JS, transformer)
     fun addJs(transformer: Transformer) = addJs { it.from(transformer) }
     fun addJs(transformer: Provider<TransformerSpec>) = add(TargetPlatform.JS, transformer)
     fun addJs(action: Action<in TransformerSpec>) = add(TargetPlatform.JS, action)
+    fun addJs(action: (TransformerSpec) -> Unit) = add(TargetPlatform.JS, action)
 
     fun addNative(transformer: TransformerSpec) = add(TargetPlatform.NATIVE, transformer)
     fun addNative(transformer: Transformer) = addNative { it.from(transformer) }
     fun addNative(transformer: Provider<TransformerSpec>) = add(TargetPlatform.NATIVE, transformer)
     fun addNative(action: Action<in TransformerSpec>) = add(TargetPlatform.NATIVE, action)
+    fun addNative(action: (TransformerSpec) -> Unit) = add(TargetPlatform.NATIVE, action)
 
     fun addWasm(transformer: TransformerSpec) = add(TargetPlatform.WASM, transformer)
     fun addWasm(transformer: Transformer) = addWasm { it.from(transformer) }
     fun addWasm(transformer: Provider<TransformerSpec>) = add(TargetPlatform.WASM, transformer)
     fun addWasm(action: Action<in TransformerSpec>) = add(TargetPlatform.WASM, action)
+    fun addWasm(action: (TransformerSpec) -> Unit) = add(TargetPlatform.WASM, action)
 
     fun addCommon(transformer: TransformerSpec) = add(TargetPlatform.COMMON, transformer)
     fun addCommon(transformer: Transformer) = addCommon { it.from(transformer) }
     fun addCommon(transformer: Provider<TransformerSpec>) = add(TargetPlatform.COMMON, transformer)
-    fun addCommon(action: Action<in TransformerSpec>) = add(TargetPlatform.COMMON, action)
+    fun addCommon(action: (TransformerSpec) -> Unit) = add(TargetPlatform.COMMON, action)
 
 
     // JVM defaults
@@ -139,6 +155,14 @@ abstract class TransformersContainer
         }
     }
 
+    fun addJvmBlocking(action: (TransformerSpec) -> Unit) {
+        addJvmBlocking(Action(action))
+        addJvm {
+            it.from(jvmBlockingTransformer)
+            action(it)
+        }
+    }
+
     fun addJvmAsync() {
         addJvm(jvmAsyncTransformer)
     }
@@ -147,6 +171,13 @@ abstract class TransformersContainer
         addJvm {
             it.from(jvmAsyncTransformer)
             action.execute(it)
+        }
+    }
+
+    fun addJvmAsync(action: (TransformerSpec) -> Unit) {
+        addJvm {
+            it.from(jvmAsyncTransformer)
+            action(it)
         }
     }
 
@@ -162,10 +193,10 @@ abstract class TransformersContainer
     /**
      * Add a js transformer based on [jsPromiseTransformer]
      */
-    fun addJsPromise(action: Action<in TransformerSpec>) {
+    fun addJsPromise(action: (TransformerSpec) -> Unit) {
         addJs {
             it.from(jsPromiseTransformer)
-            action.execute(it)
+            action(it)
         }
     }
 
@@ -202,6 +233,10 @@ abstract class SuspendTransformPluginExtension
         action.execute(transformers)
     }
 
+    fun transformers(action: (TransformersContainer) -> Unit) {
+        action(transformers)
+    }
+
     /**
      * Include the `love.forte.plugin.suspend-transform:suspend-transform-annotation`.
      * Default is `true`.
@@ -223,6 +258,10 @@ abstract class SuspendTransformPluginExtension
         annotationDependency.set(annotationDependency.get().also(action::execute))
     }
 
+    fun annotationDependency(action: (AnnotationDependencySpec) -> Unit) {
+        annotationDependency.set(annotationDependency.get().also(action))
+    }
+
     /**
      * Default is `implementation` with [SuspendTransPluginConstants.RUNTIME_VERSION]
      */
@@ -230,6 +269,10 @@ abstract class SuspendTransformPluginExtension
 
     fun runtimeDependency(action: Action<in RuntimeDependencySpec>) {
         runtimeDependency.set(runtimeDependency.get().also(action::execute))
+    }
+
+    fun runtimeDependency(action: (RuntimeDependencySpec) -> Unit) {
+        runtimeDependency.set(runtimeDependency.get().also(action))
     }
 
     fun runtimeAsApi() {
@@ -332,6 +375,11 @@ abstract class TransformerSpec
         markAnnotation.set(old.also(action::execute))
     }
 
+    fun markAnnotation(action: (MarkAnnotationSpec) -> Unit) {
+        val old = markAnnotation.getOrElse(objects.newInstance<MarkAnnotationSpec>())
+        markAnnotation.set(old.also(action))
+    }
+
     /**
      * 用于转化的函数信息。
      *
@@ -364,6 +412,14 @@ abstract class TransformerSpec
         )
     }
 
+    fun transformFunctionInfo(action: (FunctionInfoSpec) -> Unit) {
+        transformFunctionInfo.set(
+            transformFunctionInfo.getOrElse(
+                objects.newInstance()
+            ).also(action)
+        )
+    }
+
     /**
      * 转化后的返回值类型, 为null时代表与原函数一致。
      *
@@ -376,6 +432,14 @@ abstract class TransformerSpec
             transformReturnType.getOrElse(
                 objects.newInstance()
             ).also(action::execute)
+        )
+    }
+
+    fun transformReturnType(action: (ClassInfoSpec) -> Unit) {
+        transformReturnType.set(
+            transformReturnType.getOrElse(
+                objects.newInstance()
+            ).also(action)
         )
     }
 
@@ -403,19 +467,33 @@ abstract class TransformerSpec
     private fun newIncludeAnnotationSpec(): IncludeAnnotationSpec =
         objects.newInstance()
 
-    fun createIncludeAnnotation(action: Action<IncludeAnnotationSpec>): IncludeAnnotationSpec {
+    fun createIncludeAnnotation(action: Action<in IncludeAnnotationSpec>): IncludeAnnotationSpec {
         return newIncludeAnnotationSpec().also(action::execute)
     }
 
-    fun addOriginFunctionIncludeAnnotation(action: Action<IncludeAnnotationSpec>) {
+    fun createIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit): IncludeAnnotationSpec {
+        return newIncludeAnnotationSpec().also(action)
+    }
+
+    fun addOriginFunctionIncludeAnnotation(action: Action<in IncludeAnnotationSpec>) {
         originFunctionIncludeAnnotations.add(
             newIncludeAnnotationSpec().also(action::execute)
         )
     }
 
+    fun addOriginFunctionIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit) {
+        originFunctionIncludeAnnotations.add(
+            newIncludeAnnotationSpec().also(action)
+        )
+    }
+
     abstract val syntheticFunctionIncludeAnnotations: DomainObjectSet<IncludeAnnotationSpec>
 
-    fun addSyntheticFunctionIncludeAnnotation(action: Action<IncludeAnnotationSpec>) {
+    fun addSyntheticFunctionIncludeAnnotation(action: Action<in IncludeAnnotationSpec>) {
+        syntheticFunctionIncludeAnnotations.add(createIncludeAnnotation(action))
+    }
+
+    fun addSyntheticFunctionIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit) {
         syntheticFunctionIncludeAnnotations.add(createIncludeAnnotation(action))
     }
 
@@ -445,10 +523,24 @@ abstract class TransformerSpec
     }
 
     /**
+     * Add a [ClassInfoSpec] into [copyAnnotationExcludes]
+     */
+    fun addCopyAnnotationExclude(action: (ClassInfoSpec) -> Unit) {
+        copyAnnotationExcludes.add(createCopyAnnotationExclude(action))
+    }
+
+    /**
      * Create a [ClassInfoSpec] but does not add.
      */
     fun createCopyAnnotationExclude(action: Action<in ClassInfoSpec>): ClassInfoSpec {
         return objects.newInstance<ClassInfoSpec>().also(action::execute)
+    }
+
+    /**
+     * Create a [ClassInfoSpec] but does not add.
+     */
+    fun createCopyAnnotationExclude(action: (ClassInfoSpec) -> Unit): ClassInfoSpec {
+        return objects.newInstance<ClassInfoSpec>().also(action)
     }
 
     /**
@@ -515,6 +607,10 @@ abstract class MarkAnnotationSpec
 
     fun classInfo(action: Action<in ClassInfoSpec>) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
+    }
+
+    fun classInfo(action: (ClassInfoSpec) -> Unit) {
+        classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
     /**
@@ -617,6 +713,10 @@ abstract class IncludeAnnotationSpec
 
     fun classInfo(action: Action<in ClassInfoSpec>) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
+    }
+
+    fun classInfo(action: (ClassInfoSpec) -> Unit) {
+        classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
     /**
