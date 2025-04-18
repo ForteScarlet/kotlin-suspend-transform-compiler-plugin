@@ -57,7 +57,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val isApplicable = project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
                 && project.configOrNull?.enabled?.get() != false
 
-        project.logger.info("Is suspend transform plugin applicable for {}: {}", kotlinCompilation, isApplicable)
+        project.logger.debug("Is suspend transform plugin applicable for {}: {}", kotlinCompilation, isApplicable)
 
         return isApplicable
     }
@@ -77,7 +77,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val target = kotlinCompilation.target
         val project = target.project
 
-        project.logger.info("Apply suspend transform plugin to compilation {}, target: {}", kotlinCompilation, target)
+        project.logger.debug("Apply suspend transform plugin to compilation {}, target: {}", kotlinCompilation, target)
 
         val extension = resolveExtension(project)
         return project.provider { extension.toSubpluginOptions(target, project) }
@@ -92,15 +92,18 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         if (oldExtension.enabled && oldExtension.transformers.isNotEmpty()) {
             val dontShowWarn =
                 project.providers.gradleProperty("love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn")
-                    .map { it.toBoolean() }.getOrElse(false)
+                    .orNull.toBoolean()
 
-            val msg = "The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
-                    "(`suspendTransform { ... }`) is deprecated, " +
+
+            val msg = "WARN: The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
+                    "(`suspendTransform { ... }`) is deprecated, \n" +
                     "please use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
-                    "(`suspendTransformPlugin { ... }`) instead. " +
+                    "(`suspendTransformPlugin { ... }`) instead. \n" +
                     "The SuspendTransformGradleExtension property " +
                     "will currently be aggregated with `SuspendTransformPluginExtension`, " +
-                    "but it will soon be deprecated completely. "
+                    "but it will soon be deprecated completely. \n" +
+                    "Add 'love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn=true' " +
+                    "to gradle.properties to suppress this warning."
 
             if (!dontShowWarn) {
                 project.logger.warn(msg)
@@ -252,18 +255,21 @@ private fun DeprecatedIncludeAnnotation.toIncludeAnnotation(): IncludeAnnotation
     )
 }
 
-private fun SuspendTransformPluginExtension.toSubpluginOptions(target: KotlinTarget, project: Project): List<SubpluginOption> {
+private fun SuspendTransformPluginExtension.toSubpluginOptions(
+    target: KotlinTarget,
+    project: Project
+): List<SubpluginOption> {
     // If not enabled or transformer is empty.
     val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
     val configuration = toConfiguration()
     return if (configuration.enabled && configuration.transformers.isNotEmpty()) {
         if (project.logger.isInfoEnabled) {
             val count = configuration.transformers.values.sumOf { it.size }
-            project.logger.info("The suspend transform is enabled with {} transformer(s) for {}", count, target)
+            project.logger.debug("The suspend transform is enabled with {} transformer(s) for {}", count, target)
         }
         listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
     } else {
-        project.logger.info("The suspend transform is disabled or transformers are empty for {}.", target)
+        project.logger.debug("The suspend transform is disabled or transformers are empty for {}.", target)
         emptyList()
     }
 }

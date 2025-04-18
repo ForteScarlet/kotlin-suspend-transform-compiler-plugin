@@ -864,6 +864,8 @@ try this:
 _build.gradle.kts_
 
 ```kotlin
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations
+
 plugins {
     // ...
 }
@@ -872,7 +874,7 @@ suspendTransformPlugin {
   transformers {
     addJsPromise {
       addCopyAnnotationExclude {
-        // The generated function does not include `@JsExport.Ignore`.
+        // The generated function does not include (copy) `@JsExport.Ignore`.
         from(kotlinJsExportIgnoreClassInfo)
       }
     }

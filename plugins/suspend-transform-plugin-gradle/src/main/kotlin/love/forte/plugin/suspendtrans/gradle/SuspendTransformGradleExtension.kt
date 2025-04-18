@@ -20,7 +20,7 @@ open class SuspendTransformGradleExtension : love.forte.plugin.suspendtrans.Susp
     @Deprecated("Please use the " +
             "`love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration` " +
             "(`suspendTransformPlugin { ... }`) instead.")
-    override var enabled: Boolean = false
+    override var enabled: Boolean = true
 
     /**
      * 是否增加 `love.forte.plugin.suspend-transform:suspend-transform-annotation` 的运行时。

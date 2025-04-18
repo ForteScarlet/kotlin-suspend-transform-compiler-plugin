@@ -1,4 +1,3 @@
-import jdk.tools.jlink.resources.plugins
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 
 plugins {
@@ -33,55 +32,21 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 }
 
-suspendTransformPlugin {
+@Suppress("DEPRECATION")
+suspendTransform {
+    enabled = true
     includeAnnotation = false
     includeRuntime = false
-    transformers {
-        useDefault()
-
-        // For blocking
-        // addJvm {
-        //     markAnnotation {
-        //         classInfo {
-        //             packageName = "com.example"
-        //             className = "JTrans"
-        //         }
-        //         baseNameProperty = "blockingBaseName"
-        //         suffixProperty = "blockingSuffix"
-        //         asPropertyProperty = "blockingAsProperty"
-        //         defaultSuffix = "Blocking"
-        //         defaultAsProperty = false
-        //     }
-        //
-        //     transformFunctionInfo {
-        //         packageName = "com.example"
-        //         functionName = "inBlock"
-        //     }
-        //
-        //     // other config...
-        // }
-        //
-        // // For async
-        // addJvm {
-        //     markAnnotation {
-        //         classInfo {
-        //             packageName = "com.example"
-        //             className = "JTrans"
-        //         }
-        //         baseNameProperty = "asyncBaseName"
-        //         suffixProperty = "asyncSuffix"
-        //         asPropertyProperty = "asyncAsProperty"
-        //         defaultSuffix = "Async"
-        //         defaultAsProperty = false
-        //     }
-        //
-        //     transformFunctionInfo {
-        //         packageName = "com.example"
-        //         functionName = "inAsync"
-        //     }
-        // }
-    }
+    useDefault()
 }
+
+// suspendTransformPlugin {
+//     includeAnnotation = false
+//     includeRuntime = false
+//     transformers {
+//         useDefault()
+//     }
+// }
 
 /*
 >     val blockingBaseName: String = "",

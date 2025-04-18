@@ -1,5 +1,5 @@
-import jdk.tools.jlink.resources.plugins
-
+import love.forte.plugin.suspendtrans.ClassInfo
+import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
 
 plugins {
     kotlin("multiplatform")
@@ -81,10 +81,22 @@ tasks.withType<JavaCompile> {
 suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
-    transformers {
-        useDefault()
-    }
 }
+
+@Suppress("DEPRECATION")
+suspendTransform {
+    includeRuntime = false
+    includeAnnotation = false
+    useJvmDefault()
+    addJsTransformers(
+        SuspendTransformConfiguration.jsPromiseTransformer.copy(
+            copyAnnotationExcludes = listOf(
+                ClassInfo("kotlin.js", "JsExport.Ignore")
+            )
+        )
+    )
+}
+
 
 tasks.withType<Test> {
     useJUnitPlatform()
