@@ -1,5 +1,5 @@
-import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo
-import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinOptInClassInfo
+import jdk.tools.jlink.resources.plugins
+
 
 plugins {
     kotlin("multiplatform")
@@ -20,6 +20,8 @@ repositories {
 apply(plugin = "love.forte.plugin.suspend-transform")
 
 kotlin {
+
+    jvmToolchain(11)
     jvm()
     js {
         nodejs()
@@ -45,57 +47,44 @@ kotlin {
             implementation(project(":runtime:suspend-transform-runtime"))
             implementation(libs.kotlinx.coroutines.core)
         }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+        }
     }
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+
+    // see https://kotlinlang.org/docs/gradle-configure-project.html#configure-with-java-modules-jpms-enabled
+    // if (moduleName != null) {
+    //     options.compilerArgumentProviders.add(
+    //         CommandLineArgumentProvider {
+    //             // Provide compiled Kotlin classes to javac – needed for Java/Kotlin mixed sources to work
+    //             // listOf("--patch-module", "$moduleName=${sourceSets["main"].output.asPath}")
+    //             val sourceSet = sourceSets.findByName("main") ?: sourceSets.findByName("jvmMain")
+    //             if (sourceSet != null) {
+    //                 listOf("--patch-module", "$moduleName=${sourceSet.output.asPath}")
+    //             } else {
+    //                 emptyList()
+    //             }
+    //             // listOf("--patch-module", "$moduleName=${sourceSets["main"].output.asPath}")
+    //         }
+    //     )
+    // }
 }
 
 suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
     transformers {
-        addJvmBlocking {
-            addCopyAnnotationExclude {
-                from(kotlinOptInClassInfo)
-            }
-        }
-        addJvmAsync {
-            addCopyAnnotationExclude {
-                from(kotlinOptInClassInfo)
-            }
-        }
-
-        addJsPromise {
-            addCopyAnnotationExclude {
-                from(kotlinOptInClassInfo)
-            }
-            addCopyAnnotationExclude {
-                from(kotlinJsExportIgnoreClassInfo)
-            }
-        }
+        useDefault()
     }
 }
-
-// extensions.getByType<SuspendTransformGradleExtension>().apply {
-//     includeRuntime = false
-//     includeAnnotation = false
-// //     useJvmDefault()
-//     transformers[TargetPlatform.JVM] = mutableListOf(
-//         // Add `kotlin.OptIn` to copyAnnotationExcludes
-//         jvmBlockingTransformer.copy(
-//             copyAnnotationExcludes = buildList {
-//                 addAll(jvmBlockingTransformer.copyAnnotationExcludes)
-//                 add(ClassInfo("kotlin", "OptIn"))
-//             }
-//         ),
-//
-//         // Add `kotlin.OptIn` to copyAnnotationExcludes
-//         jvmAsyncTransformer.copy(
-//             copyAnnotationExcludes = buildList {
-//                 addAll(jvmAsyncTransformer.copyAnnotationExcludes)
-//                 add(ClassInfo("kotlin", "OptIn"))
-//             }
-//         )
-//     )
-// }
 
 tasks.withType<Test> {
     useJUnitPlatform()

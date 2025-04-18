@@ -7,9 +7,11 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Named
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.*
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import javax.inject.Inject
 
 /**
@@ -33,8 +35,10 @@ internal interface NamedTransformerSpecListContainerInternal : NamedTransformerS
     override val platform: Property<TargetPlatform>
 }
 
-@RequiresOptIn("This API is an experimental public TransformersContainer's api. " +
-        "It may be changed in the future without notice.")
+@RequiresOptIn(
+    "This API is an experimental public TransformersContainer's api. " +
+            "It may be changed in the future without notice."
+)
 annotation class ExperimentalTransformersContainerApi
 
 /**
@@ -44,33 +48,35 @@ abstract class TransformersContainer
 @Inject constructor(
     private val objects: ObjectFactory
 ) : SuspendTransformPluginExtensionSpec {
-    private val _containers: NamedDomainObjectContainer<NamedTransformerSpecListContainerInternal> =
-        objects.domainObjectContainer(NamedTransformerSpecListContainerInternal::class.java) { name ->
-            val targetPlatform = try {
-                TargetPlatform.valueOf(name)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException(
-                    "The name '$name' is not a valid TargetPlatform name. " +
-                            "Valid names: ${TargetPlatform.entries.joinToString { it.name }}",
-                    e
-                )
-            }
+    internal val _containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
+        mutableMapOf()
 
-            objects.newInstance(
-                NamedTransformerSpecListContainerInternal::class.java,
-                name
-            ).apply {
-                platform.set(targetPlatform)
-            }
-        }
+    // private val _containers: NamedDomainObjectContainer<NamedTransformerSpecListContainerInternal> =
+    //     objects.domainObjectContainer(NamedTransformerSpecListContainerInternal::class.java) { name ->
+    //         val targetPlatform = try {
+    //             TargetPlatform.valueOf(name)
+    //         } catch (e: IllegalArgumentException) {
+    //             throw IllegalArgumentException(
+    //                 "The name '$name' is not a valid TargetPlatform name. " +
+    //                         "Valid names: ${TargetPlatform.entries.joinToString { it.name }}",
+    //                 e
+    //             )
+    //         }
+    //
+    //         objects.newInstance(
+    //             NamedTransformerSpecListContainerInternal::class.java,
+    //             name
+    //         ).apply {
+    //             platform.set(targetPlatform)
+    //         }
+    //     }
 
-    @ExperimentalTransformersContainerApi
-    val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
-        get() = _containers
+    // @ExperimentalTransformersContainerApi
+    // val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
+    //     get() = _containers
 
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
-        val container = _containers.findByName(platform.name)
-        return container?.transformers ?: _containers.create(platform.name).transformers
+        return _containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
     }
 
     /**
@@ -83,7 +89,7 @@ abstract class TransformersContainer
     /**
      * Create a [TransformerSpec] but not add.
      */
-    fun createTransformer(action: (TransformerSpec) -> Unit): TransformerSpec {
+    fun createTransformer(action: TransformerSpec.() -> Unit): TransformerSpec {
         return objects.newInstance<TransformerSpec>().also(action)
     }
 
@@ -92,7 +98,7 @@ abstract class TransformersContainer
         listProperty.add(createTransformer(action))
     }
 
-    fun add(platform: TargetPlatform, action: (TransformerSpec) -> Unit) {
+    fun add(platform: TargetPlatform, action: TransformerSpec.() -> Unit) {
         val listProperty = getTransformersInternal(platform)
         listProperty.add(createTransformer(action))
     }
@@ -109,38 +115,38 @@ abstract class TransformersContainer
 
     fun add(platform: TargetPlatform, transformer: Transformer) {
         add(platform) {
-            it.from(transformer)
+            from(transformer)
         }
     }
 
     fun addJvm(transformer: TransformerSpec) = add(TargetPlatform.JVM, transformer)
-    fun addJvm(transformer: Transformer) = addJvm { it.from(transformer) }
+    fun addJvm(transformer: Transformer) = addJvm { from(transformer) }
     fun addJvm(transformer: Provider<TransformerSpec>) = add(TargetPlatform.JVM, transformer)
     fun addJvm(action: Action<in TransformerSpec>) = add(TargetPlatform.JVM, action)
-    fun addJvm(action: (TransformerSpec) -> Unit) = add(TargetPlatform.JVM, action)
+    fun addJvm(action: TransformerSpec.() -> Unit) = add(TargetPlatform.JVM, action)
 
     fun addJs(transformer: TransformerSpec) = add(TargetPlatform.JS, transformer)
-    fun addJs(transformer: Transformer) = addJs { it.from(transformer) }
+    fun addJs(transformer: Transformer) = addJs { from(transformer) }
     fun addJs(transformer: Provider<TransformerSpec>) = add(TargetPlatform.JS, transformer)
     fun addJs(action: Action<in TransformerSpec>) = add(TargetPlatform.JS, action)
-    fun addJs(action: (TransformerSpec) -> Unit) = add(TargetPlatform.JS, action)
+    fun addJs(action: TransformerSpec.() -> Unit) = add(TargetPlatform.JS, action)
 
     fun addNative(transformer: TransformerSpec) = add(TargetPlatform.NATIVE, transformer)
-    fun addNative(transformer: Transformer) = addNative { it.from(transformer) }
+    fun addNative(transformer: Transformer) = addNative { from(transformer) }
     fun addNative(transformer: Provider<TransformerSpec>) = add(TargetPlatform.NATIVE, transformer)
     fun addNative(action: Action<in TransformerSpec>) = add(TargetPlatform.NATIVE, action)
-    fun addNative(action: (TransformerSpec) -> Unit) = add(TargetPlatform.NATIVE, action)
+    fun addNative(action: TransformerSpec.() -> Unit) = add(TargetPlatform.NATIVE, action)
 
     fun addWasm(transformer: TransformerSpec) = add(TargetPlatform.WASM, transformer)
-    fun addWasm(transformer: Transformer) = addWasm { it.from(transformer) }
+    fun addWasm(transformer: Transformer) = addWasm { from(transformer) }
     fun addWasm(transformer: Provider<TransformerSpec>) = add(TargetPlatform.WASM, transformer)
     fun addWasm(action: Action<in TransformerSpec>) = add(TargetPlatform.WASM, action)
-    fun addWasm(action: (TransformerSpec) -> Unit) = add(TargetPlatform.WASM, action)
+    fun addWasm(action: TransformerSpec.() -> Unit) = add(TargetPlatform.WASM, action)
 
     fun addCommon(transformer: TransformerSpec) = add(TargetPlatform.COMMON, transformer)
-    fun addCommon(transformer: Transformer) = addCommon { it.from(transformer) }
+    fun addCommon(transformer: Transformer) = addCommon { from(transformer) }
     fun addCommon(transformer: Provider<TransformerSpec>) = add(TargetPlatform.COMMON, transformer)
-    fun addCommon(action: (TransformerSpec) -> Unit) = add(TargetPlatform.COMMON, action)
+    fun addCommon(action: TransformerSpec.() -> Unit) = add(TargetPlatform.COMMON, action)
 
 
     // JVM defaults
@@ -150,16 +156,15 @@ abstract class TransformersContainer
 
     fun addJvmBlocking(action: Action<in TransformerSpec>) {
         addJvm {
-            it.from(jvmBlockingTransformer)
-            action.execute(it)
+            from(jvmBlockingTransformer)
+            action.execute(this)
         }
     }
 
-    fun addJvmBlocking(action: (TransformerSpec) -> Unit) {
-        addJvmBlocking(Action(action))
+    fun addJvmBlocking(action: TransformerSpec.() -> Unit) {
         addJvm {
-            it.from(jvmBlockingTransformer)
-            action(it)
+            from(jvmBlockingTransformer)
+            action()
         }
     }
 
@@ -169,15 +174,15 @@ abstract class TransformersContainer
 
     fun addJvmAsync(action: Action<in TransformerSpec>) {
         addJvm {
-            it.from(jvmAsyncTransformer)
-            action.execute(it)
+            from(jvmAsyncTransformer)
+            action.execute(this)
         }
     }
 
-    fun addJvmAsync(action: (TransformerSpec) -> Unit) {
+    fun addJvmAsync(action: TransformerSpec.() -> Unit) {
         addJvm {
-            it.from(jvmAsyncTransformer)
-            action(it)
+            from(jvmAsyncTransformer)
+            action()
         }
     }
 
@@ -193,10 +198,10 @@ abstract class TransformersContainer
     /**
      * Add a js transformer based on [jsPromiseTransformer]
      */
-    fun addJsPromise(action: (TransformerSpec) -> Unit) {
+    fun addJsPromise(action: TransformerSpec.() -> Unit) {
         addJs {
-            it.from(jsPromiseTransformer)
-            action(it)
+            from(jsPromiseTransformer)
+            action()
         }
     }
 
@@ -233,7 +238,7 @@ abstract class SuspendTransformPluginExtension
         action.execute(transformers)
     }
 
-    fun transformers(action: (TransformersContainer) -> Unit) {
+    fun transformers(action: TransformersContainer.() -> Unit) {
         action(transformers)
     }
 
@@ -258,7 +263,7 @@ abstract class SuspendTransformPluginExtension
         annotationDependency.set(annotationDependency.get().also(action::execute))
     }
 
-    fun annotationDependency(action: (AnnotationDependencySpec) -> Unit) {
+    fun annotationDependency(action: AnnotationDependencySpec.() -> Unit) {
         annotationDependency.set(annotationDependency.get().also(action))
     }
 
@@ -271,7 +276,7 @@ abstract class SuspendTransformPluginExtension
         runtimeDependency.set(runtimeDependency.get().also(action::execute))
     }
 
-    fun runtimeDependency(action: (RuntimeDependencySpec) -> Unit) {
+    fun runtimeDependency(action: RuntimeDependencySpec.() -> Unit) {
         runtimeDependency.set(runtimeDependency.get().also(action))
     }
 
@@ -285,16 +290,13 @@ internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransform
     return SuspendTransformConfiguration(
         enabled = enabled.getOrElse(true),
         transformers = buildMap {
-            val transformers = transformers.containers
-            for (targetPlatform in TargetPlatform.entries) {
-                transformers.findByName(targetPlatform.name)?.also { container ->
-                    val list = container.transformers.map { valueList ->
-                        valueList.map { it.toTransformer() }
-                    }.getOrElse(emptyList())
+            transformers._containers.forEach { targetPlatform, transformerListProperty ->
+                val list = transformerListProperty
+                    .map { valueList -> valueList.map { it.toTransformer() } }
+                    .getOrElse(emptyList())
 
-                    if (list.isNotEmpty()) {
-                        put(targetPlatform, list)
-                    }
+                if (list.isNotEmpty()) {
+                    put(targetPlatform, list)
                 }
             }
         },
@@ -375,7 +377,7 @@ abstract class TransformerSpec
         markAnnotation.set(old.also(action::execute))
     }
 
-    fun markAnnotation(action: (MarkAnnotationSpec) -> Unit) {
+    fun markAnnotation(action: MarkAnnotationSpec.() -> Unit) {
         val old = markAnnotation.getOrElse(objects.newInstance<MarkAnnotationSpec>())
         markAnnotation.set(old.also(action))
     }
@@ -412,7 +414,7 @@ abstract class TransformerSpec
         )
     }
 
-    fun transformFunctionInfo(action: (FunctionInfoSpec) -> Unit) {
+    fun transformFunctionInfo(action: FunctionInfoSpec.() -> Unit) {
         transformFunctionInfo.set(
             transformFunctionInfo.getOrElse(
                 objects.newInstance()
@@ -435,7 +437,7 @@ abstract class TransformerSpec
         )
     }
 
-    fun transformReturnType(action: (ClassInfoSpec) -> Unit) {
+    fun transformReturnType(action: ClassInfoSpec.() -> Unit) {
         transformReturnType.set(
             transformReturnType.getOrElse(
                 objects.newInstance()
@@ -471,7 +473,7 @@ abstract class TransformerSpec
         return newIncludeAnnotationSpec().also(action::execute)
     }
 
-    fun createIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit): IncludeAnnotationSpec {
+    fun createIncludeAnnotation(action: IncludeAnnotationSpec.() -> Unit): IncludeAnnotationSpec {
         return newIncludeAnnotationSpec().also(action)
     }
 
@@ -481,7 +483,7 @@ abstract class TransformerSpec
         )
     }
 
-    fun addOriginFunctionIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit) {
+    fun addOriginFunctionIncludeAnnotation(action: IncludeAnnotationSpec.() -> Unit) {
         originFunctionIncludeAnnotations.add(
             newIncludeAnnotationSpec().also(action)
         )
@@ -493,7 +495,7 @@ abstract class TransformerSpec
         syntheticFunctionIncludeAnnotations.add(createIncludeAnnotation(action))
     }
 
-    fun addSyntheticFunctionIncludeAnnotation(action: (IncludeAnnotationSpec) -> Unit) {
+    fun addSyntheticFunctionIncludeAnnotation(action: IncludeAnnotationSpec.() -> Unit) {
         syntheticFunctionIncludeAnnotations.add(createIncludeAnnotation(action))
     }
 
@@ -525,7 +527,7 @@ abstract class TransformerSpec
     /**
      * Add a [ClassInfoSpec] into [copyAnnotationExcludes]
      */
-    fun addCopyAnnotationExclude(action: (ClassInfoSpec) -> Unit) {
+    fun addCopyAnnotationExclude(action: ClassInfoSpec.() -> Unit) {
         copyAnnotationExcludes.add(createCopyAnnotationExclude(action))
     }
 
@@ -539,7 +541,7 @@ abstract class TransformerSpec
     /**
      * Create a [ClassInfoSpec] but does not add.
      */
-    fun createCopyAnnotationExclude(action: (ClassInfoSpec) -> Unit): ClassInfoSpec {
+    fun createCopyAnnotationExclude(action: ClassInfoSpec.() -> Unit): ClassInfoSpec {
         return objects.newInstance<ClassInfoSpec>().also(action)
     }
 
@@ -562,21 +564,21 @@ abstract class TransformerSpec
      * e.g. [SuspendTransformConfigurations.jvmBlockingTransformer].
      */
     fun from(transformer: Transformer) {
-        markAnnotation { it.from(transformer.markAnnotation) }
-        transformFunctionInfo { it.from(transformer.transformFunctionInfo) }
+        markAnnotation { from(transformer.markAnnotation) }
+        transformFunctionInfo { from(transformer.transformFunctionInfo) }
         transformer.transformReturnType?.also { transformReturnType ->
-            transformReturnType { it.from(transformReturnType) }
+            transformReturnType { from(transformReturnType) }
         }
         transformReturnTypeGeneric.set(transformer.transformReturnTypeGeneric)
         for (originFunctionIncludeAnnotation in transformer.originFunctionIncludeAnnotations) {
             addOriginFunctionIncludeAnnotation {
-                it.from(originFunctionIncludeAnnotation)
+                from(originFunctionIncludeAnnotation)
             }
         }
 
         for (syntheticFunctionIncludeAnnotation in transformer.syntheticFunctionIncludeAnnotations) {
             addSyntheticFunctionIncludeAnnotation {
-                it.from(syntheticFunctionIncludeAnnotation)
+                from(syntheticFunctionIncludeAnnotation)
             }
         }
 
@@ -584,7 +586,7 @@ abstract class TransformerSpec
 
         for (copyAnnotationExclude in transformer.copyAnnotationExcludes) {
             addCopyAnnotationExclude {
-                it.from(copyAnnotationExclude)
+                from(copyAnnotationExclude)
             }
         }
 
@@ -609,7 +611,7 @@ abstract class MarkAnnotationSpec
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(action: (ClassInfoSpec) -> Unit) {
+    fun classInfo(action: ClassInfoSpec.() -> Unit) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
@@ -653,7 +655,7 @@ abstract class MarkAnnotationSpec
 
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
-            it.from(markAnnotation.classInfo)
+            from(markAnnotation.classInfo)
         }
         baseNameProperty.set(markAnnotation.baseNameProperty)
         suffixProperty.set(markAnnotation.suffixProperty)
@@ -715,7 +717,7 @@ abstract class IncludeAnnotationSpec
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(action: (ClassInfoSpec) -> Unit) {
+    fun classInfo(action: ClassInfoSpec.() -> Unit) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
@@ -731,7 +733,7 @@ abstract class IncludeAnnotationSpec
 
     fun from(includeAnnotation: IncludeAnnotation) {
         classInfo {
-            it.from(includeAnnotation.classInfo)
+            from(includeAnnotation.classInfo)
         }
         repeatable.set(includeAnnotation.repeatable)
         includeProperty.set(includeAnnotation.includeProperty)

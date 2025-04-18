@@ -1,3 +1,6 @@
+import jdk.tools.jlink.resources.plugins
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+
 plugins {
     `java-library`
     kotlin("jvm")
@@ -7,9 +10,11 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(11)
     compilerOptions {
+        jvmTarget = JVM_11
+        javaParameters = true
         freeCompilerArgs.add("-Xjvm-default=all")
-
     }
 }
 
@@ -32,49 +37,49 @@ suspendTransformPlugin {
     includeAnnotation = false
     includeRuntime = false
     transformers {
-        
+        useDefault()
 
         // For blocking
-        addJvm {
-            markAnnotation {
-                classInfo {
-                    packageName = "com.example"
-                    className = "JTrans"
-                }
-                baseNameProperty = "blockingBaseName"
-                suffixProperty = "blockingSuffix"
-                asPropertyProperty = "blockingAsProperty"
-                defaultSuffix = "Blocking"
-                defaultAsProperty = false
-            }
-
-            transformFunctionInfo {
-                packageName = "com.example"
-                functionName = "inBlock"
-            }
-
-            // other config...
-        }
-
-        // For async
-        addJvm {
-            markAnnotation {
-                classInfo {
-                    packageName = "com.example"
-                    className = "JTrans"
-                }
-                baseNameProperty = "asyncBaseName"
-                suffixProperty = "asyncSuffix"
-                asPropertyProperty = "asyncAsProperty"
-                defaultSuffix = "Async"
-                defaultAsProperty = false
-            }
-
-            transformFunctionInfo {
-                packageName = "com.example"
-                functionName = "inAsync"
-            }
-        }
+        // addJvm {
+        //     markAnnotation {
+        //         classInfo {
+        //             packageName = "com.example"
+        //             className = "JTrans"
+        //         }
+        //         baseNameProperty = "blockingBaseName"
+        //         suffixProperty = "blockingSuffix"
+        //         asPropertyProperty = "blockingAsProperty"
+        //         defaultSuffix = "Blocking"
+        //         defaultAsProperty = false
+        //     }
+        //
+        //     transformFunctionInfo {
+        //         packageName = "com.example"
+        //         functionName = "inBlock"
+        //     }
+        //
+        //     // other config...
+        // }
+        //
+        // // For async
+        // addJvm {
+        //     markAnnotation {
+        //         classInfo {
+        //             packageName = "com.example"
+        //             className = "JTrans"
+        //         }
+        //         baseNameProperty = "asyncBaseName"
+        //         suffixProperty = "asyncSuffix"
+        //         asPropertyProperty = "asyncAsProperty"
+        //         defaultSuffix = "Async"
+        //         defaultAsProperty = false
+        //     }
+        //
+        //     transformFunctionInfo {
+        //         packageName = "com.example"
+        //         functionName = "inAsync"
+        //     }
+        // }
     }
 }
 

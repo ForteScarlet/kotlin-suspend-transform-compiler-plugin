@@ -2,6 +2,7 @@ package love.forte.plugin.suspendtrans.fir
 
 import love.forte.plugin.suspendtrans.configuration.MarkAnnotation
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.TargetPlatform
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
@@ -101,15 +102,23 @@ class SuspendTransformFirTransformer(
             Name.identifier("CoroutineScope")
         )
 
-        coroutineScopeSymbol = session.symbolProvider.getClassLikeSymbolByClassId(classId)
-            ?: session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId)
-                    ?: error("Cannot resolve `kotlinx.coroutines.CoroutineScope` symbol.")
+        if (!(::coroutineScopeSymbol.isInitialized)) {
+            coroutineScopeSymbol = session.symbolProvider.getClassLikeSymbolByClassId(classId)
+                ?: session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId)
+                        ?: error("Cannot resolve `kotlinx.coroutines.CoroutineScope` symbol.")
+        }
+
     }
 
-    private fun initTransformerFunctionSymbolMap() {
+    private fun initTransformerFunctionSymbolMap(
+        classSymbol: FirClassSymbol<*>,
+        memberScope: FirClassDeclaredMemberScope?
+    ): Map<Transformer, FirNamedFunctionSymbol> {
         // 尝试找到所有配置的 bridge function, 例如 `runBlocking` 等
         val symbolProvider = session.symbolProvider
         val dependenciesSymbolProvider = session.dependenciesSymbolProvider
+
+        val map = mutableMapOf<Transformer, FirNamedFunctionSymbol>()
 
         suspendTransformConfiguration.transformers
             .forEach { (_, transformerList) ->
@@ -136,6 +145,7 @@ class SuspendTransformFirTransformer(
                     if (transformerFunctionSymbols.isNotEmpty()) {
                         if (transformerFunctionSymbols.size == 1) {
                             transformerFunctionSymbolMap[transformer] = transformerFunctionSymbols.first()
+                            map[transformer] = transformerFunctionSymbols.first()
                         } else {
                             error("Found multiple transformer function symbols for transformer: $transformer")
                         }
@@ -145,15 +155,18 @@ class SuspendTransformFirTransformer(
                     }
                 }
             }
+
+        return map
     }
 
     //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>?, Nothing?> =
-        session.firCachesFactory.createCache { (symbol, scope), c ->
+        session.firCachesFactory.createCache { cacheKey, c ->
+            val (symbol, scope) = cacheKey
             initScopeSymbol()
-            initTransformerFunctionSymbolMap()
+            val transformerFunctionMap = initTransformerFunctionSymbolMap(symbol, scope)
 
-            createCache(symbol, scope)
+            createCache(symbol, scope, transformerFunctionMap)
         }
 
 
@@ -337,9 +350,12 @@ class SuspendTransformFirTransformer(
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
         val lambda = buildAnonymousFunction {
             this.resolvePhase = FirResolvePhase.BODY_RESOLVE
+            // this.resolvePhase = FirResolvePhase.RAW_FIR
             this.isLambda = true
             this.moduleData = originFunSymbol.moduleData
-            this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
+            // this.origin = FirDeclarationOrigin.Source
+            // this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
+            this.origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
             this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef
             this.hasExplicitParameterList = false
             this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
@@ -385,7 +401,6 @@ class SuspendTransformFirTransformer(
                                 source = thisReceiverParameter.source
                                 calleeReference = buildImplicitThisReference {
                                     boundSymbol = thisReceiverParameter.symbol
-                                    // println("[${newFunSymbol}] thisReceiverParameter.symbol: ${thisReceiverParameter.symbol}")
                                 }
                             }
                         }
@@ -591,6 +606,7 @@ class SuspendTransformFirTransformer(
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
             val newFun = buildSimpleFunctionCopy(originFunc) {
+                origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
                 name = callableId.callableName
                 symbol = newFunSymbol
                 status = originFunc.status.copy(
@@ -871,46 +887,53 @@ class SuspendTransformFirTransformer(
         return isOverride
     }
 
-    private val annotationPredicates: DeclarationPredicate? =
-        if (suspendTransformConfiguration.transformers.values.isEmpty()) {
-            null
-        } else {
-            DeclarationPredicate.create {
-                var predicate: DeclarationPredicate? = null
-                for (value in suspendTransformConfiguration.transformers.values) {
-                    for (transformer in value) {
-                        val afq = transformer.markAnnotation.fqName
-                        predicate = predicate?.also { p -> p or annotated(afq) } ?: annotated(afq)
-                    }
-                }
-
-                predicate ?: annotated()
+    private val annotationPredicates = DeclarationPredicate.create {
+        val annotationFqNames = suspendTransformConfiguration.transformers.values
+            .flatMapTo(mutableSetOf()) { transformerList ->
+                transformerList.map { it.markAnnotation.fqName }
             }
-        }
+
+        hasAnnotated(annotationFqNames)
+        // var predicate: DeclarationPredicate? = null
+        // for (value in suspendTransformConfiguration.transformers.values) {
+        //     for (transformer in value) {
+        //         val afq = transformer.markAnnotation.fqName
+        //         predicate = if (predicate == null) {
+        //             annotated(afq)
+        //         } else {
+        //             predicate or annotated(afq)
+        //         }
+        //     }
+        // }
+        //
+        // predicate ?: annotated()
+    }
+
 
     /**
      * NB: The predict needs to be *registered* in order to parse the [@XSerializable] type
      * otherwise, the annotation remains unresolved
      */
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-        annotationPredicates?.also { register(it) }
+        register(annotationPredicates)
     }
 
     private fun createCache(
         classSymbol: FirClassSymbol<*>,
-        declaredScope: FirClassDeclaredMemberScope?
+        declaredScope: FirClassDeclaredMemberScope?,
+        transformerFunctionSymbolMap: Map<Transformer, FirNamedFunctionSymbol>
     ): Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>? {
         if (declaredScope == null) return null
 
-        fun check(targetPlatform: love.forte.plugin.suspendtrans.configuration.TargetPlatform): Boolean {
+        fun check(targetPlatform: TargetPlatform): Boolean {
             val platform = classSymbol.moduleData.platform
 
             return when {
-                platform.isJvm() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.JVM -> true
-                platform.isJs() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.JS -> true
-                platform.isWasm() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.WASM -> true
-                platform.isNative() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.NATIVE -> true
-                platform.isCommon() && targetPlatform == love.forte.plugin.suspendtrans.configuration.TargetPlatform.COMMON -> true
+                platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
+                platform.isJs() && targetPlatform == TargetPlatform.JS -> true
+                platform.isWasm() && targetPlatform == TargetPlatform.WASM -> true
+                platform.isNative() && targetPlatform == TargetPlatform.NATIVE -> true
+                platform.isCommon() && targetPlatform == TargetPlatform.COMMON -> true
                 else -> false
             }
         }
@@ -945,7 +968,6 @@ class SuspendTransformFirTransformer(
                         // 读不到注解的参数？
                         // 必须使用 anno.getXxxArgument(Name(argument name)),
                         // 使用 argumentMapping.mapping 获取不到结果
-//                        println("RAW AnnoData: ${anno.argumentMapping.mapping}")
                         val annoData = anno.toTransformAnnotationData(markAnnotation, functionName)
 
                         val syntheticFunNameString = annoData.functionName
@@ -1274,11 +1296,9 @@ class SuspendTransformFirTransformer(
 
         when (this) {
             is ConeDynamicType -> {
-                //println("Dynamic type: $this")
             }
 
             is ConeFlexibleType -> {
-                //println("Flexible type: $this")
             }
 
             is ConeClassLikeType -> {

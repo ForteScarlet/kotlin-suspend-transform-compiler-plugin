@@ -57,6 +57,8 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val isApplicable = project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
                 && project.configOrNull?.enabled?.get() != false
 
+        project.logger.info("Is suspend transform plugin applicable for {}: {}", kotlinCompilation, isApplicable)
+
         return isApplicable
     }
 
@@ -75,22 +77,21 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val target = kotlinCompilation.target
         val project = target.project
 
-        return project.provider { resolveSubpluginOptions(target, project) }
+        project.logger.info("Apply suspend transform plugin to compilation {}, target: {}", kotlinCompilation, target)
+
+        val extension = resolveExtension(project)
+        return project.provider { extension.toSubpluginOptions(target, project) }
     }
 
-    private fun resolveSubpluginOptions(target: KotlinTarget, project: Project): List<SubpluginOption> {
+    private fun resolveExtension(project: Project): SuspendTransformPluginExtension {
         val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
 
         @Suppress("DEPRECATION") val oldExtension =
             project.extensions.getByType(SuspendTransformGradleExtension::class.java)
         @Suppress("DEPRECATION")
-        if (oldExtension.enabled || oldExtension.transformers.isNotEmpty()) {
-            val showError =
-                project.providers.gradleProperty("love.forte.plugin.suspend-transform.deprecatedExtensionError")
-                    .map { it.toBoolean() }.getOrElse(true)
-
-            val showWarn =
-                project.providers.gradleProperty("love.forte.plugin.suspend-transform.deprecatedExtensionWarn")
+        if (oldExtension.enabled && oldExtension.transformers.isNotEmpty()) {
+            val dontShowWarn =
+                project.providers.gradleProperty("love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn")
                     .map { it.toBoolean() }.getOrElse(false)
 
             val msg = "The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
@@ -101,20 +102,14 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
                     "will currently be aggregated with `SuspendTransformPluginExtension`, " +
                     "but it will soon be deprecated completely. "
 
-            when {
-                showError -> {
-                    project.logger.error(msg)
-                }
-
-                showWarn -> {
-                    project.logger.warn(msg)
-                }
+            if (!dontShowWarn) {
+                project.logger.warn(msg)
             }
 
             oldExtension.mergeTo(extension)
         }
 
-        return extension.toSubpluginOptions(target, project)
+        return extension
     }
 }
 
@@ -132,13 +127,13 @@ private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformP
     // Not the default value
     if (deprecatedAnnotationVersion != SuspendTransPluginConstants.ANNOTATION_VERSION) {
         extension.annotationDependency {
-            it.version.convention(deprecatedAnnotationVersion)
+            version.convention(deprecatedAnnotationVersion)
         }
     }
     val deprecatedAnnotationConfigurationName = this.annotationConfigurationName
     if (deprecatedAnnotationConfigurationName != "compileOnly") {
         extension.annotationDependency {
-            it.configurationName.convention(deprecatedAnnotationConfigurationName)
+            configurationName.convention(deprecatedAnnotationConfigurationName)
         }
     }
 
@@ -150,13 +145,13 @@ private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformP
     val deprecatedRuntimeVersion = this.runtimeDependencyVersion
     if (deprecatedRuntimeVersion != SuspendTransPluginConstants.RUNTIME_VERSION) {
         extension.runtimeDependency {
-            it.version.convention(deprecatedRuntimeVersion)
+            version.convention(deprecatedRuntimeVersion)
         }
     }
     val deprecatedRuntimeConfigurationName = this.runtimeConfigurationName
     if (deprecatedRuntimeConfigurationName != "implementation") {
         extension.runtimeDependency {
-            it.configurationName.convention(deprecatedRuntimeConfigurationName)
+            configurationName.convention(deprecatedRuntimeConfigurationName)
         }
     }
 
@@ -370,6 +365,9 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformPluginExtensi
         return
     }
 
+    val sourceSetsByCompilation = sourceSetsByCompilation()
+    project.logger.info("Suspend transform sourceSetsByCompilation: $sourceSetsByCompilation")
+
     // 时间久远，已经忘记为什么要做这个判断了，也忘记这段是在哪儿参考来的了💀
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
         val multiplatformExtensions = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
@@ -403,7 +401,7 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformPluginExtensi
 
         // For each source set that is only used in Native compilations, add an implementation dependency so that it
         // gets published and is properly consumed as a transitive dependency:
-        sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
+        sourceSetsByCompilation.forEach { (sourceSet, compilations) ->
             val isSharedSourceSet = compilations.all {
                 it.platformType == KotlinPlatformType.common || it.platformType == KotlinPlatformType.native
                         || it.platformType == KotlinPlatformType.js || it.platformType == KotlinPlatformType.wasm
@@ -434,7 +432,7 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformPluginExtensi
             }
         }
     } else {
-        sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
+        sourceSetsByCompilation.forEach { (sourceSet, compilations) ->
             val platformTypes = compilations.map { it.platformType }.toSet()
             logger.info(
                 "Configure sourceSet [{}]. compilations: {}, platformTypes: {}",

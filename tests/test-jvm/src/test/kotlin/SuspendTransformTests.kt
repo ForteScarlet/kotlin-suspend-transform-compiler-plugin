@@ -25,7 +25,9 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KTypeParameter
+import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaMethod
 import kotlin.test.*
 
 
@@ -68,6 +70,14 @@ class STPTrans1Impl : STPTrans1 {
  * @author ForteScarlet
  */
 class SuspendTransformTests {
+
+    @Test
+    fun javaMethodResolve() {
+        val run1Blocking = STTrans1::class.functions.find { it.name == "run1Blocking" }
+        assertNotNull(run1Blocking)
+        println(run1Blocking)
+        println(run1Blocking.javaMethod)
+    }
 
     @Test
     fun `interface suspend trans function test`() {
