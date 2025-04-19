@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.SuspendTransformUserData
-import love.forte.plugin.suspendtrans.Transformer
+import love.forte.plugin.suspendtrans.configuration.Transformer
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations

@@ -1,22 +1,9 @@
-import love.forte.plugin.suspendtrans.ClassInfo
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.TargetPlatform
-import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     kotlin("multiplatform")
-}
-
-
-buildscript {
-    this@buildscript.repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.0-0.11.1")
-    }
+    id("love.forte.plugin.suspend-transform")
 }
 
 repositories {
@@ -64,16 +51,46 @@ kotlin {
     }
 }
 
-extensions.getByType<SuspendTransformGradleExtension>().apply {
+// suspendTransformPlugin {
+//     includeRuntime = false
+//     includeAnnotation = false
+//     transformers {
+//         addJsPromise {
+//             addCopyAnnotationExclude {
+//                 from(kotlinJsExportIgnoreClassInfo)
+//             }
+//         }
+//     }
+// }
+
+suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
+    transformers {
+        addJsPromise {
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(kotlinJsExportIgnoreClassInfo)
+                }
+            }
 
-    transformers[TargetPlatform.JS] = mutableListOf(
-        SuspendTransformConfiguration.jsPromiseTransformer.copy(
-            copyAnnotationExcludes = listOf(
-                ClassInfo("kotlin.js", "JsExport.Ignore")
-            )
-        )
-    )
-
+            addCopyAnnotationExclude {
+                from(kotlinJsExportIgnoreClassInfo)
+            }
+        }
+    }
 }
+
+// extensions.getByType<SuspendTransformGradleExtension>().apply {
+//     includeRuntime = false
+//     includeAnnotation = false
+//
+//     transformers[TargetPlatform.JS] = mutableListOf(
+//         SuspendTransformConfiguration.jsPromiseTransformer.copy(
+//             copyAnnotationExcludes = listOf(
+//                 ClassInfo("kotlin.js", "JsExport.Ignore")
+//             )
+//         )
+//     )
+//
+// }

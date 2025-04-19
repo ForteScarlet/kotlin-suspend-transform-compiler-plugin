@@ -1,7 +1,11 @@
 package love.forte.plugin.suspendtrans.services
 
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
+import love.forte.plugin.suspendtrans.configuration.TargetPlatform
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -19,15 +23,19 @@ import java.io.File
  */
 class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
 
-    @OptIn(ExperimentalCompilerApi::class)
+    @OptIn(ExperimentalCompilerApi::class, InternalSuspendTransformConfigurationApi::class)
     override fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerExtensions(
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
+        val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
+            transformers = mapOf(
+                TargetPlatform.JS to listOf(jsPromiseTransformer),
+                TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer)
+            )
+        )
         // register plugin
-        SuspendTransformComponentRegistrar.register(this, SuspendTransformConfiguration().apply {
-            useDefault()
-        })
+        SuspendTransformComponentRegistrar.register(this, testConfiguration)
     }
 
     override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
@@ -71,7 +79,7 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
 
     private fun getRuntimeJarFile(clazz: Class<*>): File {
 //        try {
-            return PathUtil.getResourcePathForClass(clazz)
+        return PathUtil.getResourcePathForClass(clazz)
 //        } catch (e: ClassNotFoundException) {
 //            System.err.println("Runtime jar '$clazz' not found!")
 ////            assert(false) { "Runtime jar '$className' not found!" }

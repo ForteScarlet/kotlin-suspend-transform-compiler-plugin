@@ -3,6 +3,7 @@ import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.isMainPublishable
 
@@ -29,8 +30,17 @@ dependencies {
     compileOnly(gradleApi())
     compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("gradle-plugin-api"))
-    api(project(":compiler:suspend-transform-plugin"))
+    // compileOnly(project(":compiler:suspend-transform-plugin"))
+    api(project(":compiler:suspend-transform-plugin-cli"))
+    api(project(":compiler:suspend-transform-plugin-configuration"))
+    api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
+}
 
+kotlin {
+    configGradleBuildSrcFriendly()
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjvm-default=all")
+    }
 }
 
 buildConfig {
@@ -63,7 +73,6 @@ buildConfig {
 
 //if (!isAutomatedGradlePluginPublishing()) {
 if (isMainPublishable()) {
-    @Suppress("UnstableApiUsage")
     gradlePlugin {
         website = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
         vcsUrl = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin.git"

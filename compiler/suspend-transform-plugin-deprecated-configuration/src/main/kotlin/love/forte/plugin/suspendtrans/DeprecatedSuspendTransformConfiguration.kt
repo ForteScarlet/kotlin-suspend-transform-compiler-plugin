@@ -1,11 +1,28 @@
+@file:Suppress("DEPRECATION")
+
 package love.forte.plugin.suspendtrans
 
 import kotlinx.serialization.Serializable
 
-// TODO 序列化改成二进制的，比如 protobuf，
-//  然后使用base64或hash进行传递，避免谜之转义
+
+private const val JVM_RUN_IN_BLOCKING_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
+private val JVM_RUN_IN_BLOCKING_FUNCTION_CLASS_NAME: String? = null
+private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME: String = "\$runInBlocking\$"
+
+private const val JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
+private val JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME: String? = null
+private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME: String = "\$runInAsync\$"
+
+private const val JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
+private val JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME: String? = null
+private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME: String = "\$runInAsync\$"
+
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.FunctionInfo` instead.",
+    ReplaceWith("FunctionInfo", "love.forte.plugin.suspendtrans.configuration.FunctionInfo")
+)
 data class FunctionInfo(
     var packageName: String,
     @Deprecated("Top-Level function supported only")
@@ -14,6 +31,10 @@ data class FunctionInfo(
 )
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.ClassInfo` instead.",
+    ReplaceWith("ClassInfo", "love.forte.plugin.suspendtrans.configuration.ClassInfo")
+)
 data class ClassInfo @JvmOverloads constructor(
     var packageName: String,
     var className: String,
@@ -22,6 +43,10 @@ data class ClassInfo @JvmOverloads constructor(
 )
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.TargetPlatform` instead.",
+    ReplaceWith("TargetPlatform", "love.forte.plugin.suspendtrans.configuration.TargetPlatform")
+)
 enum class TargetPlatform {
     COMMON, JVM, JS, WASM, NATIVE
 }
@@ -32,6 +57,13 @@ enum class TargetPlatform {
  *
  */
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.Transformer` instead.",
+    replaceWith = ReplaceWith(
+        "Transformer",
+        "love.forte.plugin.suspendtrans.configuration.Transformer"
+    )
+)
 data class Transformer(
     /** 函数上的某种标记。 */
     val markAnnotation: MarkAnnotation,
@@ -108,6 +140,10 @@ data class Transformer(
  * 用于标记的注解信息.
  */
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.MarkAnnotation` instead.",
+    ReplaceWith("MarkAnnotation", "love.forte.plugin.suspendtrans.configuration.MarkAnnotation")
+)
 data class MarkAnnotation @JvmOverloads constructor(
     /**
      * 注解类信息
@@ -141,6 +177,10 @@ data class MarkAnnotation @JvmOverloads constructor(
 
 
 @Serializable
+@Deprecated(
+    "Use new `love.forte.plugin.suspendtrans.configuration.IncludeAnnotation` instead.",
+    ReplaceWith("IncludeAnnotation", "love.forte.plugin.suspendtrans.configuration.IncludeAnnotation")
+)
 data class IncludeAnnotation(
     val classInfo: ClassInfo, val repeatable: Boolean = false
 ) {
@@ -152,15 +192,27 @@ data class IncludeAnnotation(
     var includeProperty: Boolean = false
 }
 
+const val USE_NEW_EXTENSION = "Please use the `love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration`" +
+        "(`suspendTransformPlugin { ... }`) instead."
+
 /**
  *
  * @author ForteScarlet
  */
 @Suppress("unused")
 @Serializable
+@Deprecated(
+    message = USE_NEW_EXTENSION,
+    replaceWith = ReplaceWith(
+        "SuspendTransformConfiguration",
+        "love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration"
+    )
+)
 open class SuspendTransformConfiguration {
+    @Deprecated(USE_NEW_EXTENSION)
     open var enabled: Boolean = true
 
+    @Deprecated(USE_NEW_EXTENSION)
     open var transformers: MutableMap<TargetPlatform, List<Transformer>> = mutableMapOf()
 
     /**
@@ -173,23 +225,28 @@ open class SuspendTransformConfiguration {
     @Deprecated("Unused after *-0.11.0")
     open var targetMarker: ClassInfo? = targetMarkerClassInfo
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun clear() {
         transformers.clear()
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun useJvmDefault() {
         transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer)
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun useJsDefault() {
         transformers[TargetPlatform.JS] = mutableListOf(jsPromiseTransformer)
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun useDefault() {
         useJvmDefault()
         useJsDefault()
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addTransformers(target: TargetPlatform, vararg transformers: Transformer) {
         this.transformers.compute(target) { _, list ->
             if (list != null) {
@@ -200,6 +257,7 @@ open class SuspendTransformConfiguration {
         }
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addTransformers(target: TargetPlatform, transformers: Collection<Transformer>) {
         this.transformers.compute(target) { _, list ->
             if (list != null) {
@@ -210,18 +268,22 @@ open class SuspendTransformConfiguration {
         }
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addJvmTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JVM, transformers = transformers)
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addJvmTransformers(transformers: Collection<Transformer>) {
         addTransformers(target = TargetPlatform.JVM, transformers = transformers)
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addJsTransformers(vararg transformers: Transformer) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     open fun addJsTransformers(transformers: Collection<Transformer>) {
         addTransformers(target = TargetPlatform.JS, transformers = transformers)
     }
@@ -230,6 +292,7 @@ open class SuspendTransformConfiguration {
         return "SuspendTransformConfiguration(enabled=$enabled, transformers=$transformers)"
     }
 
+    @Deprecated(USE_NEW_EXTENSION)
     companion object {
         val targetMarkerClassInfo = ClassInfo("love.forte.plugin.suspendtrans.annotation", "TargetMarker")
 
@@ -329,9 +392,9 @@ open class SuspendTransformConfiguration {
 
         @JvmStatic
         val jsAsyncTransformFunction = FunctionInfo(
-            JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
-            JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
-            JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
+            love.forte.plugin.suspendtrans.JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME,
+            love.forte.plugin.suspendtrans.JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
+            love.forte.plugin.suspendtrans.JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
         )
 
         @JvmStatic

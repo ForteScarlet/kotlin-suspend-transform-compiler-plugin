@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package love.forte.plugin.suspendtrans
 
 import kotlinx.serialization.builtins.ListSerializer
@@ -11,6 +13,7 @@ private val defaultJson = Json {
     encodeDefaults = true
 }
 
+@Deprecated("Use the cli module's type")
 object CliOptions {
 
     const val CONFIGURATION = "configuration"
@@ -71,6 +74,7 @@ object CliOptions {
 
 }
 
+@Deprecated("Use the cli module's type")
 private class ResolveBuilder {
     var outc: SuspendTransformConfiguration.() -> String = { error("no outc") }
     var inc: SuspendTransformConfiguration.(String) -> Unit = { error("no inc") }
@@ -132,12 +136,14 @@ private fun String.option(
     )
 }
 
+@Deprecated("Use the cli module's type")
 interface ICliOption {
     val oName: String
     fun resolveToValue(configuration: SuspendTransformConfiguration): String
     fun resolveFromValue(configuration: SuspendTransformConfiguration, value: String)
 }
 
+@Deprecated("Use the cli module's type")
 class SimpleCliOption(
     override val optionName: String,
     override val valueDescription: String,
