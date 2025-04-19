@@ -1,6 +1,3 @@
-import love.forte.plugin.suspendtrans.ClassInfo
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
-
 plugins {
     kotlin("multiplatform")
     id("love.forte.plugin.suspend-transform")
@@ -89,9 +86,9 @@ suspendTransform {
     includeAnnotation = false
     useJvmDefault()
     addJsTransformers(
-        SuspendTransformConfiguration.jsPromiseTransformer.copy(
+        love.forte.plugin.suspendtrans.SuspendTransformConfiguration.jsPromiseTransformer.copy(
             copyAnnotationExcludes = listOf(
-                ClassInfo("kotlin.js", "JsExport.Ignore")
+                love.forte.plugin.suspendtrans.ClassInfo("kotlin.js", "JsExport.Ignore")
             )
         )
     )

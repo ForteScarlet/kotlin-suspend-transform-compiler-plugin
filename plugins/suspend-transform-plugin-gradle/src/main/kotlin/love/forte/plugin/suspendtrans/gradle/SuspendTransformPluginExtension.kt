@@ -35,12 +35,6 @@ internal interface NamedTransformerSpecListContainerInternal : NamedTransformerS
     override val platform: Property<TargetPlatform>
 }
 
-@RequiresOptIn(
-    "This API is an experimental public TransformersContainer's api. " +
-            "It may be changed in the future without notice."
-)
-annotation class ExperimentalTransformersContainerApi
-
 /**
  * @since 0.12.0
  */
@@ -285,7 +279,7 @@ abstract class SuspendTransformPluginExtension
     }
 }
 
-@OptIn(InternalSuspendTransformConfigurationApi::class, ExperimentalTransformersContainerApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
     return SuspendTransformConfiguration(
         // 此处 Map 可能为 空，但是 List 不会有空的。
@@ -302,6 +296,45 @@ internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransform
             }
         },
     )
+}
+
+internal data class TransformerEntry(
+    val targetPlatform: TargetPlatform,
+    val transformers: List<Transformer>
+)
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
+    val combines = objects.listProperty(TransformerEntry::class.java)
+    for ((targetPlatform, transformerListProperty) in transformers._containers) {
+        combines.addAll(
+            transformerListProperty.map { list ->
+                if (list.isEmpty()) {
+                    // Type mismatch: inferred type is TransformerEntry? but TransformerEntry was expected
+                    //  if return null with `combines.add`
+                    emptyList()
+                } else {
+                    listOf(
+                        TransformerEntry(targetPlatform, list.map { it.toTransformer() })
+                    )
+                }
+            }
+        )
+    }
+
+    return combines.map { entries ->
+        val transformersMap: Map<TargetPlatform, List<Transformer>> = entries.associateBy(
+            keySelector = { it.targetPlatform },
+            valueTransform = { it.transformers }
+        )
+
+        // 此处 `Map` 可能为 空，但是 `List` 不会有空的。
+        // 后续在使用的时候只需要判断一下 transformers 本身是不是空即可。
+        SuspendTransformConfiguration(
+            transformers = transformersMap
+        )
+    }
+
 }
 
 /**

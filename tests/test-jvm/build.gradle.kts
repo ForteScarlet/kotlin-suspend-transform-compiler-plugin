@@ -32,21 +32,21 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
 }
 
-@Suppress("DEPRECATION")
-suspendTransform {
-    enabled = true
-    includeAnnotation = false
-    includeRuntime = false
-    useDefault()
-}
-
-// suspendTransformPlugin {
+// @Suppress("DEPRECATION")
+// suspendTransform {
+//     enabled = true
 //     includeAnnotation = false
 //     includeRuntime = false
-//     transformers {
-//         useDefault()
-//     }
+//     useDefault()
 // }
+
+suspendTransformPlugin {
+    includeAnnotation = false
+    includeRuntime = false
+    transformers {
+        useDefault()
+    }
+}
 
 /*
 >     val blockingBaseName: String = "",

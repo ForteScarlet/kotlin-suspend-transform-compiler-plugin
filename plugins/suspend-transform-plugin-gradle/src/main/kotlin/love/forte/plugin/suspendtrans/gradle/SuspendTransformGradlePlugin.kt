@@ -94,7 +94,6 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 project.providers.gradleProperty("love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn")
                     .orNull.toBoolean()
 
-
             val msg = "WARN: The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
                     "(`suspendTransform { ... }`) is deprecated, \n" +
                     "please use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
@@ -255,45 +254,29 @@ private fun DeprecatedIncludeAnnotation.toIncludeAnnotation(): IncludeAnnotation
     )
 }
 
-private fun SuspendTransformPluginExtension.toSubpluginOptions(
-    target: KotlinTarget,
-    project: Project
-): List<SubpluginOption> {
-    // If not enabled or transformer is empty.
-    val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
-    val configuration = toConfiguration()
-    return if (configuration.transformers.isNotEmpty()) {
-        if (project.logger.isInfoEnabled) {
-            val count = configuration.transformers.values.sumOf { it.size }
-            project.logger.debug("The suspend transform is enabled with {} transformer(s) for {}", count, target)
-        }
-        listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
-    } else {
-        project.logger.debug("The suspend transform is disabled or transformers are empty for {}.", target)
-        emptyList()
-    }
-}
-
 private fun SuspendTransformPluginExtension.toSubpluginOptionsProvider(
     target: KotlinTarget,
     project: Project
 ): Provider<List<SubpluginOption>> {
     return enabled
-        .map { isEnabled ->
+        .flatMap { isEnabled ->
             if (!isEnabled) {
                 project.logger.debug("The suspend transform is disabled for {}.", target)
-                return@map emptyList()
+                return@flatMap project.provider { emptyList() }
             }
 
-            val configuration = toConfiguration()
-            val transformers = configuration.transformers
-            if (transformers.isEmpty()) {
-                project.logger.debug("The suspend transform is enabled but transformers are empty for {}.", target)
-                return@map emptyList()
-            }
+            val configurationProvider = toConfigurationProvider(project.objects)
 
-            val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
-            listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+            configurationProvider.map { configuration ->
+                val transformers = configuration.transformers
+                if (transformers.isEmpty()) {
+                    project.logger.debug("The suspend transform is enabled but transformers are empty for {}.", target)
+                    return@map emptyList()
+                }
+
+                val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
+                listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+            }
         }
 
 }
