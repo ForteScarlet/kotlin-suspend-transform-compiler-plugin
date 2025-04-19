@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans.cli
 
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConstructorApi
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
@@ -14,13 +14,12 @@ import kotlin.test.assertEquals
  * @author ForteScarlet
  */
 class ConfigurationSerializeTests {
-    @OptIn(InternalSuspendTransformConstructorApi::class)
+    @OptIn(InternalSuspendTransformConfigurationApi::class)
     @Test
     fun testDecode() {
-        assertEquals("0801", SuspendTransformConfiguration(true, emptyMap()).encodeToHex())
+        assertEquals("0801", SuspendTransformConfiguration(emptyMap()).encodeToHex())
 
         val config = SuspendTransformConfiguration(
-            enabled = true,
             transformers = mapOf(
                 TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer),
                 TargetPlatform.JS to listOf(jsPromiseTransformer),

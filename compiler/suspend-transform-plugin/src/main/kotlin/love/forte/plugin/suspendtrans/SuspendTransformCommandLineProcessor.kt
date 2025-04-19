@@ -4,7 +4,7 @@ import BuildConfig
 import love.forte.plugin.suspendtrans.cli.SuspendTransformCliOptions
 import love.forte.plugin.suspendtrans.cli.decodeSuspendTransformConfigurationFromHex
 import love.forte.plugin.suspendtrans.cli.toAbstractCliOption
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConstructorApi
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.configuration.plus
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
@@ -25,7 +25,7 @@ class SuspendTransformCommandLineProcessor : CommandLineProcessor {
     override val pluginOptions: Collection<AbstractCliOption> =
         listOf(SuspendTransformCliOptions.CLI_CONFIGURATION.toAbstractCliOption())
 
-    @OptIn(InternalSuspendTransformConstructorApi::class)
+    @OptIn(InternalSuspendTransformConfigurationApi::class)
     override fun processOption(
         option: AbstractCliOption,
         value: String,

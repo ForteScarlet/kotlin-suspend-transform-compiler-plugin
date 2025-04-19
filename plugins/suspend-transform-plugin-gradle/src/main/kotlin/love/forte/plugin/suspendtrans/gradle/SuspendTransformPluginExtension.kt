@@ -285,10 +285,11 @@ abstract class SuspendTransformPluginExtension
     }
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class, ExperimentalTransformersContainerApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class, ExperimentalTransformersContainerApi::class)
 internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
     return SuspendTransformConfiguration(
-        enabled = enabled.getOrElse(true),
+        // 此处 Map 可能为 空，但是 List 不会有空的。
+        // 后续在使用的时候只需要判断一下 transformers 本身是不是空即可。
         transformers = buildMap {
             transformers._containers.forEach { targetPlatform, transformerListProperty ->
                 val list = transformerListProperty
@@ -740,7 +741,7 @@ abstract class IncludeAnnotationSpec
     }
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun TransformerSpec.toTransformer(): Transformer {
     return Transformer(
         markAnnotation = markAnnotation.get().toMarkAnnotation(),
@@ -756,7 +757,7 @@ internal fun TransformerSpec.toTransformer(): Transformer {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
     return MarkAnnotation(
         classInfo = classInfo.get().toClassInfo(),
@@ -768,7 +769,7 @@ internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun ClassInfoSpec.toClassInfo(): ClassInfo {
     return ClassInfo(
         packageName = packageName.get(),
@@ -778,7 +779,7 @@ internal fun ClassInfoSpec.toClassInfo(): ClassInfo {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun FunctionInfoSpec.toFunctionInfo(): FunctionInfo {
     return FunctionInfo(
         packageName = packageName.get(),
@@ -786,7 +787,7 @@ internal fun FunctionInfoSpec.toFunctionInfo(): FunctionInfo {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun IncludeAnnotationSpec.toIncludeAnnotation(): IncludeAnnotation {
     return IncludeAnnotation(
         classInfo = classInfo.get().toClassInfo(),

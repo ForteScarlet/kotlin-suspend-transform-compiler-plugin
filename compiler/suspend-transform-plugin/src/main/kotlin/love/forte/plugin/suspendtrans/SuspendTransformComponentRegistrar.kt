@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans
 
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConstructorApi
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fir.SuspendTransformFirExtensionRegistrar
 import love.forte.plugin.suspendtrans.ir.SuspendTransformIrGenerationExtension
@@ -60,11 +60,11 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
 // //    }
 // }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
     return get(
         SuspendTransformCommandLineProcessor.CONFIGURATION_KEY,
-        SuspendTransformConfiguration(true, mutableMapOf())
+        SuspendTransformConfiguration(mutableMapOf())
     )
 //    return SuspendTransformConfiguration().apply {
 //        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)

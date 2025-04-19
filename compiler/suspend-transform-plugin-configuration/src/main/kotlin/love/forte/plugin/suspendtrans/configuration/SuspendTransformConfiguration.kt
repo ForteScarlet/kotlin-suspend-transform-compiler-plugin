@@ -7,13 +7,14 @@ import kotlinx.serialization.Serializable
 //   虽然序列化行为是内部的，但是还是应该尽可能避免出现字段的顺序错乱或删改。
 
 @RequiresOptIn(
-    "This is an internal suspend transform config api. " +
+    "This is an internal suspend transform configuration's api. " +
             "It may be changed in the future without notice.", RequiresOptIn.Level.ERROR
 )
-annotation class InternalSuspendTransformConstructorApi
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CONSTRUCTOR)
+annotation class InternalSuspendTransformConfigurationApi
 
 @Serializable
-class FunctionInfo @InternalSuspendTransformConstructorApi constructor(
+class FunctionInfo @InternalSuspendTransformConfigurationApi constructor(
     val packageName: String,
     val functionName: String
 ) {
@@ -39,7 +40,7 @@ class FunctionInfo @InternalSuspendTransformConstructorApi constructor(
 }
 
 @Serializable
-class ClassInfo @InternalSuspendTransformConstructorApi constructor(
+class ClassInfo @InternalSuspendTransformConfigurationApi constructor(
     val packageName: String,
     val className: String,
     val local: Boolean = false,
@@ -79,7 +80,7 @@ enum class TargetPlatform {
  * 用于标记的注解信息.
  */
 @Serializable
-class MarkAnnotation @InternalSuspendTransformConstructorApi constructor(
+class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
     /**
      * 注解类信息
      */
@@ -135,7 +136,7 @@ class MarkAnnotation @InternalSuspendTransformConstructorApi constructor(
 }
 
 @Serializable
-class IncludeAnnotation @InternalSuspendTransformConstructorApi constructor(
+class IncludeAnnotation @InternalSuspendTransformConfigurationApi constructor(
     val classInfo: ClassInfo,
     val repeatable: Boolean = false,
     /**
@@ -169,7 +170,7 @@ class IncludeAnnotation @InternalSuspendTransformConstructorApi constructor(
 }
 
 @Serializable
-class Transformer @InternalSuspendTransformConstructorApi constructor(
+class Transformer @InternalSuspendTransformConfigurationApi constructor(
     /**
      * 函数上的某种标记。
      */
@@ -280,38 +281,40 @@ class Transformer @InternalSuspendTransformConstructorApi constructor(
  * 可序列化的配置信息。
  */
 @Serializable
-class SuspendTransformConfiguration @InternalSuspendTransformConstructorApi constructor(
-    val enabled: Boolean,
+class SuspendTransformConfiguration @InternalSuspendTransformConfigurationApi constructor(
+    /**
+     * The transformers.
+     *
+     * Note: This `Map` cannot be empty.
+     * The `List` values cannot be empty.
+     */
     val transformers: Map<TargetPlatform, List<Transformer>>
 ) {
+
+    override fun toString(): String {
+        return "SuspendTransformConfiguration(transformers=$transformers)"
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is SuspendTransformConfiguration) return false
 
-        if (enabled != other.enabled) return false
         if (transformers != other.transformers) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = enabled.hashCode()
-        result = 31 * result + transformers.hashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "SuspendTransformConfiguration(enabled=$enabled, transformers=$transformers)"
+        return transformers.hashCode()
     }
 }
 
 /**
  * Merge both
  */
-@InternalSuspendTransformConstructorApi
+@InternalSuspendTransformConfigurationApi
 operator fun SuspendTransformConfiguration.plus(other: SuspendTransformConfiguration): SuspendTransformConfiguration {
     return SuspendTransformConfiguration(
-        enabled = enabled && other.enabled,
         transformers = transformers.toMutableMap().apply {
             other.transformers.forEach { (platform, transformers) ->
                 compute(platform) { _, old ->
@@ -325,7 +328,7 @@ operator fun SuspendTransformConfiguration.plus(other: SuspendTransformConfigura
 /**
  * Some constants for configuration.
  */
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 object SuspendTransformConfigurations {
     private const val KOTLIN = "kotlin"
     private const val KOTLIN_JVM = "kotlin.jvm"

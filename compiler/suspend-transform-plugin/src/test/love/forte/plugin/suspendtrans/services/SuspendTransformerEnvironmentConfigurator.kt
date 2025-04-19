@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.services
 
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConstructorApi
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
@@ -23,13 +23,12 @@ import java.io.File
  */
 class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
 
-    @OptIn(ExperimentalCompilerApi::class, InternalSuspendTransformConstructorApi::class)
+    @OptIn(ExperimentalCompilerApi::class, InternalSuspendTransformConfigurationApi::class)
     override fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerExtensions(
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
         val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
-            enabled = true,
             transformers = mapOf(
                 TargetPlatform.JS to listOf(jsPromiseTransformer),
                 TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer)

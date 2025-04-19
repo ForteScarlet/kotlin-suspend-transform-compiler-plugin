@@ -80,7 +80,7 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         project.logger.debug("Apply suspend transform plugin to compilation {}, target: {}", kotlinCompilation, target)
 
         val extension = resolveExtension(project)
-        return project.provider { extension.toSubpluginOptions(target, project) }
+        return extension.toSubpluginOptionsProvider(target, project)
     }
 
     private fun resolveExtension(project: Project): SuspendTransformPluginExtension {
@@ -196,7 +196,7 @@ private fun DeprecatedTargetPlatform.toTarget(): TargetPlatform {
     }
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 private fun DeprecatedTransformer.toTransformer(): Transformer {
     return Transformer(
@@ -212,7 +212,7 @@ private fun DeprecatedTransformer.toTransformer(): Transformer {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
     return MarkAnnotation(
@@ -225,7 +225,7 @@ private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 private fun DeprecatedFunctionInfo.toFunctionInfo(): FunctionInfo {
     return FunctionInfo(
@@ -234,7 +234,7 @@ private fun DeprecatedFunctionInfo.toFunctionInfo(): FunctionInfo {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 private fun DeprecatedClassInfo.toClassInfo(): ClassInfo {
     return ClassInfo(
@@ -245,7 +245,7 @@ private fun DeprecatedClassInfo.toClassInfo(): ClassInfo {
     )
 }
 
-@OptIn(InternalSuspendTransformConstructorApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 private fun DeprecatedIncludeAnnotation.toIncludeAnnotation(): IncludeAnnotation {
     return IncludeAnnotation(
@@ -262,7 +262,7 @@ private fun SuspendTransformPluginExtension.toSubpluginOptions(
     // If not enabled or transformer is empty.
     val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
     val configuration = toConfiguration()
-    return if (configuration.enabled && configuration.transformers.isNotEmpty()) {
+    return if (configuration.transformers.isNotEmpty()) {
         if (project.logger.isInfoEnabled) {
             val count = configuration.transformers.values.sumOf { it.size }
             project.logger.debug("The suspend transform is enabled with {} transformer(s) for {}", count, target)
@@ -272,6 +272,30 @@ private fun SuspendTransformPluginExtension.toSubpluginOptions(
         project.logger.debug("The suspend transform is disabled or transformers are empty for {}.", target)
         emptyList()
     }
+}
+
+private fun SuspendTransformPluginExtension.toSubpluginOptionsProvider(
+    target: KotlinTarget,
+    project: Project
+): Provider<List<SubpluginOption>> {
+    return enabled
+        .map { isEnabled ->
+            if (!isEnabled) {
+                project.logger.debug("The suspend transform is disabled for {}.", target)
+                return@map emptyList()
+            }
+
+            val configuration = toConfiguration()
+            val transformers = configuration.transformers
+            if (transformers.isEmpty()) {
+                project.logger.debug("The suspend transform is enabled but transformers are empty for {}.", target)
+                return@map emptyList()
+            }
+
+            val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
+            listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+        }
+
 }
 
 private fun Project.configureDependencies() {
