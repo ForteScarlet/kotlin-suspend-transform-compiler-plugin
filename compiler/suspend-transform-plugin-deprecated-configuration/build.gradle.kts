@@ -14,11 +14,10 @@ dependencies {
 }
 
 kotlin {
+    configGradleBuildSrcFriendly()
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_1_8)
-        freeCompilerArgs.addAll(
-            "-Xjvm-default=all",
-        )
+        freeCompilerArgs.addAll("-Xjvm-default=all")
     }
 
 }

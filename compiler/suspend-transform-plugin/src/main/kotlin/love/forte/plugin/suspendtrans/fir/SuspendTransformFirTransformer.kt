@@ -6,7 +6,9 @@ import love.forte.plugin.suspendtrans.configuration.TargetPlatform
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
+import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
+import org.jetbrains.kotlin.realElement
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -607,6 +610,7 @@ class SuspendTransformFirTransformer(
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
             val newFun = buildSimpleFunctionCopy(originFunc) {
                 origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
+                source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 name = callableId.callableName
                 symbol = newFunSymbol
                 status = originFunc.status.copy(
@@ -726,7 +730,7 @@ class SuspendTransformFirTransformer(
             val p1 = buildProperty {
                 symbol = pSymbol
                 name = callableId.callableName
-                source = original.source
+                source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 resolvePhase = original.resolvePhase
                 moduleData = original.moduleData
                 origin = pKey.origin
