@@ -35,7 +35,9 @@ include(":plugins:suspend-transform-plugin-gradle")
 // include(":local-helper")
 
 //Samples
-// include(":tests:test-jvm")
+if (!System.getenv("IS_CI").toBoolean()) {
+    include(":tests:test-jvm")
 // include(":tests:test-js")
 // include(":tests:test-kmp")
 // include(":tests:test-android")
+}

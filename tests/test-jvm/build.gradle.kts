@@ -30,6 +30,9 @@ dependencies {
     api(project(":runtime:suspend-transform-annotation"))
     api(project(":runtime:suspend-transform-runtime"))
     api(libs.kotlinx.coroutines.core)
+
+    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 // @Suppress("DEPRECATION")
