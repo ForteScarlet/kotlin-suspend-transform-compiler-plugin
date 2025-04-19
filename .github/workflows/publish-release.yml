@@ -127,7 +127,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.FORTE_TOKEN }}
-          draft: true
+#          draft: true
           body_path: .changelog/${{ github.ref_name }}.md
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'preview') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
