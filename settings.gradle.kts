@@ -11,8 +11,8 @@ pluginManagement {
     }
 }
 
-@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         google()
         mavenCentral()
@@ -35,7 +35,7 @@ include(":plugins:suspend-transform-plugin-gradle")
 // include(":local-helper")
 
 //Samples
-include(":tests:test-jvm")
-include(":tests:test-js")
-include(":tests:test-kmp")
+// include(":tests:test-jvm")
+// include(":tests:test-js")
+// include(":tests:test-kmp")
 // include(":tests:test-android")

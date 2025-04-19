@@ -1,3 +1,4 @@
+
 package love.forte.plugin.suspendtrans.gradle
 
 import love.forte.plugin.suspendtrans.configuration.*
@@ -6,7 +7,6 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
-import org.gradle.api.Named
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -26,51 +26,43 @@ annotation class SuspendTransformPluginExtensionSpecDslMarker
 @SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionSpec
 
-interface NamedTransformerSpecListContainer : Named {
-    val platform: Provider<TargetPlatform>
-    val transformers: ListProperty<TransformerSpec>
+@SuspendTransformPluginExtensionSpecDslMarker
+interface SuspendTransformPluginExtensionClassInfoSpec : SuspendTransformPluginExtensionSpec {
+    fun classInfo(action: Action<in ClassInfoSpec>)
+    fun classInfo(action: ClassInfoSpec.() -> Unit)
 }
 
-internal interface NamedTransformerSpecListContainerInternal : NamedTransformerSpecListContainer {
-    override val platform: Property<TargetPlatform>
-}
+// TODO
+// interface SuspendTransformPluginExtensionSpecFactory {
+//     fun createClassInfo(): ClassInfoSpec
+//     fun createMarkAnnotation(): MarkAnnotationSpec
+//     fun createFunctionInfo(): FunctionInfoSpec
+//     fun createIncludeAnnotation(): IncludeAnnotationSpec
+//     fun createCopyAnnotationExclude(): CopyAnnotationExcludeSpec
+//     fun createRuntimeDependency(): RuntimeDependencySpec
+//     fun createAnnotationDependency(): AnnotationDependencySpec
+//     fun createTransformFunctionInfo(): TransformFunctionInfoSpec
+//     fun createTransformReturnType(): TransformReturnTypeSpec
+//     fun createTransformer(): TransformerSpec
+// }
+//
+// interface SuspendTransformPluginExtensionSpecFactoryAware {
+//     val factory: SuspendTransformPluginExtensionSpecFactory
+// }
 
 /**
  * @since 0.12.0
  */
+@Suppress("unused")
 abstract class TransformersContainer
 @Inject constructor(
     private val objects: ObjectFactory
 ) : SuspendTransformPluginExtensionSpec {
-    internal val _containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
+    internal val containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
         mutableMapOf()
 
-    // private val _containers: NamedDomainObjectContainer<NamedTransformerSpecListContainerInternal> =
-    //     objects.domainObjectContainer(NamedTransformerSpecListContainerInternal::class.java) { name ->
-    //         val targetPlatform = try {
-    //             TargetPlatform.valueOf(name)
-    //         } catch (e: IllegalArgumentException) {
-    //             throw IllegalArgumentException(
-    //                 "The name '$name' is not a valid TargetPlatform name. " +
-    //                         "Valid names: ${TargetPlatform.entries.joinToString { it.name }}",
-    //                 e
-    //             )
-    //         }
-    //
-    //         objects.newInstance(
-    //             NamedTransformerSpecListContainerInternal::class.java,
-    //             name
-    //         ).apply {
-    //             platform.set(targetPlatform)
-    //         }
-    //     }
-
-    // @ExperimentalTransformersContainerApi
-    // val containers: NamedDomainObjectContainer<out NamedTransformerSpecListContainer>
-    //     get() = _containers
-
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
-        return _containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
+        return containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
     }
 
     /**
@@ -217,6 +209,7 @@ abstract class TransformersContainer
 /**
  * @since 0.12.0
  */
+@Suppress("unused")
 abstract class SuspendTransformPluginExtension
 @Inject constructor(objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     /**
@@ -279,25 +272,6 @@ abstract class SuspendTransformPluginExtension
     }
 }
 
-@OptIn(InternalSuspendTransformConfigurationApi::class)
-internal fun SuspendTransformPluginExtension.toConfiguration(): SuspendTransformConfiguration {
-    return SuspendTransformConfiguration(
-        // 此处 Map 可能为 空，但是 List 不会有空的。
-        // 后续在使用的时候只需要判断一下 transformers 本身是不是空即可。
-        transformers = buildMap {
-            transformers._containers.forEach { targetPlatform, transformerListProperty ->
-                val list = transformerListProperty
-                    .map { valueList -> valueList.map { it.toTransformer() } }
-                    .getOrElse(emptyList())
-
-                if (list.isNotEmpty()) {
-                    put(targetPlatform, list)
-                }
-            }
-        },
-    )
-}
-
 internal data class TransformerEntry(
     val targetPlatform: TargetPlatform,
     val transformers: List<Transformer>
@@ -306,7 +280,7 @@ internal data class TransformerEntry(
 @OptIn(InternalSuspendTransformConfigurationApi::class)
 internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
     val combines = objects.listProperty(TransformerEntry::class.java)
-    for ((targetPlatform, transformerListProperty) in transformers._containers) {
+    for ((targetPlatform, transformerListProperty) in transformers.containers) {
         combines.addAll(
             transformerListProperty.map { list ->
                 if (list.isEmpty()) {
@@ -399,6 +373,7 @@ internal fun SuspendTransformPluginExtension.defaults(
 /**
  * @since 0.12.0
  */
+@Suppress("unused")
 abstract class TransformerSpec
 @Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
     /**
@@ -438,6 +413,7 @@ abstract class TransformerSpec
      *    @Api4J fun fooXxx(): CompletableFuture<Foo> = transform(block = { foo() }, scope = this)
      * }
      */
+    @Suppress("KDocUnresolvedReference")
     abstract val transformFunctionInfo: Property<FunctionInfoSpec>
 
     fun transformFunctionInfo(action: Action<in FunctionInfoSpec>) {
@@ -634,18 +610,21 @@ abstract class TransformerSpec
 /**
  * @since 0.12.0
  */
+@Suppress("unused")
 abstract class MarkAnnotationSpec
-@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
+@Inject constructor(private val objects: ObjectFactory) :
+    SuspendTransformPluginExtensionSpec,
+    SuspendTransformPluginExtensionClassInfoSpec {
     /**
      * The mark annotation's class info.
      */
     abstract val classInfo: Property<ClassInfoSpec>
 
-    fun classInfo(action: Action<in ClassInfoSpec>) {
+    override fun classInfo(action: Action<in ClassInfoSpec>) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(action: ClassInfoSpec.() -> Unit) {
+    override fun classInfo(action: ClassInfoSpec.() -> Unit) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
@@ -743,15 +722,18 @@ interface FunctionInfoSpec : SuspendTransformPluginExtensionSpec {
 /**
  * @since 0.12.0
  */
+@Suppress("unused")
 abstract class IncludeAnnotationSpec
-@Inject constructor(private val objects: ObjectFactory) : SuspendTransformPluginExtensionSpec {
+@Inject constructor(private val objects: ObjectFactory) :
+    SuspendTransformPluginExtensionSpec,
+    SuspendTransformPluginExtensionClassInfoSpec {
     abstract val classInfo: Property<ClassInfoSpec>
 
-    fun classInfo(action: Action<in ClassInfoSpec>) {
+    override fun classInfo(action: Action<in ClassInfoSpec>) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action::execute))
     }
 
-    fun classInfo(action: ClassInfoSpec.() -> Unit) {
+    override fun classInfo(action: ClassInfoSpec.() -> Unit) {
         classInfo.set(classInfo.getOrElse(objects.newInstance<ClassInfoSpec>()).also(action))
     }
 
