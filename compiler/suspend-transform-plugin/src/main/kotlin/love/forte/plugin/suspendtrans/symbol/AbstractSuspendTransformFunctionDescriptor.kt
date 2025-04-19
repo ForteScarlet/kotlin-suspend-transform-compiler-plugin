@@ -2,7 +2,7 @@ package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.SuspendTransformUserData
 import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
-import love.forte.plugin.suspendtrans.Transformer
+import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.copy
 import love.forte.plugin.suspendtrans.utils.findClassDescriptor

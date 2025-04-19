@@ -9,15 +9,12 @@ plugins {
     id("suspend-transform.jvm-maven-publish")
 }
 
-//testWithEmbedded0()
-
-
 dependencies {
     compileOnly(kotlin("stdlib"))
     implementation(kotlin("compiler"))
     compileOnly(libs.kotlinx.coroutines.core)
-    api(libs.kotlinx.serialization.json)
-    // TODO 改成二进制的，比如 protobuf
+    api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
+    api(project(":compiler:suspend-transform-plugin-cli"))
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("stdlib"))

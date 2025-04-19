@@ -1,10 +1,14 @@
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
+import love.forte.plugin.suspendtrans.checkSame
+import love.forte.plugin.suspendtrans.configuration.IncludeAnnotation
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fir.SuspendTransformBridgeFunctionKey
 import love.forte.plugin.suspendtrans.fir.SuspendTransformGeneratedDeclarationKey
 import love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key
 import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
+import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext

@@ -1,5 +1,7 @@
 package love.forte.plugin.suspendtrans
 
+import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fir.SuspendTransformFirExtensionRegistrar
 import love.forte.plugin.suspendtrans.ir.SuspendTransformIrGenerationExtension
 import love.forte.plugin.suspendtrans.symbol.SuspendTransformSyntheticResolveExtension
@@ -49,10 +51,21 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
     }
 }
 
+// @Deprecated("Use Cli module's type")
+// private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
+// //    val compilerConfiguration = this
+//     return get(SuspendTransformCommandLineProcessor.CONFIGURATION_KEY, SuspendTransformConfiguration())
+// //    return SuspendTransformConfiguration().apply {
+// //        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)
+// //    }
+// }
 
+@OptIn(InternalSuspendTransformConfigurationApi::class)
 private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
-//    val compilerConfiguration = this
-    return get(SuspendTransformCommandLineProcessor.CONFIGURATION, SuspendTransformConfiguration())
+    return get(
+        SuspendTransformCommandLineProcessor.CONFIGURATION_KEY,
+        SuspendTransformConfiguration(mutableMapOf())
+    )
 //    return SuspendTransformConfiguration().apply {
 //        enabled = compilerConfiguration.get(SuspendTransformCommandLineProcessor.ENABLED, true)
 //    }

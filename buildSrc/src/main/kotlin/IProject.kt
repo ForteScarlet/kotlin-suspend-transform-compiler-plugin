@@ -11,7 +11,7 @@ object IProject : ProjectDetail() {
 
     // Remember the libs.versions.toml!
     val ktVersion = "2.1.20"
-    val pluginVersion = "0.11.1"
+    val pluginVersion = "0.12.0"
 
     override val version: String = "$ktVersion-$pluginVersion"
 

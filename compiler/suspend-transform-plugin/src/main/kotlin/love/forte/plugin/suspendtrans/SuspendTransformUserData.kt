@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans
 
+import love.forte.plugin.suspendtrans.configuration.Transformer
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.fir.FirSession

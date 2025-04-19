@@ -1,22 +1,6 @@
-import love.forte.plugin.suspendtrans.ClassInfo
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmAsyncTransformer
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration.Companion.jvmBlockingTransformer
-import love.forte.plugin.suspendtrans.TargetPlatform
-import love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension
-
 plugins {
     kotlin("multiplatform")
-}
-
-
-buildscript {
-    this@buildscript.repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:2.1.0-0.11.1")
-    }
+    id("love.forte.plugin.suspend-transform")
 }
 
 kotlin {
@@ -33,9 +17,24 @@ repositories {
 apply(plugin = "love.forte.plugin.suspend-transform")
 
 kotlin {
+
+    jvmToolchain(11)
     jvm()
     js {
         nodejs()
+
+        useEsModules()
+        generateTypeScriptDefinitions()
+        binaries.executable()
+
+        compilerOptions {
+            target = "es2015"
+            useEsClasses = true
+            freeCompilerArgs.addAll(
+                // https://kotlinlang.org/docs/whatsnew20.html#per-file-compilation-for-kotlin-js-projects
+                "-Xir-per-file",
+            )
+        }
     }
 
     sourceSets {
@@ -45,31 +44,56 @@ kotlin {
             implementation(project(":runtime:suspend-transform-runtime"))
             implementation(libs.kotlinx.coroutines.core)
         }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+        }
     }
 }
 
-extensions.getByType<SuspendTransformGradleExtension>().apply {
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+
+    // see https://kotlinlang.org/docs/gradle-configure-project.html#configure-with-java-modules-jpms-enabled
+    // if (moduleName != null) {
+    //     options.compilerArgumentProviders.add(
+    //         CommandLineArgumentProvider {
+    //             // Provide compiled Kotlin classes to javac – needed for Java/Kotlin mixed sources to work
+    //             // listOf("--patch-module", "$moduleName=${sourceSets["main"].output.asPath}")
+    //             val sourceSet = sourceSets.findByName("main") ?: sourceSets.findByName("jvmMain")
+    //             if (sourceSet != null) {
+    //                 listOf("--patch-module", "$moduleName=${sourceSet.output.asPath}")
+    //             } else {
+    //                 emptyList()
+    //             }
+    //             // listOf("--patch-module", "$moduleName=${sourceSets["main"].output.asPath}")
+    //         }
+    //     )
+    // }
+}
+
+suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
-//     useJvmDefault()
-    transformers[TargetPlatform.JVM] = mutableListOf(
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmBlockingTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmBlockingTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
-            }
-        ),
+}
 
-        // Add `kotlin.OptIn` to copyAnnotationExcludes
-        jvmAsyncTransformer.copy(
-            copyAnnotationExcludes = buildList {
-                addAll(jvmAsyncTransformer.copyAnnotationExcludes)
-                add(ClassInfo("kotlin", "OptIn"))
-            }
+@Suppress("DEPRECATION")
+suspendTransform {
+    includeRuntime = false
+    includeAnnotation = false
+    useJvmDefault()
+    addJsTransformers(
+        love.forte.plugin.suspendtrans.SuspendTransformConfiguration.jsPromiseTransformer.copy(
+            copyAnnotationExcludes = listOf(
+                love.forte.plugin.suspendtrans.ClassInfo("kotlin.js", "JsExport.Ignore")
+            )
         )
     )
 }
+
 
 tasks.withType<Test> {
     useJUnitPlatform()

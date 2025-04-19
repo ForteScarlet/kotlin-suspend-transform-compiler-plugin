@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans.utils
 
-import love.forte.plugin.suspendtrans.IncludeAnnotation
+import love.forte.plugin.suspendtrans.configuration.IncludeAnnotation
 import org.jetbrains.kotlin.name.ClassId
 
 data class CopyAnnotationsData(

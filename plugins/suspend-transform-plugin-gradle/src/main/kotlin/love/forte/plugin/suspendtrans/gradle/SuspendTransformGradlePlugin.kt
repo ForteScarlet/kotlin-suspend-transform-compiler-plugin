@@ -1,20 +1,53 @@
 package love.forte.plugin.suspendtrans.gradle
 
-import love.forte.plugin.suspendtrans.CliOptions
+import love.forte.plugin.suspendtrans.cli.SuspendTransformCliOptions
+import love.forte.plugin.suspendtrans.cli.encodeToHex
+import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.gradle.DependencyConfigurationName.*
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.*
 
+@Suppress("DEPRECATION")
+private typealias DeprecatedClassInfo = love.forte.plugin.suspendtrans.ClassInfo
+@Suppress("DEPRECATION")
+private typealias DeprecatedFunctionInfo = love.forte.plugin.suspendtrans.FunctionInfo
+@Suppress("DEPRECATION")
+private typealias DeprecatedIncludeAnnotation = love.forte.plugin.suspendtrans.IncludeAnnotation
+@Suppress("DEPRECATION")
+private typealias DeprecatedMarkAnnotation = love.forte.plugin.suspendtrans.MarkAnnotation
+@Suppress("DEPRECATION")
+private typealias DeprecatedSuspendTransformConfiguration = love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+@Suppress("DEPRECATION")
+private typealias DeprecatedTargetPlatform = love.forte.plugin.suspendtrans.TargetPlatform
+@Suppress("DEPRECATION")
+private typealias DeprecatedTransformer = love.forte.plugin.suspendtrans.Transformer
 
 /**
  *
  * @author ForteScarlet
  */
 open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
+    companion object {
+        const val EXTENSION_NAME = "suspendTransform"
+        const val PLUGIN_EXTENSION_NAME = "suspendTransformPlugin"
+    }
+
     override fun apply(target: Project) {
-        target.extensions.create("suspendTransform", SuspendTransformGradleExtension::class.java)
+        @Suppress("DEPRECATION")
+        target.extensions.create(
+            EXTENSION_NAME,
+            SuspendTransformGradleExtension::class.java
+        )
+
+        val createdExtensions = target.extensions.create(
+            PLUGIN_EXTENSION_NAME,
+            SuspendTransformPluginExtension::class.java,
+        )
+
+        createdExtensions.defaults(target.objects, target.providers)
+
         target.configureDependencies()
     }
 
@@ -22,7 +55,9 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
 
         val isApplicable = project.plugins.hasPlugin(SuspendTransformGradlePlugin::class.java)
-                && project.configOrNull?.enabled != false
+                && project.configOrNull?.enabled?.get() != false
+
+        project.logger.debug("Is suspend transform plugin applicable for {}: {}", kotlinCompilation, isApplicable)
 
         return isApplicable
     }
@@ -41,74 +76,258 @@ open class SuspendTransformGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
         val target = kotlinCompilation.target
         val project = target.project
-        val extension = project.extensions.getByType(SuspendTransformGradleExtension::class.java)
 
+        project.logger.debug("Apply suspend transform plugin to compilation {}, target: {}", kotlinCompilation, target)
 
-//        val dependencies = project.dependencies
-//        dependencies.add(
-//            "compileOnly",
-//            "${SuspendTransPluginConstants.ANNOTATION_GROUP}:${SuspendTransPluginConstants.ANNOTATION_NAME}:${SuspendTransPluginConstants.ANNOTATION_VERSION}"
-//        )
-//        if (extension.includeRuntime) {
-//            dependencies.add(
-//                extension.runtimeConfigurationName,
-//                "${SuspendTransPluginConstants.RUNTIME_GROUP}:${SuspendTransPluginConstants.RUNTIME_NAME}:${SuspendTransPluginConstants.RUNTIME_VERSION}"
-//            )
-//        }
+        val extension = resolveExtension(project)
+        return extension.toSubpluginOptionsProvider(target, project)
+    }
 
-        return project.provider {
-            extension.toSubpluginOptions()
+    private fun resolveExtension(project: Project): SuspendTransformPluginExtension {
+        val extension = project.extensions.getByType(SuspendTransformPluginExtension::class.java)
+
+        @Suppress("DEPRECATION") val oldExtension =
+            project.extensions.getByType(SuspendTransformGradleExtension::class.java)
+        @Suppress("DEPRECATION")
+        if (oldExtension.enabled && oldExtension.transformers.isNotEmpty()) {
+            val dontShowWarn =
+                project.providers.gradleProperty("love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn")
+                    .orNull.toBoolean()
+
+            val msg = "WARN: The `love.forte.plugin.suspendtrans.gradle.SuspendTransformGradleExtension` " +
+                    "(`suspendTransform { ... }`) is deprecated, \n" +
+                    "please use `love.forte.plugin.suspendtrans.gradle.SuspendTransformPluginExtension` " +
+                    "(`suspendTransformPlugin { ... }`) instead. \n" +
+                    "The SuspendTransformGradleExtension property " +
+                    "will currently be aggregated with `SuspendTransformPluginExtension`, " +
+                    "but it will soon be deprecated completely. \n" +
+                    "Add 'love.forte.plugin.suspend-transform.suppressDeprecatedExtensionWarn=true' " +
+                    "to gradle.properties to suppress this warning."
+
+            if (!dontShowWarn) {
+                project.logger.warn(msg)
+            }
+
+            oldExtension.mergeTo(extension)
+        }
+
+        return extension
+    }
+}
+
+@Suppress("DEPRECATION", "DEPRECATION_ERROR", "TYPEALIAS_EXPANSION_DEPRECATION")
+private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformPluginExtension) {
+    if (this.enabled) {
+        extension.enabled.convention(true)
+    }
+    if (this.includeAnnotation) {
+        extension.includeAnnotation.convention(true)
+    }
+
+    // Annotation
+    val deprecatedAnnotationVersion = this.annotationDependencyVersion
+    // Not the default value
+    if (deprecatedAnnotationVersion != SuspendTransPluginConstants.ANNOTATION_VERSION) {
+        extension.annotationDependency {
+            version.convention(deprecatedAnnotationVersion)
+        }
+    }
+    val deprecatedAnnotationConfigurationName = this.annotationConfigurationName
+    if (deprecatedAnnotationConfigurationName != "compileOnly") {
+        extension.annotationDependency {
+            configurationName.convention(deprecatedAnnotationConfigurationName)
         }
     }
 
-}
-
-
-private fun SuspendTransformGradleExtension.toSubpluginOptions(): List<SubpluginOption> {
-    return CliOptions.allOptions.map {
-        SubpluginOption(it.oName, it.resolveToValue(this))
+    if (this.includeRuntime) {
+        extension.includeRuntime.convention(true)
     }
 
+    // Runtime
+    val deprecatedRuntimeVersion = this.runtimeDependencyVersion
+    if (deprecatedRuntimeVersion != SuspendTransPluginConstants.RUNTIME_VERSION) {
+        extension.runtimeDependency {
+            version.convention(deprecatedRuntimeVersion)
+        }
+    }
+    val deprecatedRuntimeConfigurationName = this.runtimeConfigurationName
+    if (deprecatedRuntimeConfigurationName != "implementation") {
+        extension.runtimeDependency {
+            configurationName.convention(deprecatedRuntimeConfigurationName)
+        }
+    }
+
+    // Transformers
+    if (this.transformers.isNotEmpty()) {
+        extension.transformers { transformerContainer ->
+            for ((deprecatedTarget, deprecatedTransformers) in this.transformers) {
+                val target = deprecatedTarget.toTarget()
+                deprecatedTransformers.forEach { deprecatedTransformer ->
+                    when (deprecatedTransformer) {
+                        DeprecatedSuspendTransformConfiguration.jvmBlockingTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmBlockingTransformer)
+                        }
+
+                        DeprecatedSuspendTransformConfiguration.jvmAsyncTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmAsyncTransformer)
+                        }
+
+                        DeprecatedSuspendTransformConfiguration.jsPromiseTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jsPromiseTransformer)
+                        }
+
+                        else -> transformerContainer.add(target, deprecatedTransformer.toTransformer())
+                    }
+                }
+            }
+        }
+    }
 }
 
+@Suppress("DEPRECATION", "TYPEALIAS_EXPANSION_DEPRECATION", "KotlinRedundantDiagnosticSuppress")
+private fun DeprecatedTargetPlatform.toTarget(): TargetPlatform {
+    return when (this) {
+        DeprecatedTargetPlatform.COMMON -> TargetPlatform.COMMON
+        DeprecatedTargetPlatform.JVM -> TargetPlatform.JVM
+        DeprecatedTargetPlatform.JS -> TargetPlatform.JS
+        DeprecatedTargetPlatform.WASM -> TargetPlatform.WASM
+        DeprecatedTargetPlatform.NATIVE -> TargetPlatform.NATIVE
+    }
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedTransformer.toTransformer(): Transformer {
+    return Transformer(
+        markAnnotation = this.markAnnotation.toMarkAnnotation(),
+        transformFunctionInfo = this.transformFunctionInfo.toFunctionInfo(),
+        transformReturnType = this.transformReturnType?.toClassInfo(),
+        transformReturnTypeGeneric = this.transformReturnTypeGeneric,
+        originFunctionIncludeAnnotations = this.originFunctionIncludeAnnotations.map { it.toIncludeAnnotation() },
+        syntheticFunctionIncludeAnnotations = this.syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() },
+        copyAnnotationsToSyntheticFunction = this.copyAnnotationsToSyntheticFunction,
+        copyAnnotationExcludes = this.copyAnnotationExcludes.map { it.toClassInfo() },
+        copyAnnotationsToSyntheticProperty = this.copyAnnotationsToSyntheticProperty
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
+    return MarkAnnotation(
+        classInfo = this.classInfo.toClassInfo(),
+        baseNameProperty = this.baseNameProperty,
+        suffixProperty = this.suffixProperty,
+        asPropertyProperty = this.asPropertyProperty,
+        defaultSuffix = this.defaultSuffix,
+        defaultAsProperty = this.defaultAsProperty
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedFunctionInfo.toFunctionInfo(): FunctionInfo {
+    return FunctionInfo(
+        packageName = this.packageName,
+        functionName = this.functionName
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedClassInfo.toClassInfo(): ClassInfo {
+    return ClassInfo(
+        packageName = this.packageName,
+        className = this.className,
+        local = this.local,
+        nullable = this.nullable
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+private fun DeprecatedIncludeAnnotation.toIncludeAnnotation(): IncludeAnnotation {
+    return IncludeAnnotation(
+        classInfo = this.classInfo.toClassInfo(),
+        repeatable = this.repeatable,
+        includeProperty = this.includeProperty
+    )
+}
+
+private fun SuspendTransformPluginExtension.toSubpluginOptionsProvider(
+    target: KotlinTarget,
+    project: Project
+): Provider<List<SubpluginOption>> {
+    return enabled
+        .flatMap { isEnabled ->
+            if (!isEnabled) {
+                project.logger.debug("The suspend transform is disabled for {}.", target)
+                return@flatMap project.provider { emptyList() }
+            }
+
+            val configurationProvider = toConfigurationProvider(project.objects)
+
+            configurationProvider.map { configuration ->
+                val transformers = configuration.transformers
+                if (transformers.isEmpty()) {
+                    project.logger.debug("The suspend transform is enabled but transformers are empty for {}.", target)
+                    return@map emptyList()
+                }
+
+                val cliConfig = SuspendTransformCliOptions.CLI_CONFIGURATION
+                listOf(SubpluginOption(cliConfig.optionName, configuration.encodeToHex()))
+            }
+        }
+
+}
 
 private fun Project.configureDependencies() {
-    fun Project.include(platform: Platform, conf: SuspendTransformGradleExtension) {
-        if (!conf.enabled) {
+    fun Project.include(platform: Platform, conf: SuspendTransformPluginExtension) {
+        if (!conf.enabled.get()) {
             logger.info(
-                "The `SuspendTransformGradleExtension.enable` in project {} for platform {} is `false`, skip config.",
+                "The `SuspendTransformPluginExtension.enable` in project {} for platform {} is `false`, skip config.",
                 this,
                 platform
             )
             return
         }
 
-        if (conf.includeAnnotation) {
+        if (conf.includeAnnotation.get()) {
+            // val notation = getDependencyNotation(
             val notation = getDependencyNotation(
                 SuspendTransPluginConstants.ANNOTATION_GROUP,
                 SuspendTransPluginConstants.ANNOTATION_NAME,
                 platform,
-                conf.annotationDependencyVersion
+                conf.annotationDependency.flatMap { it.version }
             )
-            if (platform == Platform.JVM) {
-                dependencies.add(conf.annotationConfigurationName, notation)
-            } else {
-                // JS, native 似乎不支持 compileOnly
-                dependencies.add("implementation", notation)
+
+            var configName = conf.annotationDependency.get().configurationName.get()
+            if (configName == "compileOnly" && platform != Platform.JVM) {
+                configName = "implementation"
             }
+
+            dependencies.add(configName, notation)
             dependencies.add("testImplementation", notation)
         }
-        if (conf.includeRuntime) {
+
+        if (conf.includeRuntime.get()) {
             val notation = getDependencyNotation(
                 SuspendTransPluginConstants.RUNTIME_GROUP,
                 SuspendTransPluginConstants.RUNTIME_NAME,
                 platform,
-                conf.runtimeDependencyVersion
+                conf.runtimeDependency.flatMap { it.version }
             )
-            dependencies.add(conf.runtimeConfigurationName, notation)
+            var configName = conf.runtimeDependency.get().configurationName.get()
+            if (configName == "compileOnly" && platform != Platform.JVM) {
+                // JS, native 似乎不支持 compileOnly，因此如果不是JVM，更换为 implementation
+                configName = "implementation"
+            }
+
+            dependencies.add(configName, notation)
             dependencies.add("testImplementation", notation)
         }
     }
+
     withPluginWhenEvaluatedConf("kotlin") { conf ->
         include(Platform.JVM, conf)
     }
@@ -139,7 +358,7 @@ fun Project.withPluginWhenEvaluated(plugin: String, fn: Project.() -> Unit) {
 
 fun Project.withPluginWhenEvaluatedConf(
     plugin: String,
-    fn: Project.(conf: SuspendTransformGradleExtension) -> Unit
+    fn: Project.(conf: SuspendTransformPluginExtension) -> Unit
 ) {
     withPluginWhenEvaluated(plugin) {
         fn(config)
@@ -150,14 +369,17 @@ private enum class DependencyConfigurationName {
     API, IMPLEMENTATION, COMPILE_ONLY
 }
 
-fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtension) {
-    if (!conf.enabled) {
+fun Project.configureMultiplatformDependency(conf: SuspendTransformPluginExtension) {
+    if (!conf.enabled.get()) {
         logger.info(
             "The `SuspendTransformGradleExtension.enable` in project {} for multiplatform is `false`, skip config.",
             this,
         )
         return
     }
+
+    val sourceSetsByCompilation = sourceSetsByCompilation()
+    project.logger.info("Suspend transform sourceSetsByCompilation: $sourceSetsByCompilation")
 
     // 时间久远，已经忘记为什么要做这个判断了，也忘记这段是在哪儿参考来的了💀
     if (rootProject.getBooleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")) {
@@ -168,23 +390,23 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
         val commonTestSourceSets =
             multiplatformExtensions.sourceSets.getByName(KotlinSourceSet.COMMON_TEST_SOURCE_SET_NAME)
 
-        if (conf.includeAnnotation) {
+        if (conf.includeAnnotation.get()) {
             val notation = getDependencyNotation(
                 SuspendTransPluginConstants.ANNOTATION_GROUP,
                 SuspendTransPluginConstants.ANNOTATION_NAME,
                 Platform.MULTIPLATFORM,
-                conf.annotationDependencyVersion
+                conf.annotationDependency.flatMap { it.version }
             )
             dependencies.add(commonMainSourceSets.compileOnlyConfigurationName, notation)
             dependencies.add(commonTestSourceSets.implementationConfigurationName, notation)
         }
 
-        if (conf.includeRuntime) {
+        if (conf.includeRuntime.get()) {
             val notation = getDependencyNotation(
                 SuspendTransPluginConstants.RUNTIME_GROUP,
                 SuspendTransPluginConstants.RUNTIME_NAME,
                 Platform.MULTIPLATFORM,
-                conf.annotationDependencyVersion
+                conf.runtimeDependency.flatMap { it.version }
             )
             dependencies.add(commonMainSourceSets.implementationConfigurationName, notation)
             dependencies.add(commonTestSourceSets.implementationConfigurationName, notation)
@@ -192,30 +414,30 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
 
         // For each source set that is only used in Native compilations, add an implementation dependency so that it
         // gets published and is properly consumed as a transitive dependency:
-        sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
+        sourceSetsByCompilation.forEach { (sourceSet, compilations) ->
             val isSharedSourceSet = compilations.all {
                 it.platformType == KotlinPlatformType.common || it.platformType == KotlinPlatformType.native
                         || it.platformType == KotlinPlatformType.js || it.platformType == KotlinPlatformType.wasm
             }
 
             if (isSharedSourceSet) {
-                if (conf.includeAnnotation) {
+                if (conf.includeAnnotation.get()) {
                     val notation = getDependencyNotation(
                         SuspendTransPluginConstants.ANNOTATION_GROUP,
                         SuspendTransPluginConstants.ANNOTATION_NAME,
                         Platform.MULTIPLATFORM,
-                        conf.annotationDependencyVersion
+                        conf.annotationDependency.flatMap { it.version }
                     )
                     val configuration = sourceSet.implementationConfigurationName
                     dependencies.add(configuration, notation)
                 }
 
-                if (conf.includeRuntime) {
+                if (conf.includeRuntime.get()) {
                     val notation = getDependencyNotation(
                         SuspendTransPluginConstants.RUNTIME_GROUP,
                         SuspendTransPluginConstants.RUNTIME_NAME,
                         Platform.MULTIPLATFORM,
-                        conf.annotationDependencyVersion
+                        conf.runtimeDependency.flatMap { it.version }
                     )
                     val configuration = sourceSet.implementationConfigurationName
                     dependencies.add(configuration, notation)
@@ -223,7 +445,7 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
             }
         }
     } else {
-        sourceSetsByCompilation().forEach { (sourceSet, compilations) ->
+        sourceSetsByCompilation.forEach { (sourceSet, compilations) ->
             val platformTypes = compilations.map { it.platformType }.toSet()
             logger.info(
                 "Configure sourceSet [{}]. compilations: {}, platformTypes: {}",
@@ -257,7 +479,7 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                     }
                 }
 
-                if (conf.includeAnnotation) {
+                if (conf.includeAnnotation.get()) {
                     val configurationName = when {
                         // impl dependency for native (there is no transformation)
                         platform == Platform.NATIVE -> IMPLEMENTATION // sourceSet.implementationConfigurationName
@@ -272,7 +494,7 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                         SuspendTransPluginConstants.ANNOTATION_GROUP,
                         SuspendTransPluginConstants.ANNOTATION_NAME,
                         platform,
-                        conf.annotationDependencyVersion
+                        conf.annotationDependency.flatMap { it.version }
                     )
 
                     sourceSet.dependencies {
@@ -300,14 +522,14 @@ fun Project.configureMultiplatformDependency(conf: SuspendTransformGradleExtensi
                     )
                 }
 
-                if (conf.includeRuntime) {
+                if (conf.includeRuntime.get()) {
                     // val configurationName = sourceSet.implementationConfigurationName
 
                     val notation = getDependencyNotation(
                         SuspendTransPluginConstants.RUNTIME_GROUP,
                         SuspendTransPluginConstants.RUNTIME_NAME,
                         platform,
-                        conf.runtimeDependencyVersion
+                        conf.runtimeDependency.flatMap { it.version }
                     )
                     sourceSet.dependencies {
                         implementation(notation)
@@ -353,11 +575,11 @@ private fun String.compilationNameToType(): CompilationType? = when (this) {
     else -> null
 }
 
-private val Project.config: SuspendTransformGradleExtension
-    get() = configOrNull ?: SuspendTransformGradleExtension()
+private val Project.config: SuspendTransformPluginExtension
+    get() = configOrNull ?: objects.newInstance(SuspendTransformPluginExtension::class.java)
 
-private val Project.configOrNull: SuspendTransformGradleExtension?
-    get() = extensions.findByType(SuspendTransformGradleExtension::class.java)
+private val Project.configOrNull: SuspendTransformPluginExtension?
+    get() = extensions.findByType(SuspendTransformPluginExtension::class.java)
 
 private enum class Platform(val suffix: String) {
     JVM("-jvm"), JS("-js"), NATIVE(""), MULTIPLATFORM("")
@@ -365,6 +587,14 @@ private enum class Platform(val suffix: String) {
 
 private fun getDependencyNotation(group: String, name: String, platform: Platform, version: String): String =
     "$group:$name${platform.suffix}:$version"
+
+private fun getDependencyNotation(
+    group: String,
+    name: String,
+    platform: Platform,
+    version: Provider<String>
+): Provider<String> =
+    version.map { versionValue -> getDependencyNotation(group, name, platform, versionValue) }
 
 private fun Project.getBooleanProperty(name: String) =
     rootProject.findProperty(name)?.toString()?.toBooleanStrict() ?: false

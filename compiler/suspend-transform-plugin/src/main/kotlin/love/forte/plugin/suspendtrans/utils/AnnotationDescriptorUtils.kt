@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans.utils
 
-import love.forte.plugin.suspendtrans.Transformer
+import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.toJsPromiseAnnotationName
 import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
 import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName

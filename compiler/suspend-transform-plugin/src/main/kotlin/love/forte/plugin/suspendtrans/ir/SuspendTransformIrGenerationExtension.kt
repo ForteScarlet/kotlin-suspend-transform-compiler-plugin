@@ -1,7 +1,7 @@
 package love.forte.plugin.suspendtrans.ir
 
 import love.forte.plugin.suspendtrans.PluginAvailability
-import love.forte.plugin.suspendtrans.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment

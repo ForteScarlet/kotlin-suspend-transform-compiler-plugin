@@ -1,6 +1,11 @@
 package love.forte.plugin.suspendtrans.symbol
 
-import love.forte.plugin.suspendtrans.*
+import love.forte.plugin.suspendtrans.PluginAvailability
+import love.forte.plugin.suspendtrans.SuspendTransformUserData
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
+import love.forte.plugin.suspendtrans.configuration.TargetPlatform
+import love.forte.plugin.suspendtrans.configuration.Transformer
+import love.forte.plugin.suspendtrans.generatedAnnotationClassId
 import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.descriptors.*
