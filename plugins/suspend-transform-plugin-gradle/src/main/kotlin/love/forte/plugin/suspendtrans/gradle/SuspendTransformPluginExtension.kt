@@ -1,4 +1,3 @@
-
 package love.forte.plugin.suspendtrans.gradle
 
 import love.forte.plugin.suspendtrans.configuration.*
@@ -12,6 +11,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -26,29 +26,119 @@ annotation class SuspendTransformPluginExtensionSpecDslMarker
 @SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionSpec
 
+/**
+ * @since 0.12.0
+ */
 @SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionClassInfoSpec : SuspendTransformPluginExtensionSpec {
     fun classInfo(action: Action<in ClassInfoSpec>)
     fun classInfo(action: ClassInfoSpec.() -> Unit)
 }
 
-// TODO
-// interface SuspendTransformPluginExtensionSpecFactory {
-//     fun createClassInfo(): ClassInfoSpec
-//     fun createMarkAnnotation(): MarkAnnotationSpec
-//     fun createFunctionInfo(): FunctionInfoSpec
-//     fun createIncludeAnnotation(): IncludeAnnotationSpec
-//     fun createCopyAnnotationExclude(): CopyAnnotationExcludeSpec
-//     fun createRuntimeDependency(): RuntimeDependencySpec
-//     fun createAnnotationDependency(): AnnotationDependencySpec
-//     fun createTransformFunctionInfo(): TransformFunctionInfoSpec
-//     fun createTransformReturnType(): TransformReturnTypeSpec
-//     fun createTransformer(): TransformerSpec
-// }
-//
-// interface SuspendTransformPluginExtensionSpecFactoryAware {
-//     val factory: SuspendTransformPluginExtensionSpecFactory
-// }
+/**
+ * @since 0.12.0
+ */
+@Suppress("unused")
+interface SuspendTransformPluginExtensionSpecFactory {
+    fun createClassInfo(action: Action<in ClassInfoSpec>): ClassInfoSpec
+    fun createClassInfo(action: ClassInfoSpec.() -> Unit): ClassInfoSpec =
+        createClassInfo(Action(action))
+
+    fun createClassInfo(): ClassInfoSpec =
+        createClassInfo { }
+
+    fun createMarkAnnotation(action: Action<in MarkAnnotationSpec>): MarkAnnotationSpec
+    fun createMarkAnnotation(action: MarkAnnotationSpec.() -> Unit): MarkAnnotationSpec =
+        createMarkAnnotation(Action(action))
+
+    fun createMarkAnnotation(): MarkAnnotationSpec =
+        createMarkAnnotation { }
+
+    fun createFunctionInfo(action: Action<in FunctionInfoSpec>): FunctionInfoSpec
+    fun createFunctionInfo(action: FunctionInfoSpec.() -> Unit): FunctionInfoSpec =
+        createFunctionInfo(Action(action))
+
+    fun createFunctionInfo(): FunctionInfoSpec =
+        createFunctionInfo { }
+
+    fun createIncludeAnnotation(action: Action<in IncludeAnnotationSpec>): IncludeAnnotationSpec
+    fun createIncludeAnnotation(action: IncludeAnnotationSpec.() -> Unit): IncludeAnnotationSpec =
+        createIncludeAnnotation(Action(action))
+
+    fun createIncludeAnnotation(): IncludeAnnotationSpec =
+        createIncludeAnnotation { }
+
+    fun createRuntimeDependency(action: Action<in RuntimeDependencySpec>): RuntimeDependencySpec
+    fun createRuntimeDependency(action: RuntimeDependencySpec.() -> Unit): RuntimeDependencySpec =
+        createRuntimeDependency(Action(action))
+
+    fun createRuntimeDependency(): RuntimeDependencySpec =
+        createRuntimeDependency { }
+
+    fun createAnnotationDependency(action: Action<in AnnotationDependencySpec>): AnnotationDependencySpec
+    fun createAnnotationDependency(action: AnnotationDependencySpec.() -> Unit): AnnotationDependencySpec =
+        createAnnotationDependency(Action(action))
+
+    fun createAnnotationDependency(): AnnotationDependencySpec =
+        createAnnotationDependency { }
+
+    fun createTransformFunctionInfo(action: Action<in FunctionInfoSpec>): FunctionInfoSpec
+    fun createTransformFunctionInfo(action: FunctionInfoSpec.() -> Unit): FunctionInfoSpec =
+        createTransformFunctionInfo(Action(action))
+
+    fun createTransformFunctionInfo(): FunctionInfoSpec =
+        createTransformFunctionInfo { }
+
+    fun createTransformer(action: Action<in TransformerSpec>): TransformerSpec
+    fun createTransformer(action: TransformerSpec.() -> Unit): TransformerSpec =
+        createTransformer(Action(action))
+
+    fun createTransformer(): TransformerSpec =
+        createTransformer { }
+}
+
+/**
+ * @since 0.12.0
+ */
+interface SuspendTransformPluginExtensionSpecFactoryAware {
+    val factory: SuspendTransformPluginExtensionSpecFactory
+}
+
+private class SuspendTransformPluginExtensionSpecFactoryImpl(
+    private val objects: ObjectFactory,
+) : SuspendTransformPluginExtensionSpecFactory {
+    override fun createClassInfo(action: Action<in ClassInfoSpec>): ClassInfoSpec {
+        return objects.newInstance<ClassInfoSpec>().also(action::execute)
+    }
+
+    override fun createAnnotationDependency(action: Action<in AnnotationDependencySpec>): AnnotationDependencySpec {
+        return objects.newInstance<AnnotationDependencySpec>().also(action::execute)
+    }
+
+    override fun createMarkAnnotation(action: Action<in MarkAnnotationSpec>): MarkAnnotationSpec {
+        return objects.newInstance<MarkAnnotationSpec>().also(action::execute)
+    }
+
+    override fun createFunctionInfo(action: Action<in FunctionInfoSpec>): FunctionInfoSpec {
+        return objects.newInstance<FunctionInfoSpec>().also(action::execute)
+    }
+
+    override fun createIncludeAnnotation(action: Action<in IncludeAnnotationSpec>): IncludeAnnotationSpec {
+        return objects.newInstance<IncludeAnnotationSpec>().also(action::execute)
+    }
+
+    override fun createRuntimeDependency(action: Action<in RuntimeDependencySpec>): RuntimeDependencySpec {
+        return objects.newInstance<RuntimeDependencySpec>().also(action::execute)
+    }
+
+    override fun createTransformFunctionInfo(action: Action<in FunctionInfoSpec>): FunctionInfoSpec {
+        return objects.newInstance<FunctionInfoSpec>().also(action::execute)
+    }
+
+    override fun createTransformer(action: Action<in TransformerSpec>): TransformerSpec {
+        return objects.newInstance<TransformerSpec>().also(action::execute)
+    }
+}
 
 /**
  * @since 0.12.0
@@ -57,11 +147,27 @@ interface SuspendTransformPluginExtensionClassInfoSpec : SuspendTransformPluginE
 abstract class TransformersContainer
 @Inject constructor(
     private val objects: ObjectFactory
-) : SuspendTransformPluginExtensionSpec {
+) : SuspendTransformPluginExtensionSpec,
+    SuspendTransformPluginExtensionSpecFactoryAware {
+    override val factory: SuspendTransformPluginExtensionSpecFactory =
+        SuspendTransformPluginExtensionSpecFactoryImpl(objects)
+
+    //     mutableMapOf()
     internal val containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
-        mutableMapOf()
+        EnumMap(TargetPlatform::class.java)
+    // TODO Maybe ...
+    //  containers: NamedDomainObjectContainer<TransformerSpecContainer> =
+    //     objects.domainObjectContainer(TransformerSpecContainer::class.java) { name ->
+    //         objects.newInstance(TransformerSpecContainer::class.java, name)
+    //     }
+    //  abstract class TransformerSpecContainer @Inject constructor(name: String) {
+    //      val targetPlatform: TargetPlatform = TargetPlatform.valueOf(name)
+    //      abstract val transformerSet: DomainObjectSet<TransformerSpec>
+    //  }
+
 
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
+        // return containers.maybeCreate(platform.name).transformerSet
         return containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
     }
 
@@ -76,27 +182,27 @@ abstract class TransformersContainer
      * Create a [TransformerSpec] but not add.
      */
     fun createTransformer(action: TransformerSpec.() -> Unit): TransformerSpec {
-        return objects.newInstance<TransformerSpec>().also(action)
+        return factory.createTransformer(action)
     }
 
     fun add(platform: TargetPlatform, action: Action<in TransformerSpec>) {
-        val listProperty = getTransformersInternal(platform)
-        listProperty.add(createTransformer(action))
+        val transformerSpecs = getTransformersInternal(platform)
+        transformerSpecs.add(createTransformer(action))
     }
 
     fun add(platform: TargetPlatform, action: TransformerSpec.() -> Unit) {
-        val listProperty = getTransformersInternal(platform)
-        listProperty.add(createTransformer(action))
+        val transformerSpecs = getTransformersInternal(platform)
+        transformerSpecs.add(createTransformer(action))
     }
 
     fun add(platform: TargetPlatform, transformer: TransformerSpec) {
-        val listProperty = getTransformersInternal(platform)
-        listProperty.add(transformer)
+        val transformerSpecs = getTransformersInternal(platform)
+        transformerSpecs.add(transformer)
     }
 
     fun add(platform: TargetPlatform, transformer: Provider<TransformerSpec>) {
-        val listProperty = getTransformersInternal(platform)
-        listProperty.add(transformer)
+        val transformerSpecs = getTransformersInternal(platform)
+        transformerSpecs.add(transformer)
     }
 
     fun add(platform: TargetPlatform, transformer: Transformer) {
