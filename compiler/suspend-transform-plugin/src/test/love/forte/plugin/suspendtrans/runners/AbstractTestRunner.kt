@@ -4,10 +4,11 @@ import love.forte.plugin.suspendtrans.services.SuspendTransformerEnvironmentConf
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
-import org.jetbrains.kotlin.test.configuration.commonConfigurationForTest
+import org.jetbrains.kotlin.test.configuration.commonConfigurationForJvmTest
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.FIR_PARSER
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
@@ -59,19 +60,20 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
 
         when (targetFrontend) {
             FrontendKinds.ClassicFrontend -> {
-                builder.commonConfigurationForTest(
+                builder.commonConfigurationForJvmTest(
                     FrontendKinds.ClassicFrontend,
                     ::ClassicFrontendFacade,
                     ::ClassicFrontend2IrConverter,
-                    // ::JvmIrBackendFacade
+                    ::JvmIrBackendFacade
                 ) // { }
             }
+
             FrontendKinds.FIR -> {
-                builder.commonConfigurationForTest(
+                builder.commonConfigurationForJvmTest(
                     FrontendKinds.FIR,
                     ::FirFrontendFacade,
                     ::Fir2IrResultsConverter,
-                    // ::JvmIrBackendFacade
+                    ::JvmIrBackendFacade
                 ) // { }
             }
         }

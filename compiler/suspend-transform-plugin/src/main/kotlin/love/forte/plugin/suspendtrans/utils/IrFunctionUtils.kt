@@ -78,7 +78,8 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
             addField(it.name.identifierOrMappedSpecialName.synthesizedName, it.type)
         }
 
-        createImplicitParameterDeclarationWithWrappedDescriptor()
+        // createImplicitParameterDeclarationWithWrappedDescriptor()
+        createThisReceiverParameter()
 
         addConstructor {
             isPrimary = true

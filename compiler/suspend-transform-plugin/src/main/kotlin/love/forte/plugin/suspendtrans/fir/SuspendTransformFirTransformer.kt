@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
-import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
@@ -57,7 +56,6 @@ import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
-import org.jetbrains.kotlin.realElement
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -361,7 +359,8 @@ class SuspendTransformFirTransformer(
             this.origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
             this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef
             this.hasExplicitParameterList = false
-            this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+            // this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+            this.status = this.status.copy(isSuspend = true)
             this.symbol = FirAnonymousFunctionSymbol()
             this.body = buildSingleExpressionBlock(
                 buildReturnExpression {
@@ -845,11 +844,11 @@ class SuspendTransformFirTransformer(
             ) processOverridden@{ overriddenFunction ->
                 if (!isOverride) {
                     // check parameters and receivers
-                    val symbolReceiver = overriddenFunction.receiverParameter
-                    val originReceiver = func.receiverParameter
+                    val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
+                    val originReceiverTypeRef = func.resolvedReceiverTypeRef
 
                     // origin receiver should be the same as symbol receiver
-                    if (originReceiver?.typeRef != symbolReceiver?.typeRef) {
+                    if (originReceiverTypeRef != resolvedReceiverTypeRef) {
                         return@processOverridden
                     }
 
@@ -1196,7 +1195,7 @@ class SuspendTransformFirTransformer(
                 .filter { it.callableId.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
-                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                    thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
                 }
                 .any()
         } else {
@@ -1214,7 +1213,7 @@ class SuspendTransformFirTransformer(
                 .filter { it.callableId.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
-                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                    thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
                 }
                 // overridable value parameters
                 .filter {

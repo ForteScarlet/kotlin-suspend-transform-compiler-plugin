@@ -331,6 +331,6 @@ private infix fun IrTypeParameter.isSameAs(typeParameter: TypeParameter): Boolea
 }
 
 private infix fun IrValueParameter.isSameAs(valueParameter: ValueParameter): Boolean {
-    if (index != valueParameter.index) return false
+    if (indexInParameters != valueParameter.index) return false
     return type.classFqName == valueParameter.type?.asSingleFqName()
 }
