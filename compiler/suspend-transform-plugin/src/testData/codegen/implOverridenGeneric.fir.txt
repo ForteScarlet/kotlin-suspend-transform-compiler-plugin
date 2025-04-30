@@ -157,7 +157,7 @@ FILE: Main.kt
             )
         }
 
-        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun R|kotlin/Int|.data3Blocking(): R|T| {
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open override fun R|kotlin/Int|.data3Blocking(): R|T| {
             ^data3Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
                 ^ (this@R|/FooInterface3Impl|, this@R|/FooInterface3Impl.data3Blocking|).R|/FooInterface3Impl.data3|()
             }
@@ -225,7 +225,7 @@ FILE: Main.kt
             )
         }
 
-        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun R|kotlin/Int|.data3Blocking(): R|T| {
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open override fun R|kotlin/Int|.data3Blocking(): R|T| {
             ^data3Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
                 ^ (this@R|/FooInterface4Impl|, this@R|/FooInterface4Impl.data3Blocking|).R|/FooInterface4Impl.data3|()
             }

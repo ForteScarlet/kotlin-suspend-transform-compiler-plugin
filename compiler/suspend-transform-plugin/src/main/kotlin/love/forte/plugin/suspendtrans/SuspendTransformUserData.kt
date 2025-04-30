@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneTypeOrNull
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrConst
@@ -89,8 +90,8 @@ fun OriginFunctionSymbol.isSame(irFunction: IrFunction): Boolean {
 
 
     // valueParameters
-    val irFunctionValueParameters = irFunction.valueParameters
-    if (irFunction.valueParameters.size != valueParameters.size) return false
+    val irFunctionValueParameters = irFunction.valueParameters0()
+    if (irFunctionValueParameters.size != valueParameters.size) return false
 
     for ((index, valueParameter) in irFunctionValueParameters.withIndex()) {
         val targetValueParameter = valueParameters[index]
@@ -305,7 +306,7 @@ fun OriginSymbol.checkSame(markerId: String, declaration: IrFunction): Boolean {
     }
 
     // valueParameters
-    val declarationValueParameters = declaration.valueParameters
+    val declarationValueParameters = declaration.valueParameters0()
     if (valueParameters.size != declarationValueParameters.size) return false
     for ((index, valueParameter) in declarationValueParameters.withIndex()) {
         val targetValueParameter = valueParameters[index]
@@ -334,3 +335,7 @@ private infix fun IrValueParameter.isSameAs(valueParameter: ValueParameter): Boo
     if (indexInParameters != valueParameter.index) return false
     return type.classFqName == valueParameter.type?.asSingleFqName()
 }
+
+
+internal fun IrFunction.valueParameters0() =
+    parameters.filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }

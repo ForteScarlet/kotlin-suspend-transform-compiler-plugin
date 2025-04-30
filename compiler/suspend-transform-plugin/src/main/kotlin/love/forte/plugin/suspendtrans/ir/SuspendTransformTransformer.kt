@@ -10,6 +10,7 @@ import love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key
 import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
+import love.forte.plugin.suspendtrans.valueParameters0
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.wasm.ir2wasm.getSourceLocation
@@ -370,8 +371,8 @@ private fun generateTransformBodyForFunction(
     transformTargetFunctionCall: IrSimpleFunctionSymbol,
 ): IrBody {
     // default params
-    val originValueParameters = originFunction.valueParameters
-    function.valueParameters.forEachIndexed { index, parameter ->
+    val originValueParameters = originFunction.valueParameters0()
+    function.valueParameters0().forEachIndexed { index, parameter ->
         val originFunctionValueParameter = originValueParameters[index]
         parameter.defaultValue = originFunctionValueParameter.defaultValue
     }
@@ -385,18 +386,18 @@ private fun generateTransformBodyForFunction(
         ).also { +it }
 
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(0, irCall(suspendLambda.primaryConstructor!!).apply {
+            arguments[0] = irCall(suspendLambda.primaryConstructor!!).apply {
                 for ((index, parameter) in function.paramsAndReceiversAsParamsList().withIndex()) {
-                    putValueArgument(index, irGet(parameter))
+                    arguments[index] = irGet(parameter)
                 }
-            })
+            }
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             //println("transformTargetFunctionCall.owner: ${transformTargetFunctionCall.owner}")
             //println(transformTargetFunctionCall.owner.valueParameters)
             val owner = transformTargetFunctionCall.owner
 
             // CoroutineScope
-            val ownerValueParameters = owner.valueParameters
+            val ownerValueParameters = owner.valueParameters0()
 
             if (ownerValueParameters.size > 1) {
                 for (index in 1..ownerValueParameters.lastIndex) {
@@ -421,8 +422,8 @@ private fun generateTransformBodyForFunctionLambda(
     transformTargetFunctionCall: IrSimpleFunctionSymbol,
 ): IrBody {
     // 不为null，说明是直接生成。否则是bridge
-    originFunction?.valueParameters?.also { originValueParameters ->
-        function.valueParameters.forEachIndexed { index, parameter ->
+    originFunction?.valueParameters0()?.also { originValueParameters ->
+        function.valueParameters0().forEachIndexed { index, parameter ->
             val originFunctionValueParameter = originValueParameters[index]
             parameter.defaultValue = originFunctionValueParameter.defaultValue
         }
@@ -447,17 +448,17 @@ private fun generateTransformBodyForFunctionLambda(
             )
         } else {
             // is bridge fun, use the first param `block`
-            val blockParameter = function.valueParameters.first()
+            val blockParameter = function.valueParameters0().first()
             irGet(blockParameter)
         }
 
         +irReturn(irCall(transformTargetFunctionCall).apply {
-            putValueArgument(0, lambdaExpression)
+            arguments[0] = lambdaExpression
 
             val transformFunctionOwner = transformTargetFunctionCall.owner
 
             // CoroutineScope
-            val ownerValueParameters = transformFunctionOwner.valueParameters
+            val ownerValueParameters = transformFunctionOwner.valueParameters0()
 
             // argument: 1, if is CoroutineScope, and this is CoroutineScope.
             if (ownerValueParameters.size > 1) {
@@ -507,11 +508,11 @@ private fun IrCall.tryResolveCoroutineScopeValueParameter(
         context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                 // put 'this' to the arg
-                putValueArgument(index, builderWithScope.irGet(dispatchReceiverParameter))
+                arguments[index] = builderWithScope.irGet(dispatchReceiverParameter)
             } else {
                 val scopeType = coroutineScopeRef.defaultType
 
-                val scopeParameter = owner.valueParameters.getOrNull(1)
+                val scopeParameter = owner.valueParameters0().getOrNull(1)
 
                 if (scopeParameter?.type?.isNullable() == true) {
                     val irSafeAs = IrTypeOperatorCallImpl(
@@ -523,7 +524,7 @@ private fun IrCall.tryResolveCoroutineScopeValueParameter(
                         builderWithScope.irGet(dispatchReceiverParameter)
                     )
 
-                    putValueArgument(index, irSafeAs)
+                    arguments[index] = irSafeAs
                 }
 //                                irAs(irGet(dispatchReceiverParameter), coroutineScopeRef.defaultType)
             }
