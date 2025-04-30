@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
-import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctions
+import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctionsSafe
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
@@ -839,7 +839,8 @@ class SuspendTransformFirTransformer(
         val markAnnotation = syntheticFunData.transformer.markAnnotation
 
         if (func.isOverride && !isOverride) {
-            func.processOverriddenFunctions(
+            // func.processOverriddenFunctionsSafe()
+            func.processOverriddenFunctionsSafe(
                 checkContext
             ) processOverridden@{ overriddenFunction ->
                 if (!isOverride) {
@@ -1189,7 +1190,8 @@ class SuspendTransformFirTransformer(
                     it.toRegularClassSymbol(session)
                 }
                 .flatMap {
-                    it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
+                    it.declaredProperties(session)
+                    // it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
                 }
                 .filter { !it.isFinal }
                 .filter { it.callableId.callableName == functionName }
@@ -1205,7 +1207,8 @@ class SuspendTransformFirTransformer(
                     it.toRegularClassSymbol(session)
                 }
                 .flatMap {
-                    it.declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>()
+                    it.declaredFunctions(session)
+                    // it.declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>()
                 }
                 // not final, overridable
                 .filter { !it.isFinal }
