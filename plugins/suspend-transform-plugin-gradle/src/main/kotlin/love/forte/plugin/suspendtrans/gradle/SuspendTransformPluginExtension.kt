@@ -27,6 +27,9 @@ annotation class SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionSpec
 
 /**
+ * SuspendTransform plugin extension class info specification interface.
+ * Used for configuring class information related functionality.
+ *
  * @since 0.12.0
  */
 @SuspendTransformPluginExtensionSpecDslMarker
@@ -772,6 +775,15 @@ abstract class MarkAnnotationSpec
     val defaultAsProperty: Property<Boolean> =
         objects.property(Boolean::class.java).convention(false)
 
+    /**
+     * @since 0.13.0
+     */
+    abstract val markNameProperty: Property<MarkNamePropertySpec>
+
+    fun markNameProperty(action: Action<out MarkNamePropertySpec>) {
+        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()))
+    }
+
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
             from(markAnnotation.classInfo)
@@ -785,14 +797,28 @@ abstract class MarkAnnotationSpec
 }
 
 /**
- * @see ClassInfo
+ * Specification interface for class name information.
+ * Used to define properties for package name and class name.
+ *
+ * @since 0.13.0
  */
-/**
- * @since 0.12.0
- */
-interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
+interface ClassNameSpec : SuspendTransformPluginExtensionSpec {
     val packageName: Property<String>
     val className: Property<String>
+
+    fun from(classInfo: ClassInfo) {
+        packageName.set(classInfo.packageName)
+        className.set(classInfo.className)
+    }
+}
+
+/**
+ * @see ClassInfo
+ * @since 0.12.0
+ */
+interface ClassInfoSpec : SuspendTransformPluginExtensionSpec, ClassNameSpec {
+    override val packageName: Property<String>
+    override val className: Property<String>
 
     /**
      * Default value is `false`
@@ -804,7 +830,7 @@ interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
      */
     val nullable: Property<Boolean>
 
-    fun from(classInfo: ClassInfo) {
+    override fun from(classInfo: ClassInfo) {
         packageName.set(classInfo.packageName)
         className.set(classInfo.className)
         local.set(classInfo.local)
@@ -813,12 +839,79 @@ interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
 }
 
 /**
+ * @since 0.13.0
+ */
+abstract class MarkNamePropertySpec
+@Inject constructor(private val objects: ObjectFactory) :
+    SuspendTransformPluginExtensionSpec {
+    /**
+     * The property name for `markName` in [MarkAnnotation],
+     * e.g. `markName` in `@JvmBlocking(markName = "...")`.
+     *
+     * Default is `"markName"`.
+     */
+    abstract val propertyName: Property<String>
+
+    /**
+     * The name marker annotation.
+     */
+    abstract val annotation: Property<MarkNameAnnotationSpec>
+
+    fun annotation(action: Action<in MarkNameAnnotationSpec>) {
+        annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action::execute))
+    }
+
+    fun annotation(action: MarkNameAnnotationSpec.() -> Unit) {
+        annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action))
+    }
+
+    fun from(markNameProperty: MarkNameProperty) {
+        propertyName.set(markNameProperty.propertyName)
+        annotation {
+            from(markNameProperty.annotation)
+            propertyName.set(markNameProperty.annotationMarkNamePropertyName)
+        }
+    }
+
+    companion object {
+        const val DEFAULT_PROPERTY_NAME: String = "markName"
+    }
+}
+
+/**
+ * A specification for name marker annotation.
+ *
+ * @see MarkNameProperty
+ *
+ * @since 0.13.0
+ */
+abstract class MarkNameAnnotationSpec
+@Inject constructor(private val objects: ObjectFactory) :
+    SuspendTransformPluginExtensionSpec, ClassNameSpec {
+    abstract override val className: Property<String>
+    abstract override val packageName: Property<String>
+
+    /**
+     * The name's property name,
+     * e.g. `name` of `@JsName(name = "...")`, `name` of `@JvmName(name = "...")`, etc.
+     */
+    abstract val propertyName: Property<String>
+}
+
+/**
+ * Function information specification interface for configuring function-related properties
+ *
+ * @property packageName The package name property
+ * @property functionName The function name property
  * @since 0.12.0
  */
 interface FunctionInfoSpec : SuspendTransformPluginExtensionSpec {
     val packageName: Property<String>
     val functionName: Property<String>
 
+    /**
+     * Configures the specification from an existing [FunctionInfo] instance
+     */
     fun from(functionInfo: FunctionInfo) {
         packageName.set(functionInfo.packageName)
         functionName.set(functionInfo.functionName)
@@ -886,7 +979,26 @@ internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
         suffixProperty = suffixProperty.get(),
         asPropertyProperty = asPropertyProperty.get(),
         defaultSuffix = defaultSuffix.get(),
-        defaultAsProperty = defaultAsProperty.get()
+        defaultAsProperty = defaultAsProperty.get(),
+        markNameProperty = markNameProperty.orNull?.toMarkNameProperty()
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+internal fun MarkNameAnnotationSpec.toClassInfo(): ClassInfo {
+    return ClassInfo(
+        packageName = packageName.get(),
+        className = className.get(),
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+internal fun MarkNamePropertySpec.toMarkNameProperty(): MarkNameProperty {
+    val annotation = annotation.get()
+    return MarkNameProperty(
+        propertyName = propertyName.getOrElse(MarkNamePropertySpec.DEFAULT_PROPERTY_NAME),
+        annotation = annotation.toClassInfo(),
+        annotationMarkNamePropertyName = annotation.propertyName.get()
     )
 }
 
@@ -917,4 +1029,4 @@ internal fun IncludeAnnotationSpec.toIncludeAnnotation(): IncludeAnnotation {
     )
 }
 
-private inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)
+internal inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)

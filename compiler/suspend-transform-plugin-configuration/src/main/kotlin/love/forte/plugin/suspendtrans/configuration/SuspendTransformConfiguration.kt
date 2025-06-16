@@ -3,7 +3,7 @@ package love.forte.plugin.suspendtrans.configuration
 import kotlinx.serialization.Serializable
 
 // NOTE:
-//   可序列号的配置信息均使用 `Protobuf` 进行序列化
+//   配置信息均使用 `Protobuf` 进行序列化
 //   虽然序列化行为是内部的，但是还是应该尽可能避免出现字段的顺序错乱或删改。
 
 @RequiresOptIn(
@@ -77,7 +77,7 @@ enum class TargetPlatform {
 }
 
 /**
- * 用于标记的注解信息.
+ * 用于标记的注解信息, 例如 `@JvmBlocking`, `@JvmAsync`, `@JsPromise`.
  */
 @Serializable
 class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
@@ -105,6 +105,13 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
      * 当 [asPropertyProperty] 不存在时使用的默认值
      */
     val defaultAsProperty: Boolean = false,
+
+    /**
+     * A name marker like `@JsName`, `@JvmName`, etc.
+     *
+     * @since 0.13.0
+     */
+    val markNameProperty: MarkNameProperty? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -116,6 +123,7 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
         if (suffixProperty != other.suffixProperty) return false
         if (asPropertyProperty != other.asPropertyProperty) return false
         if (defaultSuffix != other.defaultSuffix) return false
+        if (markNameProperty != other.markNameProperty) return false
 
         return true
     }
@@ -127,11 +135,57 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
         result = 31 * result + suffixProperty.hashCode()
         result = 31 * result + asPropertyProperty.hashCode()
         result = 31 * result + defaultSuffix.hashCode()
+        result = 31 * result + (markNameProperty?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty)"
+        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty, markName=$markNameProperty)"
+    }
+}
+
+/**
+ * The `markName`'s information.
+ * @since 0.13.0
+ */
+@Serializable
+class MarkNameProperty @InternalSuspendTransformConfigurationApi constructor(
+    /**
+     * The `markName`'s property name of the mark annotation.
+     * e.g. `markName` of `@JsPromise(markName = "foo")
+     */
+    val propertyName: String,
+    /**
+     * The name marker annotation's class info,
+     * e.g. `@JsName`, `@JvmName`, etc.
+     */
+    val annotation: ClassInfo,
+    /**
+     * The name property of name marker annotation,
+     * e.g. `name` of `@JsName(name = "...")`.
+     */
+    val annotationMarkNamePropertyName: String,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MarkNameProperty) return false
+
+        if (propertyName != other.propertyName) return false
+        if (annotation != other.annotation) return false
+        if (annotationMarkNamePropertyName != other.annotationMarkNamePropertyName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = propertyName.hashCode()
+        result = 31 * result + annotation.hashCode()
+        result = 31 * result + annotationMarkNamePropertyName.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "MarkName(annotation=$annotation, propertyName='$propertyName', annotationMarkNamePropertyName='$annotationMarkNamePropertyName')"
     }
 }
 
