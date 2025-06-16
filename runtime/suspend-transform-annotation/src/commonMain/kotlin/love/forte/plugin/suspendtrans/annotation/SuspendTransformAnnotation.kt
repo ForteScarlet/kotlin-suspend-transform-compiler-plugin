@@ -62,7 +62,19 @@ public expect annotation class JvmBlocking(
      * Note: If [asProperty] == `true`, the function cannot have parameters.
      *
      */
-    val asProperty: Boolean = false
+    val asProperty: Boolean = false,
+
+    /**
+     * The name of `@JvmName`.
+     * Valid when not empty.
+     *
+     * If multiple markNames are effective for the same function on the same platform,
+     * an exception will be generated during the compilation period.
+     *
+     * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
+     * @since 0.13.0
+     */
+    val markName: String = "",
 )
 
 /**
@@ -101,7 +113,19 @@ public expect annotation class JvmAsync(
      *
      * Note: If [asProperty] == `true`, the function cannot have parameters.
      */
-    val asProperty: Boolean = false
+    val asProperty: Boolean = false,
+
+    /**
+     * The name of `@JvmName`.
+     * Valid when not empty.
+     *
+     * If multiple markNames are effective for the same function on the same platform,
+     * an exception will be generated during the compilation period.
+     *
+     * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
+     * @since 0.13.0
+     */
+    val markName: String = "",
 )
 
 
@@ -125,5 +149,16 @@ public expect annotation class JsPromise(
      * Note: If [asProperty] == `true`, the function cannot have parameters.
      *
      */
-    val asProperty: Boolean = false
+    val asProperty: Boolean = false,
+
+    /**
+     * The name of `@JsName`.
+     * Valid when not empty.
+     *
+     * If multiple markNames are effective for the same function on the same platform,
+     * an exception will be generated during the compilation period.
+     *
+     * @since 0.13.0
+     */
+    val markName: String = "",
 )
