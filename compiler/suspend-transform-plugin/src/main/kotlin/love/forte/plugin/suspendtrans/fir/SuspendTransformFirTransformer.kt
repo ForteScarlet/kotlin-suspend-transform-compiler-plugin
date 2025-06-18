@@ -5,7 +5,10 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.TargetPlatform
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.fqn
-import love.forte.plugin.suspendtrans.utils.*
+import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
+import love.forte.plugin.suspendtrans.utils.includeAnnotations
+import love.forte.plugin.suspendtrans.utils.toClassId
+import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fakeElement
@@ -56,6 +59,7 @@ import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -788,12 +792,9 @@ class SuspendTransformFirTransformer(
                     )
 
                     valueParameters.addAll(original.valueParameters)
-//                    typeParameters.addAll(original.typeParameters)
-//                    contextReceivers.addAll(original.contextReceivers)
 
                     copyParameters(originalTypeParameterCache, false, propertyAccessorSymbol)
 
-//                    val thisContextReceivers = this.contextReceivers
                     val thisValueParameters = this.valueParameters
 
                     body = generateSyntheticFunctionBody(
@@ -814,10 +815,6 @@ class SuspendTransformFirTransformer(
             }
 
             propList.add(p1.symbol)
-
-//                if (targetMarkerAnnotation != null) {
-//                    original.appendTargetMarker(uniqueFunHash)
-//                }
 
             // 在原函数上附加的annotations
             original.includeAnnotations(includeToOriginal)
@@ -1002,6 +999,7 @@ class SuspendTransformFirTransformer(
         annotationBaseNamePropertyName = markAnnotation.baseNameProperty,
         annotationSuffixPropertyName = markAnnotation.suffixProperty,
         annotationAsPropertyPropertyName = markAnnotation.asPropertyProperty,
+        annotationMarkNamePropertyName = markAnnotation.markNameProperty?.propertyName,
         defaultBaseName = sourceFunctionName,
         defaultSuffix = markAnnotation.defaultSuffix,
         defaultAsProperty = markAnnotation.defaultAsProperty,
@@ -1070,12 +1068,11 @@ class SuspendTransformFirTransformer(
 
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
 
-        val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
-            transformer.copyAnnotationsToSyntheticFunction,
-            transformer.copyAnnotationsToSyntheticProperty,
-            transformer.copyAnnotationExcludes.map { it.toClassId() },
-            transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
-        )
+        val copyFunction = transformer.copyAnnotationsToSyntheticFunction
+        val copyProperty = transformer.copyAnnotationsToSyntheticProperty
+        val excludes = transformer.copyAnnotationExcludes.map { it.toClassId() }
+        val includes = transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
+        val markNameProperty = transformer.markAnnotation.markNameProperty
 
         val functionAnnotationList = buildList<FirAnnotation> {
             if (copyFunction) {
@@ -1119,6 +1116,33 @@ class SuspendTransformFirTransformer(
                     }
                 }
                 add(includeAnnotation)
+            }
+
+            if (markNameProperty != null) {
+                // Add name marker annotation if it's possible
+                val markName = syntheticFunData.annotationData.markName
+                if (markName != null) {
+                    // Find the marker annotation, e.g., JvmName
+                    val markNameAnnotation = buildAnnotation {
+                        argumentMapping = buildAnnotationArgumentMapping {
+                            val markNameArgument = buildLiteralExpression(
+                                source = original.source,
+                                kind = ConstantValueKind.String,
+                                value = markName,
+                                setType = false
+                            )
+
+                            val annotationMarkNamePropertyName = markNameProperty.annotationMarkNamePropertyName
+                            mapping[Name.identifier(annotationMarkNamePropertyName)] = markNameArgument
+                        }
+                        val markNameAnnotationClassId = markNameProperty.annotation.toClassId()
+                        annotationTypeRef = buildResolvedTypeRef {
+                            coneType = markNameAnnotationClassId.createConeType(session)
+                        }
+                    }
+
+                    add(markNameAnnotation)
+                }
             }
         }
 
