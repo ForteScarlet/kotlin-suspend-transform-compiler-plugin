@@ -401,6 +401,8 @@ class SuspendTransformFirTransformer(
                         })
 
                         // TODO What is explicitReceiver?
+                        // this.explicitReceiver
+
                         this.extensionReceiver = thisReceiverParameter?.let { thisReceiverParameter ->
                             buildThisReceiverExpression {
                                 coneTypeOrNull = thisReceiverParameter.typeRef.coneTypeOrNull

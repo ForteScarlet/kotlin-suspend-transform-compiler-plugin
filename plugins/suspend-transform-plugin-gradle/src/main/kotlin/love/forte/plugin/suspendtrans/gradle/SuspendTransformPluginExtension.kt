@@ -155,7 +155,6 @@ abstract class TransformersContainer
     override val factory: SuspendTransformPluginExtensionSpecFactory =
         SuspendTransformPluginExtensionSpecFactoryImpl(objects)
 
-    //     mutableMapOf()
     internal val containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
         EnumMap(TargetPlatform::class.java)
     // TODO Maybe ...
@@ -170,7 +169,6 @@ abstract class TransformersContainer
 
 
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
-        // return containers.maybeCreate(platform.name).transformerSet
         return containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
     }
 
@@ -857,10 +855,16 @@ abstract class MarkNamePropertySpec
      */
     abstract val annotation: Property<MarkNameAnnotationSpec>
 
+    /**
+     * The name marker annotation.
+     */
     fun annotation(action: Action<in MarkNameAnnotationSpec>) {
         annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action::execute))
     }
 
+    /**
+     * The name marker annotation.
+     */
     fun annotation(action: MarkNameAnnotationSpec.() -> Unit) {
         annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action))
     }
@@ -885,17 +889,15 @@ abstract class MarkNamePropertySpec
  *
  * @since 0.13.0
  */
-abstract class MarkNameAnnotationSpec
-@Inject constructor(private val objects: ObjectFactory) :
-    SuspendTransformPluginExtensionSpec, ClassNameSpec {
-    abstract override val className: Property<String>
-    abstract override val packageName: Property<String>
+interface MarkNameAnnotationSpec : SuspendTransformPluginExtensionSpec, ClassNameSpec {
+    override val className: Property<String>
+    override val packageName: Property<String>
 
     /**
      * The name's property name,
      * e.g. `name` of `@JsName(name = "...")`, `name` of `@JvmName(name = "...")`, etc.
      */
-    abstract val propertyName: Property<String>
+    val propertyName: Property<String>
 }
 
 /**

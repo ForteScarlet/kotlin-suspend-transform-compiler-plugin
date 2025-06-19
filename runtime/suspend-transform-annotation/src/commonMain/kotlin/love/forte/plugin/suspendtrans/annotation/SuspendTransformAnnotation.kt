@@ -68,8 +68,18 @@ public expect annotation class JvmBlocking(
      * The name of `@JvmName`.
      * Valid when not empty.
      *
-     * If multiple markNames are effective for the same function on the same platform,
-     * an exception will be generated during the compilation period.
+     * If [markName] is valid, [kotlin.jvm.JvmName] will be annotated on the generated function.
+     *
+     * For example:
+     *
+     * ```Kotlin
+     * @JvmBlocking(markName = "markName_foo")
+     * suspend fun foo(): String = "..."
+     *
+     * // The generated fun:
+     * @JvmName(name = "markName_foo")
+     * fun fooBlocking(): String = runBlocking { foo() }
+     * ```
      *
      * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
      * @since 0.13.0
@@ -116,11 +126,21 @@ public expect annotation class JvmAsync(
     val asProperty: Boolean = false,
 
     /**
-     * The name of `@JvmName`.
+     * The name of [@JvmName][kotlin.jvm.JvmName].
      * Valid when not empty.
      *
-     * If multiple markNames are effective for the same function on the same platform,
-     * an exception will be generated during the compilation period.
+     * If [markName] is valid, [@JvmName][kotlin.jvm.JvmName] will be annotated on the generated function.
+     *
+     * For example:
+     *
+     * ```Kotlin
+     * @JvmBlocking(markName = "markName_foo")
+     * suspend fun foo(): String = "..."
+     *
+     * // The generated fun:
+     * @JvmName(name = "markName_foo")
+     * fun fooBlocking(): String = runBlocking { foo() }
+     * ```
      *
      * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
      * @since 0.13.0
@@ -152,11 +172,22 @@ public expect annotation class JsPromise(
     val asProperty: Boolean = false,
 
     /**
-     * The name of `@JsName`.
+     * The name of [@JsName][kotlin.js.JsName].
      * Valid when not empty.
      *
-     * If multiple markNames are effective for the same function on the same platform,
-     * an exception will be generated during the compilation period.
+     * If [markName] is valid, [@JsName][kotlin.js.JsName] will be annotated on the generated function.
+     *
+     * For example:
+     *
+     * ```Kotlin
+     * @JsPromise(markName = "markName_foo")
+     * suspend fun foo(): String = "..."
+     *
+     * // The generated fun:
+     * @JsName(name = "markName_foo")
+     * fun fooAsync(): Promise<out String> = runAsync { foo() }
+     * ```
+     *
      *
      * @since 0.13.0
      */

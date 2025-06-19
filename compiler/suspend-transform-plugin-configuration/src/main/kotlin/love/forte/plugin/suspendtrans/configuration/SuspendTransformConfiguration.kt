@@ -391,10 +391,10 @@ object SuspendTransformConfigurations {
     private const val SUSPENDTRANS_ANNOTATION_PACKAGE = "love.forte.plugin.suspendtrans.annotation"
     private const val SUSPENDTRANS_RUNTIME_PACKAGE = "love.forte.plugin.suspendtrans.runtime"
 
-    private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME = "\$runInBlocking\$"
-    private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync\$"
+    private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME = "\$runInBlocking$"
+    private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
 
-    private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync\$"
+    private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
 
     //region Commons
     @JvmStatic
@@ -447,6 +447,16 @@ object SuspendTransformConfigurations {
         defaultSuffix = "Async"
     )
 
+    /**
+     * The `kotlin.jvm.JvmName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jvmNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JVM,
+        className = "JvmName"
+    )
+
     @JvmStatic
     val jvmAsyncTransformFunction = FunctionInfo(
         packageName = SUSPENDTRANS_RUNTIME_PACKAGE,
@@ -472,6 +482,7 @@ object SuspendTransformConfigurations {
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jvmNameAnnotationClassInfo,
         ),
     )
 
@@ -491,6 +502,7 @@ object SuspendTransformConfigurations {
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jvmNameAnnotationClassInfo,
         ),
     )
     //endregion
@@ -526,6 +538,16 @@ object SuspendTransformConfigurations {
         defaultSuffix = "Async"
     )
 
+    /**
+     * The `kotlin.js.JsName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jsNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JS,
+        className = "JsName"
+    )
+
     @JvmStatic
     val jsAsyncTransformFunction = FunctionInfo(
         SUSPENDTRANS_RUNTIME_PACKAGE,
@@ -546,6 +568,7 @@ object SuspendTransformConfigurations {
         copyAnnotationExcludes = listOf(
             jsAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jsNameAnnotationClassInfo,
         )
     )
     //endregion
