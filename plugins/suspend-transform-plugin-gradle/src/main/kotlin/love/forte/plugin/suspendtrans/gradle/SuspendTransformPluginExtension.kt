@@ -6,6 +6,7 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -385,7 +386,7 @@ internal data class TransformerEntry(
 )
 
 @OptIn(InternalSuspendTransformConfigurationApi::class)
-internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
+internal fun SuspendTransformPluginExtension.toConfigurationProvider(project: Project, objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
     val combines = objects.listProperty(TransformerEntry::class.java)
     for ((targetPlatform, transformerListProperty) in transformers.containers) {
         combines.addAll(
@@ -409,7 +410,9 @@ internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: Ob
             valueTransform = { it.transformers }
         )
 
-        // 此处 `Map` 可能为 空，但是 `List` 不会有空的。
+        project.logger.trace("Transformers: {}", transformersMap)
+
+        // 此处 `Map` 可能为空，但是 `List` 不会有空的。
         // 后续在使用的时候只需要判断一下 transformers 本身是不是空即可。
         SuspendTransformConfiguration(
             transformers = transformersMap
@@ -778,8 +781,12 @@ abstract class MarkAnnotationSpec
      */
     abstract val markNameProperty: Property<MarkNamePropertySpec>
 
-    fun markNameProperty(action: Action<out MarkNamePropertySpec>) {
-        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()))
+    fun markNameProperty(action: Action<in MarkNamePropertySpec>) {
+        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action::execute))
+    }
+
+    fun markNameProperty(action: MarkNamePropertySpec.() -> Unit) {
+        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action))
     }
 
     fun from(markAnnotation: MarkAnnotation) {
@@ -791,6 +798,14 @@ abstract class MarkAnnotationSpec
         asPropertyProperty.set(markAnnotation.asPropertyProperty)
         defaultSuffix.set(markAnnotation.defaultSuffix)
         defaultAsProperty.set(markAnnotation.defaultAsProperty)
+        // from markName, since 0.13.0
+        markAnnotation.markNameProperty?.also { markNameProperty ->
+            markNameProperty {
+                from(markNameProperty)
+
+            }
+        }
+
     }
 }
 
@@ -872,8 +887,7 @@ abstract class MarkNamePropertySpec
     fun from(markNameProperty: MarkNameProperty) {
         propertyName.set(markNameProperty.propertyName)
         annotation {
-            from(markNameProperty.annotation)
-            propertyName.set(markNameProperty.annotationMarkNamePropertyName)
+            from(markNameProperty)
         }
     }
 
@@ -898,6 +912,11 @@ interface MarkNameAnnotationSpec : SuspendTransformPluginExtensionSpec, ClassNam
      * e.g. `name` of `@JsName(name = "...")`, `name` of `@JvmName(name = "...")`, etc.
      */
     val propertyName: Property<String>
+
+    fun from(markNameProperty: MarkNameProperty) {
+        from(markNameProperty.annotation)
+        propertyName.set(markNameProperty.annotationMarkNamePropertyName)
+    }
 }
 
 /**

@@ -10,8 +10,6 @@ repositories {
     mavenLocal()
 }
 
-apply(plugin = "love.forte.plugin.suspend-transform")
-
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
     compilerOptions {
@@ -51,18 +49,6 @@ kotlin {
     }
 }
 
-// suspendTransformPlugin {
-//     includeRuntime = false
-//     includeAnnotation = false
-//     transformers {
-//         addJsPromise {
-//             addCopyAnnotationExclude {
-//                 from(kotlinJsExportIgnoreClassInfo)
-//             }
-//         }
-//     }
-// }
-
 suspendTransformPlugin {
     includeRuntime = false
     includeAnnotation = false
@@ -80,17 +66,3 @@ suspendTransformPlugin {
         }
     }
 }
-
-// extensions.getByType<SuspendTransformGradleExtension>().apply {
-//     includeRuntime = false
-//     includeAnnotation = false
-//
-//     transformers[TargetPlatform.JS] = mutableListOf(
-//         SuspendTransformConfiguration.jsPromiseTransformer.copy(
-//             copyAnnotationExcludes = listOf(
-//                 ClassInfo("kotlin.js", "JsExport.Ignore")
-//             )
-//         )
-//     )
-//
-// }

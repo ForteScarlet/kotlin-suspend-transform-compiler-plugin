@@ -111,7 +111,8 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
      *
      * @since 0.13.0
      */
-    val markNameProperty: MarkNameProperty? = null,
+    // 'null' is not supported for optional properties in ProtoBuf
+    val markNameProperty: MarkNameProperty?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

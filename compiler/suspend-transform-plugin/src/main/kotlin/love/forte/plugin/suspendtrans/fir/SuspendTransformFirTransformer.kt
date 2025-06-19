@@ -1127,11 +1127,12 @@ class SuspendTransformFirTransformer(
                     // Find the marker annotation, e.g., JvmName
                     val markNameAnnotation = buildAnnotation {
                         argumentMapping = buildAnnotationArgumentMapping {
+                            // org.jetbrains.kotlin.fir.java.JavaUtilsKt
                             val markNameArgument = buildLiteralExpression(
-                                source = original.source,
+                                source = null,
                                 kind = ConstantValueKind.String,
                                 value = markName,
-                                setType = false
+                                setType = true
                             )
 
                             val annotationMarkNamePropertyName = markNameProperty.annotationMarkNamePropertyName
