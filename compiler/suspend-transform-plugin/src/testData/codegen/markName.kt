@@ -8,7 +8,7 @@ import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
 class Foo {
     @JvmName("_foo")
-    @JvmAsync(markName = "foo")
-    @JvmBlocking(markName = "foo")
+    @JvmAsync(markName = "fooA")
+    @JvmBlocking(markName = "fooB")
     suspend fun foo(): String = "foo"
 }
