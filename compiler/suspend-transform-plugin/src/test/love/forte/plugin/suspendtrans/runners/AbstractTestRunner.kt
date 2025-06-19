@@ -4,11 +4,14 @@ import love.forte.plugin.suspendtrans.services.SuspendTransformerEnvironmentConf
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.test.backend.handlers.AsmLikeInstructionListingHandler
+import org.jetbrains.kotlin.test.backend.handlers.BytecodeListingHandler
 import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
 import org.jetbrains.kotlin.test.configuration.commonConfigurationForJvmTest
+import org.jetbrains.kotlin.test.directives.AsmLikeInstructionListingDirectives.CHECK_ASM_LIKE_INSTRUCTIONS
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.FIR_PARSER
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
@@ -56,6 +59,7 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
 
         builder.defaultDirectives {
             FIR_PARSER with FirParser.LightTree
+            +CHECK_ASM_LIKE_INSTRUCTIONS
         }
 
         when (targetFrontend) {
@@ -90,7 +94,12 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
 
         }
 
+        // We need to explicitly configure JVM artifacts handlers to generate .asm files
         builder.configureJvmArtifactsHandlersStep {
+            useHandlers(
+                ::BytecodeListingHandler,
+                ::AsmLikeInstructionListingHandler
+            )
         }
 
         builder.useConfigurators(

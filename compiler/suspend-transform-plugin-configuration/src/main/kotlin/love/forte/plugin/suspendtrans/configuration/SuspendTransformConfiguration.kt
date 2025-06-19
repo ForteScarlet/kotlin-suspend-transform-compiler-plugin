@@ -405,6 +405,17 @@ object SuspendTransformConfigurations {
     //endregion
 
     //region JVM Defaults
+
+    /**
+     * The `kotlin.jvm.JvmName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jvmNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JVM,
+        className = "JvmName"
+    )
+
     @JvmStatic
     val jvmSyntheticClassInfo = ClassInfo(
         packageName = KOTLIN_JVM,
@@ -426,7 +437,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jvmBlockingAnnotationInfo = MarkAnnotation(
         classInfo = jvmBlockingMarkAnnotationClassInfo,
-        defaultSuffix = "Blocking"
+        defaultSuffix = "Blocking",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jvmNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
@@ -444,17 +460,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jvmAsyncAnnotationInfo = MarkAnnotation(
         classInfo = jvmAsyncMarkAnnotationClassInfo,
-        defaultSuffix = "Async"
-    )
-
-    /**
-     * The `kotlin.jvm.JvmName`.
-     * @since 0.13.0
-     */
-    @JvmStatic
-    val jvmNameAnnotationClassInfo = ClassInfo(
-        packageName = KOTLIN_JVM,
-        className = "JvmName"
+        defaultSuffix = "Async",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jvmNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
@@ -508,6 +519,17 @@ object SuspendTransformConfigurations {
     //endregion
 
     //region JS Defaults
+
+    /**
+     * The `kotlin.js.JsName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jsNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JS,
+        className = "JsName"
+    )
+
     @JvmStatic
     val kotlinJsExportClassInfo = ClassInfo(
         packageName = KOTLIN_JS,
@@ -535,17 +557,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jsAsyncAnnotationInfo = MarkAnnotation(
         classInfo = jsAsyncMarkAnnotationClassInfo,
-        defaultSuffix = "Async"
-    )
-
-    /**
-     * The `kotlin.js.JsName`.
-     * @since 0.13.0
-     */
-    @JvmStatic
-    val jsNameAnnotationClassInfo = ClassInfo(
-        packageName = KOTLIN_JS,
-        className = "JsName"
+        defaultSuffix = "Async",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jsNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
