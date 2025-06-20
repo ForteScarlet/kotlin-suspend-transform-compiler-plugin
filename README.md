@@ -117,6 +117,69 @@ class Foo {
 }
 ```
 
+### MarkName
+
+> since v0.13.0, [#96](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/96)
+
+You can use `markName` to add a name mark annotation (e.g. `@JvmName`, `@JsName`) to the generated synthetic function.
+
+For example the JVM:
+
+```kotlin
+class Foo {
+    @JvmBlocking(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+```
+
+compiled 👇
+
+```kotlin
+class Foo {
+    // Hide from Java
+    @JvmSynthetic
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+    @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
+    @JvmName("namedWaitAndGet") // From the `markName`'s value
+    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' from the runtime provided by the plugin
+}
+```
+
+Note: `@JvmName` has limitations on non-final functions, and even the compiler may prevent compilation.
+
+For example the JS:
+
+```kotlin
+class Foo {
+    @JsPromise(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+```
+
+compiled 👇
+
+```kotlin
+class Foo {
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+  
+    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
+    @JsName("namedWaitAndGet") // From the `markName`'s value
+    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+}
+```
+
 ## Usage
 
 ### The version
@@ -246,7 +309,7 @@ You can also disable them and add dependencies manually.
 ```Kotlin
 plugin {
     kotlin("jvm") version "..." // Take the Kotlin/JVM as an example
-    id("love.forte.plugin.suspend-transform") version "2.1.20-0.12.0"
+    id("love.forte.plugin.suspend-transform") version "<VERSION>"
 }
 
 dependencies {
