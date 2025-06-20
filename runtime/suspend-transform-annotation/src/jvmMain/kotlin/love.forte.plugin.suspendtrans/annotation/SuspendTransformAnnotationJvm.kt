@@ -55,6 +55,15 @@ public actual annotation class JvmBlocking(
      *
      */
     actual val asProperty: Boolean,
+
+    /**
+     * The name of `@JvmName`.
+     * Valid when not empty.
+     *
+     * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
+     * @since 0.13.0
+     */
+    actual val markName: String = "",
 )
 
 /**
@@ -80,4 +89,13 @@ public actual annotation class JvmAsync(
     actual val baseName: String,
     actual val suffix: String,
     actual val asProperty: Boolean,
+
+    /**
+     * The name of `@JvmName`.
+     * Valid when not empty.
+     *
+     * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
+     * @since 0.13.0
+     */
+    actual val markName: String = "",
 )

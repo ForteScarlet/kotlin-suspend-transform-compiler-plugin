@@ -6,6 +6,7 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -27,6 +28,9 @@ annotation class SuspendTransformPluginExtensionSpecDslMarker
 interface SuspendTransformPluginExtensionSpec
 
 /**
+ * SuspendTransform plugin extension class info specification interface.
+ * Used for configuring class information related functionality.
+ *
  * @since 0.12.0
  */
 @SuspendTransformPluginExtensionSpecDslMarker
@@ -152,7 +156,6 @@ abstract class TransformersContainer
     override val factory: SuspendTransformPluginExtensionSpecFactory =
         SuspendTransformPluginExtensionSpecFactoryImpl(objects)
 
-    //     mutableMapOf()
     internal val containers: MutableMap<TargetPlatform, ListProperty<TransformerSpec>> =
         EnumMap(TargetPlatform::class.java)
     // TODO Maybe ...
@@ -167,7 +170,6 @@ abstract class TransformersContainer
 
 
     private fun getTransformersInternal(platform: TargetPlatform): ListProperty<TransformerSpec> {
-        // return containers.maybeCreate(platform.name).transformerSet
         return containers.computeIfAbsent(platform) { objects.listProperty(TransformerSpec::class.java) }
     }
 
@@ -384,7 +386,7 @@ internal data class TransformerEntry(
 )
 
 @OptIn(InternalSuspendTransformConfigurationApi::class)
-internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
+internal fun SuspendTransformPluginExtension.toConfigurationProvider(project: Project, objects: ObjectFactory): Provider<SuspendTransformConfiguration> {
     val combines = objects.listProperty(TransformerEntry::class.java)
     for ((targetPlatform, transformerListProperty) in transformers.containers) {
         combines.addAll(
@@ -408,7 +410,9 @@ internal fun SuspendTransformPluginExtension.toConfigurationProvider(objects: Ob
             valueTransform = { it.transformers }
         )
 
-        // 此处 `Map` 可能为 空，但是 `List` 不会有空的。
+        project.logger.trace("Transformers: {}", transformersMap)
+
+        // 此处 `Map` 可能为空，但是 `List` 不会有空的。
         // 后续在使用的时候只需要判断一下 transformers 本身是不是空即可。
         SuspendTransformConfiguration(
             transformers = transformersMap
@@ -772,6 +776,19 @@ abstract class MarkAnnotationSpec
     val defaultAsProperty: Property<Boolean> =
         objects.property(Boolean::class.java).convention(false)
 
+    /**
+     * @since 0.13.0
+     */
+    abstract val markNameProperty: Property<MarkNamePropertySpec>
+
+    fun markNameProperty(action: Action<in MarkNamePropertySpec>) {
+        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action::execute))
+    }
+
+    fun markNameProperty(action: MarkNamePropertySpec.() -> Unit) {
+        markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action))
+    }
+
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
             from(markAnnotation.classInfo)
@@ -781,18 +798,40 @@ abstract class MarkAnnotationSpec
         asPropertyProperty.set(markAnnotation.asPropertyProperty)
         defaultSuffix.set(markAnnotation.defaultSuffix)
         defaultAsProperty.set(markAnnotation.defaultAsProperty)
+        // from markName, since 0.13.0
+        markAnnotation.markNameProperty?.also { markNameProperty ->
+            markNameProperty {
+                from(markNameProperty)
+
+            }
+        }
+
+    }
+}
+
+/**
+ * Specification interface for class name information.
+ * Used to define properties for package name and class name.
+ *
+ * @since 0.13.0
+ */
+interface ClassNameSpec : SuspendTransformPluginExtensionSpec {
+    val packageName: Property<String>
+    val className: Property<String>
+
+    fun from(classInfo: ClassInfo) {
+        packageName.set(classInfo.packageName)
+        className.set(classInfo.className)
     }
 }
 
 /**
  * @see ClassInfo
- */
-/**
  * @since 0.12.0
  */
-interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
-    val packageName: Property<String>
-    val className: Property<String>
+interface ClassInfoSpec : SuspendTransformPluginExtensionSpec, ClassNameSpec {
+    override val packageName: Property<String>
+    override val className: Property<String>
 
     /**
      * Default value is `false`
@@ -804,7 +843,7 @@ interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
      */
     val nullable: Property<Boolean>
 
-    fun from(classInfo: ClassInfo) {
+    override fun from(classInfo: ClassInfo) {
         packageName.set(classInfo.packageName)
         className.set(classInfo.className)
         local.set(classInfo.local)
@@ -813,12 +852,87 @@ interface ClassInfoSpec : SuspendTransformPluginExtensionSpec {
 }
 
 /**
+ * @since 0.13.0
+ */
+abstract class MarkNamePropertySpec
+@Inject constructor(private val objects: ObjectFactory) :
+    SuspendTransformPluginExtensionSpec {
+    /**
+     * The property name for `markName` in [MarkAnnotation],
+     * e.g. `markName` in `@JvmBlocking(markName = "...")`.
+     *
+     * Default is `"markName"`.
+     */
+    abstract val propertyName: Property<String>
+
+    /**
+     * The name marker annotation.
+     */
+    abstract val annotation: Property<MarkNameAnnotationSpec>
+
+    /**
+     * The name marker annotation.
+     */
+    fun annotation(action: Action<in MarkNameAnnotationSpec>) {
+        annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action::execute))
+    }
+
+    /**
+     * The name marker annotation.
+     */
+    fun annotation(action: MarkNameAnnotationSpec.() -> Unit) {
+        annotation.set(annotation.getOrElse(objects.newInstance<MarkNameAnnotationSpec>()).also(action))
+    }
+
+    fun from(markNameProperty: MarkNameProperty) {
+        propertyName.set(markNameProperty.propertyName)
+        annotation {
+            from(markNameProperty)
+        }
+    }
+
+    companion object {
+        const val DEFAULT_PROPERTY_NAME: String = "markName"
+    }
+}
+
+/**
+ * A specification for name marker annotation.
+ *
+ * @see MarkNameProperty
+ *
+ * @since 0.13.0
+ */
+interface MarkNameAnnotationSpec : SuspendTransformPluginExtensionSpec, ClassNameSpec {
+    override val className: Property<String>
+    override val packageName: Property<String>
+
+    /**
+     * The name's property name,
+     * e.g. `name` of `@JsName(name = "...")`, `name` of `@JvmName(name = "...")`, etc.
+     */
+    val propertyName: Property<String>
+
+    fun from(markNameProperty: MarkNameProperty) {
+        from(markNameProperty.annotation)
+        propertyName.set(markNameProperty.annotationMarkNamePropertyName)
+    }
+}
+
+/**
+ * Function information specification interface for configuring function-related properties
+ *
+ * @property packageName The package name property
+ * @property functionName The function name property
  * @since 0.12.0
  */
 interface FunctionInfoSpec : SuspendTransformPluginExtensionSpec {
     val packageName: Property<String>
     val functionName: Property<String>
 
+    /**
+     * Configures the specification from an existing [FunctionInfo] instance
+     */
     fun from(functionInfo: FunctionInfo) {
         packageName.set(functionInfo.packageName)
         functionName.set(functionInfo.functionName)
@@ -886,7 +1000,26 @@ internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
         suffixProperty = suffixProperty.get(),
         asPropertyProperty = asPropertyProperty.get(),
         defaultSuffix = defaultSuffix.get(),
-        defaultAsProperty = defaultAsProperty.get()
+        defaultAsProperty = defaultAsProperty.get(),
+        markNameProperty = markNameProperty.orNull?.toMarkNameProperty()
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+internal fun MarkNameAnnotationSpec.toClassInfo(): ClassInfo {
+    return ClassInfo(
+        packageName = packageName.get(),
+        className = className.get(),
+    )
+}
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+internal fun MarkNamePropertySpec.toMarkNameProperty(): MarkNameProperty {
+    val annotation = annotation.get()
+    return MarkNameProperty(
+        propertyName = propertyName.getOrElse(MarkNamePropertySpec.DEFAULT_PROPERTY_NAME),
+        annotation = annotation.toClassInfo(),
+        annotationMarkNamePropertyName = annotation.propertyName.get()
     )
 }
 
@@ -917,4 +1050,4 @@ internal fun IncludeAnnotationSpec.toIncludeAnnotation(): IncludeAnnotation {
     )
 }
 
-private inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)
+internal inline fun <reified T : Any> ObjectFactory.newInstance(): T = newInstance(T::class.java)

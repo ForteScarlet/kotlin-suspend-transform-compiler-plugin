@@ -128,7 +128,9 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                         .compute(transformer) { _, current ->
                             current
                                 ?: transformer.resolveAnnotationData(
-                                    originFunction, originFunction.containingDeclaration, originFunction.name.identifier
+                                    originFunction,
+                                    originFunction.containingDeclaration,
+                                    originFunction.name.identifier
                                 )
                             // 不检测'继承'的注解
                             // ?: originFunction.findSuspendOverridden()?.let { superFunction ->
@@ -192,7 +194,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
                 classDescriptor,
                 originFunction,
                 annotationData.functionName,
-                copyAnnotations(originFunction, transformer),
+                copyAnnotations(originFunction, annotationData, transformer),
                 SuspendTransformUserData(originFunction, asProperty = annotationData.asProperty, transformer),
                 transformer
             ).also { it.init() }
@@ -229,6 +231,7 @@ open class SuspendTransformSyntheticResolveExtension(open val configuration: Sus
  */
 private fun copyAnnotations(
     originFunction: SimpleFunctionDescriptor,
+    annotationData: TransformAnnotationData,
     transformer: Transformer
 ): Pair<Annotations, Annotations> {
 
@@ -240,12 +243,11 @@ private fun copyAnnotations(
         return AnnotationDescriptorImpl(type, valueArguments, descriptor.source)
     }
 
-    val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
-        transformer.copyAnnotationsToSyntheticFunction,
-        transformer.copyAnnotationsToSyntheticProperty,
-        transformer.copyAnnotationExcludes.map { it.toClassId() },
-        transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
-    )
+    val copyFunction = transformer.copyAnnotationsToSyntheticFunction
+    val copyProperty = transformer.copyAnnotationsToSyntheticProperty
+    val excludes = transformer.copyAnnotationExcludes.map { it.toClassId() }
+    val includes = transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
+    val markNameProperty = transformer.markAnnotation.markNameProperty
 
     val functionAnnotationsList = buildList<AnnotationDescriptor> {
         if (copyFunction) {
@@ -270,6 +272,23 @@ private fun copyAnnotations(
                 return@forEach
             }
             findAnnotation(classId)?.also(::add)
+        }
+
+        // Add marker annotation if it's possible
+        if (markNameProperty != null) {
+            val markName = annotationData.markName
+            if (markName != null) {
+                val markNameAnnotationClassInfo = markNameProperty.annotation
+                val markNameAnnotationClassId = markNameAnnotationClassInfo.toClassId()
+                val annotationMarkNamePropertyName = markNameProperty.annotationMarkNamePropertyName
+
+                val nameMarkerAnnotation = findAnnotation(
+                    markNameAnnotationClassId,
+                    mutableMapOf(Name.identifier(annotationMarkNamePropertyName) to StringValue(markName))
+                ) ?: error("Name marker annotation $markNameAnnotationClassInfo not found.")
+
+                add(nameMarkerAnnotation)
+            }
         }
     }
 
