@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform")
-    id("suspend-transform.multiplatform-maven-publish")
+    id("suspend-transform.maven-publish")
 }
 
 
@@ -96,6 +96,11 @@ kotlin {
 
 }
 
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+    options.encoding = "UTF-8"
+}
 
 //fun Project.withKotlinTargets(fn: (KotlinTarget) -> Unit) {
 //    extensions.findByType(KotlinTargetsContainer::class.java)?.let { kotlinExtension ->

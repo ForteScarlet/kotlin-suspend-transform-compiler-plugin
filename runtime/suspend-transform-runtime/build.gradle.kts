@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
-    id("suspend-transform.multiplatform-maven-publish")
+    id("suspend-transform.maven-publish")
 }
 
 // https://kotlinlang.org/docs/gradle-compiler-options.html#how-to-define-options
@@ -105,4 +105,10 @@ kotlin {
         }
     }
 
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+    options.encoding = "UTF-8"
 }
