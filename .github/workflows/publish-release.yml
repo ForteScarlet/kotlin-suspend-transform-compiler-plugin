@@ -36,7 +36,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
-      - run: gradle assemble build -s
+      - run: gradle assemble build test allTests -s
 
   publish:
     name: Publish
