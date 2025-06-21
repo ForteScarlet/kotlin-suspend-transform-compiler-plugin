@@ -3,7 +3,7 @@ import embeddable.EmbeddablePlugin
 plugins {
     java
     kotlin("jvm")
-    id("suspend-transform.jvm-maven-publish")
+    id("suspend-transform.maven-publish")
     id("com.gradleup.shadow")
 }
 

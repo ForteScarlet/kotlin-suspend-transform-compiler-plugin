@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("com.github.gmazzo.buildconfig")
-    id("suspend-transform.jvm-maven-publish")
+    id("suspend-transform.maven-publish")
 }
 
 dependencies {

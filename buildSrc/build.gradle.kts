@@ -27,6 +27,11 @@ dependencies {
     // see https://github.com/gradle-nexus/publish-plugin
     api("io.github.gradle-nexus:publish-plugin:$nexusPublishPlugin")
 
+    // see https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-publish-libraries.html#configure-the-project
+    // see https://github.com/vanniktech/gradle-maven-publish-plugin
+    // see https://plugins.gradle.org/plugin/com.vanniktech.maven.publish
+    implementation(libs.maven.publish)
+
 //    api("com.github.jengelman.gradle.plugins:shadow:8.3.0")
     // https://gradleup.com/shadow/
     api("com.gradleup.shadow:shadow-gradle-plugin:8.3.2")
