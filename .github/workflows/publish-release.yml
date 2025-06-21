@@ -93,8 +93,8 @@ jobs:
           PLUGIN_AUTO: true
           ORG_GRADLE_PROJECT_org.gradle.jvmargs: "-XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
           ORG_GRADLE_PROJECT_org.gradle.daemon: "false"
-          ORG_GRADLE_PROJECT_gradle.publish.key: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          ORG_GRADLE_PROJECT_gradle.publish.secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
 
   create-release:
     name: Create release
