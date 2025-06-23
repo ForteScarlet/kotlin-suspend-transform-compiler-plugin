@@ -5,7 +5,10 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.TargetPlatform
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.fqn
-import love.forte.plugin.suspendtrans.utils.*
+import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
+import love.forte.plugin.suspendtrans.utils.includeAnnotations
+import love.forte.plugin.suspendtrans.utils.toClassId
+import love.forte.plugin.suspendtrans.utils.toInfo
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fakeElement
@@ -13,13 +16,12 @@ import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.MutableCheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
-import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctions
+import org.jetbrains.kotlin.fir.analysis.checkers.processOverriddenFunctionsSafe
 import org.jetbrains.kotlin.fir.caches.FirCache
 import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
-import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
@@ -57,7 +59,7 @@ import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
-import org.jetbrains.kotlin.realElement
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -162,7 +164,6 @@ class SuspendTransformFirTransformer(
         return map
     }
 
-    //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>?, Nothing?> =
         session.firCachesFactory.createCache { cacheKey, c ->
             val (symbol, scope) = cacheKey
@@ -361,7 +362,8 @@ class SuspendTransformFirTransformer(
             this.origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
             this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef
             this.hasExplicitParameterList = false
-            this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+            // this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
+            this.status = this.status.copy(isSuspend = true)
             this.symbol = FirAnonymousFunctionSymbol()
             this.body = buildSingleExpressionBlock(
                 buildReturnExpression {
@@ -398,6 +400,8 @@ class SuspendTransformFirTransformer(
                         })
 
                         // TODO What is explicitReceiver?
+                        // this.explicitReceiver
+
                         this.extensionReceiver = thisReceiverParameter?.let { thisReceiverParameter ->
                             buildThisReceiverExpression {
                                 coneTypeOrNull = thisReceiverParameter.typeRef.coneTypeOrNull
@@ -789,12 +793,9 @@ class SuspendTransformFirTransformer(
                     )
 
                     valueParameters.addAll(original.valueParameters)
-//                    typeParameters.addAll(original.typeParameters)
-//                    contextReceivers.addAll(original.contextReceivers)
 
                     copyParameters(originalTypeParameterCache, false, propertyAccessorSymbol)
 
-//                    val thisContextReceivers = this.contextReceivers
                     val thisValueParameters = this.valueParameters
 
                     body = generateSyntheticFunctionBody(
@@ -816,10 +817,6 @@ class SuspendTransformFirTransformer(
 
             propList.add(p1.symbol)
 
-//                if (targetMarkerAnnotation != null) {
-//                    original.appendTargetMarker(uniqueFunHash)
-//                }
-
             // 在原函数上附加的annotations
             original.includeAnnotations(includeToOriginal)
 
@@ -840,16 +837,17 @@ class SuspendTransformFirTransformer(
         val markAnnotation = syntheticFunData.transformer.markAnnotation
 
         if (func.isOverride && !isOverride) {
-            func.processOverriddenFunctions(
+            // func.processOverriddenFunctionsSafe()
+            func.processOverriddenFunctionsSafe(
                 checkContext
             ) processOverridden@{ overriddenFunction ->
                 if (!isOverride) {
                     // check parameters and receivers
-                    val symbolReceiver = overriddenFunction.receiverParameter
-                    val originReceiver = func.receiverParameter
+                    val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
+                    val originReceiverTypeRef = func.resolvedReceiverTypeRef
 
                     // origin receiver should be the same as symbol receiver
-                    if (originReceiver?.typeRef != symbolReceiver?.typeRef) {
+                    if (originReceiverTypeRef != resolvedReceiverTypeRef) {
                         return@processOverridden
                     }
 
@@ -929,9 +927,9 @@ class SuspendTransformFirTransformer(
     ): Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>? {
         if (declaredScope == null) return null
 
-        fun check(targetPlatform: TargetPlatform): Boolean {
-            val platform = classSymbol.moduleData.platform
+        val platform = classSymbol.moduleData.platform
 
+        fun check(targetPlatform: TargetPlatform): Boolean {
             return when {
                 platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
                 platform.isJs() && targetPlatform == TargetPlatform.JS -> true
@@ -967,7 +965,7 @@ class SuspendTransformFirTransformer(
 
 
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
-                            ?: error("Cannot find transformer function symbol for transformer: $transformer")
+                            ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
 
                         // 读不到注解的参数？
                         // 必须使用 anno.getXxxArgument(Name(argument name)),
@@ -1002,6 +1000,7 @@ class SuspendTransformFirTransformer(
         annotationBaseNamePropertyName = markAnnotation.baseNameProperty,
         annotationSuffixPropertyName = markAnnotation.suffixProperty,
         annotationAsPropertyPropertyName = markAnnotation.asPropertyProperty,
+        annotationMarkNamePropertyName = markAnnotation.markNameProperty?.propertyName,
         defaultBaseName = sourceFunctionName,
         defaultSuffix = markAnnotation.defaultSuffix,
         defaultAsProperty = markAnnotation.defaultAsProperty,
@@ -1070,12 +1069,11 @@ class SuspendTransformFirTransformer(
 
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
 
-        val (copyFunction, copyProperty, excludes, includes) = CopyAnnotationsData(
-            transformer.copyAnnotationsToSyntheticFunction,
-            transformer.copyAnnotationsToSyntheticProperty,
-            transformer.copyAnnotationExcludes.map { it.toClassId() },
-            transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
-        )
+        val copyFunction = transformer.copyAnnotationsToSyntheticFunction
+        val copyProperty = transformer.copyAnnotationsToSyntheticProperty
+        val excludes = transformer.copyAnnotationExcludes.map { it.toClassId() }
+        val includes = transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
+        val markNameProperty = transformer.markAnnotation.markNameProperty
 
         val functionAnnotationList = buildList<FirAnnotation> {
             if (copyFunction) {
@@ -1119,6 +1117,34 @@ class SuspendTransformFirTransformer(
                     }
                 }
                 add(includeAnnotation)
+            }
+
+            if (markNameProperty != null) {
+                // Add name marker annotation if it's possible
+                val markName = syntheticFunData.annotationData.markName
+                if (markName != null) {
+                    // Find the marker annotation, e.g., JvmName
+                    val markNameAnnotation = buildAnnotation {
+                        argumentMapping = buildAnnotationArgumentMapping {
+                            // org.jetbrains.kotlin.fir.java.JavaUtilsKt
+                            val markNameArgument = buildLiteralExpression(
+                                source = null,
+                                kind = ConstantValueKind.String,
+                                value = markName,
+                                setType = true
+                            )
+
+                            val annotationMarkNamePropertyName = markNameProperty.annotationMarkNamePropertyName
+                            mapping[Name.identifier(annotationMarkNamePropertyName)] = markNameArgument
+                        }
+                        val markNameAnnotationClassId = markNameProperty.annotation.toClassId()
+                        annotationTypeRef = buildResolvedTypeRef {
+                            coneType = markNameAnnotationClassId.createConeType(session)
+                        }
+                    }
+
+                    add(markNameAnnotation)
+                }
             }
         }
 
@@ -1190,13 +1216,14 @@ class SuspendTransformFirTransformer(
                     it.toRegularClassSymbol(session)
                 }
                 .flatMap {
-                    it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
+                    it.declaredProperties(session)
+                    // it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
                 }
                 .filter { !it.isFinal }
                 .filter { it.callableId.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
-                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                    thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
                 }
                 .any()
         } else {
@@ -1206,7 +1233,8 @@ class SuspendTransformFirTransformer(
                     it.toRegularClassSymbol(session)
                 }
                 .flatMap {
-                    it.declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>()
+                    it.declaredFunctions(session)
+                    // it.declarationSymbols.filterIsInstance<FirNamedFunctionSymbol>()
                 }
                 // not final, overridable
                 .filter { !it.isFinal }
@@ -1214,7 +1242,7 @@ class SuspendTransformFirTransformer(
                 .filter { it.callableId.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
-                    thisReceiverTypeRef sameAs it.receiverParameter?.typeRef
+                    thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
                 }
                 // overridable value parameters
                 .filter {

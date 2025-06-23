@@ -79,4 +79,10 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   public void testVarargParam() {
     runTest("src/testData/codegen/varargParam.kt");
   }
+
+  @Test
+  @TestMetadata("markName.kt")
+  public void testMarkName() {
+    runTest("src/testData/codegen/markName.kt");
+  }
 }

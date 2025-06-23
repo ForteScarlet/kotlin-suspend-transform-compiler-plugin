@@ -117,6 +117,69 @@ class Foo {
 }
 ```
 
+### MarkName
+
+> 自 v0.13.0 起, [#96](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/96)
+
+你可以使用 `markName` 为生成的合成函数添加名称标记注解（例如 `@JvmName`、`@JsName`）。
+
+例如 JVM：
+
+```kotlin
+class Foo {
+    @JvmBlocking(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+```
+
+编译后 👇
+
+```kotlin
+class Foo {
+    // 对 Java 隐藏
+    @JvmSynthetic
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+    @Api4J // 需要显式启用的注解，向 Kotlin 提供警告
+    @JvmName("namedWaitAndGet") // 来自 `markName` 的值
+    fun waitAndGetBlocking(): String = runInBlocking { waitAndGet() } // 'runInBlocking' 来自插件提供的运行时
+}
+```
+
+注意：`@JvmName` 在非 final 函数上有限制，甚至编译器可能会阻止编译。
+
+例如 JS：
+
+```kotlin
+class Foo {
+    @JsPromise(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    } 
+}
+```
+
+编译后 👇
+
+```kotlin
+class Foo {
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+
+    @Api4Js // 需要显式启用的注解，向 Kotlin 提供警告
+    @JsName("namedWaitAndGet") // 来自 `markName` 的值
+    fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' 来自插件提供的运行时
+}
+```
+
 ## 使用方式
 
 ### 版本说明
@@ -222,7 +285,7 @@ suspendTransformPlugin {
         // 默认与插件版本相同
         version = "<ANNOTATION_VERSION>"
     }
-    
+
     // 包含运行时
     // 默认为 `true`
     includeRuntime = true
@@ -315,7 +378,7 @@ class Cat {
     suspend fun meow() {
         // ...
     }
-    
+
     // 生成：
     fun meowBlocking() {
         `$runInBlocking$` { meow() }
@@ -345,7 +408,7 @@ suspendTransformPlugin {
 class Cat {
     @JvmBlocking
     suspend fun meow(): String = "Meow!"
-    
+
     // 生成：
     fun meowAsync(): CompletableFuture<out String> {
         `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
@@ -382,7 +445,7 @@ suspendTransformPlugin {
 class Cat {
     @JsPromise
     suspend fun meow(): String = "Meow!"
-    
+
     // 生成：
     fun meowAsync(): Promise<String> {
         `$runInAsync$`(block = { meow() }, scope = this as? CoroutineScope)
@@ -437,7 +500,7 @@ suspendTransformPlugin {
     // 自定义时可能无需默认注解和运行时
     includeAnnotation = false
     includeRuntime = false
-    
+
     transformer {
         // 具体配置见下文
     }
@@ -596,12 +659,12 @@ suspendTransformPlugin {
               defaultSuffix = "Blocking"
               defaultAsProperty = false
             }
-          
+
             transformFunctionInfo {
               packageName = "com.example"
               functionName = "inBlock"
             }
-          
+
             copyAnnotationsToSyntheticFunction = true
             copyAnnotationsToSyntheticProperty = true
 

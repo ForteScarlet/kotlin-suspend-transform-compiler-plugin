@@ -220,7 +220,8 @@ private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
         suffixProperty = this.suffixProperty,
         asPropertyProperty = this.asPropertyProperty,
         defaultSuffix = this.defaultSuffix,
-        defaultAsProperty = this.defaultAsProperty
+        defaultAsProperty = this.defaultAsProperty,
+        markNameProperty = null,
     )
 }
 
@@ -265,7 +266,7 @@ private fun SuspendTransformPluginExtension.toSubpluginOptionsProvider(
                 return@flatMap project.provider { emptyList() }
             }
 
-            val configurationProvider = toConfigurationProvider(project.objects)
+            val configurationProvider = toConfigurationProvider(project, project.objects)
 
             configurationProvider.map { configuration ->
                 val transformers = configuration.transformers

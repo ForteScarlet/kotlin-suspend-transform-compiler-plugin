@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
-    id("suspend-transform.jvm-maven-publish")
+    id("suspend-transform.maven-publish")
 }
 
 dependencies {

@@ -1,0 +1,25 @@
+FILE: Main.kt
+    public final class Foo : R|kotlin/Any| {
+        public constructor(): R|Foo| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|kotlin/jvm/JvmName|(name = String(_foo)) @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(markName = String(fooA)) @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(markName = String(fooB)) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun foo(): R|kotlin/String| {
+            ^foo String(foo)
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() @R|kotlin/jvm/JvmName|(name = String(fooB)) public final fun fooBlocking(): R|kotlin/String| {
+            ^fooBlocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+                ^ this@R|/Foo|.R|/Foo.foo|()
+            }
+            )
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() @R|kotlin/jvm/JvmName|(name = String(fooA)) public final fun fooAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/String>| {
+            ^fooAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+                ^ this@R|/Foo|.R|/Foo.foo|()
+            }
+            , (this@R|/Foo| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+    }
