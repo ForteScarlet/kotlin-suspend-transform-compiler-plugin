@@ -164,7 +164,6 @@ class SuspendTransformFirTransformer(
         return map
     }
 
-    //    private val cache: FirCache<Pair<FirClassSymbol<*>, FirClassDeclaredMemberScope?>, Map<Name, Map<FirNamedFunctionSymbol, FunData>>?, Nothing?> =
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>?, Nothing?> =
         session.firCachesFactory.createCache { cacheKey, c ->
             val (symbol, scope) = cacheKey
@@ -928,9 +927,9 @@ class SuspendTransformFirTransformer(
     ): Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>? {
         if (declaredScope == null) return null
 
-        fun check(targetPlatform: TargetPlatform): Boolean {
-            val platform = classSymbol.moduleData.platform
+        val platform = classSymbol.moduleData.platform
 
+        fun check(targetPlatform: TargetPlatform): Boolean {
             return when {
                 platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
                 platform.isJs() && targetPlatform == TargetPlatform.JS -> true
@@ -966,7 +965,7 @@ class SuspendTransformFirTransformer(
 
 
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
-                            ?: error("Cannot find transformer function symbol for transformer: $transformer")
+                            ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
 
                         // 读不到注解的参数？
                         // 必须使用 anno.getXxxArgument(Name(argument name)),
