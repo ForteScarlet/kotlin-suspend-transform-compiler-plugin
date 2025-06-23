@@ -3,7 +3,7 @@ package love.forte.plugin.suspendtrans.configuration
 import kotlinx.serialization.Serializable
 
 // NOTE:
-//   可序列号的配置信息均使用 `Protobuf` 进行序列化
+//   配置信息均使用 `Protobuf` 进行序列化
 //   虽然序列化行为是内部的，但是还是应该尽可能避免出现字段的顺序错乱或删改。
 
 @RequiresOptIn(
@@ -77,7 +77,7 @@ enum class TargetPlatform {
 }
 
 /**
- * 用于标记的注解信息.
+ * 用于标记的注解信息, 例如 `@JvmBlocking`, `@JvmAsync`, `@JsPromise`.
  */
 @Serializable
 class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
@@ -105,6 +105,14 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
      * 当 [asPropertyProperty] 不存在时使用的默认值
      */
     val defaultAsProperty: Boolean = false,
+
+    /**
+     * A name marker like `@JsName`, `@JvmName`, etc.
+     *
+     * @since 0.13.0
+     */
+    // 'null' is not supported for optional properties in ProtoBuf
+    val markNameProperty: MarkNameProperty?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -116,6 +124,7 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
         if (suffixProperty != other.suffixProperty) return false
         if (asPropertyProperty != other.asPropertyProperty) return false
         if (defaultSuffix != other.defaultSuffix) return false
+        if (markNameProperty != other.markNameProperty) return false
 
         return true
     }
@@ -127,11 +136,57 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
         result = 31 * result + suffixProperty.hashCode()
         result = 31 * result + asPropertyProperty.hashCode()
         result = 31 * result + defaultSuffix.hashCode()
+        result = 31 * result + (markNameProperty?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty)"
+        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty, markName=$markNameProperty)"
+    }
+}
+
+/**
+ * The `markName`'s information.
+ * @since 0.13.0
+ */
+@Serializable
+class MarkNameProperty @InternalSuspendTransformConfigurationApi constructor(
+    /**
+     * The `markName`'s property name of the mark annotation.
+     * e.g. `markName` of `@JsPromise(markName = "foo")
+     */
+    val propertyName: String,
+    /**
+     * The name marker annotation's class info,
+     * e.g. `@JsName`, `@JvmName`, etc.
+     */
+    val annotation: ClassInfo,
+    /**
+     * The name property of name marker annotation,
+     * e.g. `name` of `@JsName(name = "...")`.
+     */
+    val annotationMarkNamePropertyName: String,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MarkNameProperty) return false
+
+        if (propertyName != other.propertyName) return false
+        if (annotation != other.annotation) return false
+        if (annotationMarkNamePropertyName != other.annotationMarkNamePropertyName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = propertyName.hashCode()
+        result = 31 * result + annotation.hashCode()
+        result = 31 * result + annotationMarkNamePropertyName.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "MarkName(annotation=$annotation, propertyName='$propertyName', annotationMarkNamePropertyName='$annotationMarkNamePropertyName')"
     }
 }
 
@@ -172,71 +227,85 @@ class IncludeAnnotation @InternalSuspendTransformConfigurationApi constructor(
 @Serializable
 class Transformer @InternalSuspendTransformConfigurationApi constructor(
     /**
-     * 函数上的某种标记。
+     * Information about the marker annotation that marks functions to be transformed.
      */
     val markAnnotation: MarkAnnotation,
 
     /**
-     * 用于转化的函数信息。
+     * Information of the transform function.
      *
-     * 这个函数的实际格式必须为
+     * The actual format of this function must be:
      *
      * ```kotlin
-     * fun <T> <fun-name>(block: suspend () -> T[, scope: CoroutineScope = ...]): T {
+     * fun <T> <fun-name>(block: suspend () -> T[, scope: CoroutineScope? = ...]): T {
      *     // ...
      * }
      * ```
      *
-     * 其中，此异步函数可以有第二个参数，此参数格式必须为 [kotlinx.coroutines.CoroutineScope]。
-     * 如果存在此参数，当转化函数所处类型自身实现了 [kotlinx.coroutines.CoroutineScope] 时，将会将其自身作为参数填入，类似于：
+     * Among them, this asynchronous function can have a second parameter, which must be of type [kotlinx.coroutines.CoroutineScope] and is recommended to be nullable.
+     * If this parameter exists, when the type containing the transform function implements [kotlinx.coroutines.CoroutineScope] itself, it will fill in itself as a parameter, similar to:
      *
      * ```kotlin
      * class Bar : CoroutineScope {
-     *    @Xxx
+     *    @Xxx // your custom transform function's mark annotation
      *    suspend fun foo(): Foo
      *
      *    @Api4J fun fooXxx(): CompletableFuture<Foo> = transform(block = { foo() }, scope = this)
      * }
+     * ```
+     *
+     * If the scope parameter is nullable, then the effect is similar to:
+     *
+     * ```kotlin
+     * class Bar {
+     *    @Xxx // your custom transform function's mark annotation
+     *    suspend fun foo(): Foo
+     *
+     *    @Api4J fun fooXxx(): CompletableFuture<Foo> = transform(block = { foo() }, scope = this as? CoroutineScope)
+     * }
+     * ```
+     * Therefore, when nullable it is more inheritance-friendly - when the subclass extends CoroutineScope the parameter can take effect, regardless of whether it overrides this function.
+     *
      */
     val transformFunctionInfo: FunctionInfo,
 
     /**
-     * 转化后的返回值类型, 为null时代表与原函数一致。
+     * The return type after transformation. When null, it represents the same as the original function.
      */
     val transformReturnType: ClassInfo?,
 
     // TODO TypeGeneric for suspend function return type and transform function return type?
 
     /**
-     * 转化后的返回值类型中，是否存在需要与原本返回值类型一致的泛型。
+     * Whether there are generics in the transformed return type that need to be consistent with the original return type.
      */
     val transformReturnTypeGeneric: Boolean,
 
     /**
-     * 函数生成后，需要在原函数上追加的注解信息。
+     * Annotation information that needs to be added to the original function after function generation.
      *
-     * 例如追加个 `@kotlin.jvm.JvmSynthetic` 之类的。
+     * For example, add something like `@kotlin.jvm.JvmSynthetic`.
      */
     val originFunctionIncludeAnnotations: List<IncludeAnnotation>,
 
     /**
-     * 需要在生成出来的函数上追加的注解信息。（不需要指定 `@Generated`）
+     * Annotation information that needs to be added to the generated function. (No need to specify `@Generated`)
      */
     val syntheticFunctionIncludeAnnotations: List<IncludeAnnotation>,
 
     /**
-     * 是否复制源函数上的注解到新的函数上。
-     * 如果生成的是属性类型，则表示是否复制到 `getter` 上。
+     * Whether to copy annotations from the source function to the new function.
+     * If generated as a property type, it indicates whether to copy to the `getter`.
      */
     val copyAnnotationsToSyntheticFunction: Boolean,
 
     /**
-     * 复制原函数上注解时需要排除掉的注解。
+     * Annotations to be excluded when copying annotations from the original function.
      */
     val copyAnnotationExcludes: List<ClassInfo>,
 
     /**
-     * 如果是生成属性的话，是否复制源函数上的注解到新的属性上
+     * If generating a property, whether to copy annotations from the source function to the new property
      *
      * @since 0.9.0
      */
@@ -337,10 +406,10 @@ object SuspendTransformConfigurations {
     private const val SUSPENDTRANS_ANNOTATION_PACKAGE = "love.forte.plugin.suspendtrans.annotation"
     private const val SUSPENDTRANS_RUNTIME_PACKAGE = "love.forte.plugin.suspendtrans.runtime"
 
-    private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME = "\$runInBlocking\$"
-    private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync\$"
+    private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME = "\$runInBlocking$"
+    private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
 
-    private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync\$"
+    private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
 
     //region Commons
     @JvmStatic
@@ -351,6 +420,17 @@ object SuspendTransformConfigurations {
     //endregion
 
     //region JVM Defaults
+
+    /**
+     * The `kotlin.jvm.JvmName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jvmNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JVM,
+        className = "JvmName"
+    )
+
     @JvmStatic
     val jvmSyntheticClassInfo = ClassInfo(
         packageName = KOTLIN_JVM,
@@ -372,7 +452,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jvmBlockingAnnotationInfo = MarkAnnotation(
         classInfo = jvmBlockingMarkAnnotationClassInfo,
-        defaultSuffix = "Blocking"
+        defaultSuffix = "Blocking",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jvmNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
@@ -390,7 +475,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jvmAsyncAnnotationInfo = MarkAnnotation(
         classInfo = jvmAsyncMarkAnnotationClassInfo,
-        defaultSuffix = "Async"
+        defaultSuffix = "Async",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jvmNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
@@ -418,6 +508,7 @@ object SuspendTransformConfigurations {
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jvmNameAnnotationClassInfo,
         ),
     )
 
@@ -437,11 +528,23 @@ object SuspendTransformConfigurations {
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jvmNameAnnotationClassInfo,
         ),
     )
     //endregion
 
     //region JS Defaults
+
+    /**
+     * The `kotlin.js.JsName`.
+     * @since 0.13.0
+     */
+    @JvmStatic
+    val jsNameAnnotationClassInfo = ClassInfo(
+        packageName = KOTLIN_JS,
+        className = "JsName"
+    )
+
     @JvmStatic
     val kotlinJsExportClassInfo = ClassInfo(
         packageName = KOTLIN_JS,
@@ -469,7 +572,12 @@ object SuspendTransformConfigurations {
     @JvmStatic
     val jsAsyncAnnotationInfo = MarkAnnotation(
         classInfo = jsAsyncMarkAnnotationClassInfo,
-        defaultSuffix = "Async"
+        defaultSuffix = "Async",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jsNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
     )
 
     @JvmStatic
@@ -492,6 +600,7 @@ object SuspendTransformConfigurations {
         copyAnnotationExcludes = listOf(
             jsAsyncMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
+            jsNameAnnotationClassInfo,
         )
     )
     //endregion

@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.utils
 
+import love.forte.plugin.suspendtrans.valueParameters0
 import org.jetbrains.kotlin.backend.common.descriptors.synthesizedName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.jvm.ir.fileParent
@@ -10,6 +11,8 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
+import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.getClass
@@ -78,7 +81,8 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
             addField(it.name.identifierOrMappedSpecialName.synthesizedName, it.type)
         }
 
-        createImplicitParameterDeclarationWithWrappedDescriptor()
+        // createImplicitParameterDeclarationWithWrappedDescriptor()
+        createThisReceiverParameter()
 
         addConstructor {
             isPrimary = true
@@ -125,13 +129,13 @@ fun IrPluginContext.createSuspendLambdaWithCoroutineScope(
                         if (originFunction.dispatchReceiverParameter != null) {
                             this@call.dispatchReceiver = arguments.pop().irGetField0()
                         }
-                        if (originFunction.extensionReceiverParameter != null) {
-                            this@call.extensionReceiver = arguments.pop().irGetField0()
+                        if (originFunction.extensionReceiverParameter0() != null) {
+                            this@call.extensionReceiver0(arguments.pop().irGetField0())
                         }
 
                         // this@call.putValueArgument(0, irGet(scopeParam))
                         for ((index, irField) in arguments.withIndex()) {
-                            this@call.putValueArgument(index, irField.irGetField0())
+                            this@call.arguments[index] = irField.irGetField0()
                         }
                     }
                 }
@@ -162,12 +166,12 @@ fun IrPluginContext.createSuspendLambdaFunctionWithCoroutineScope(
                         this@call.dispatchReceiver = irGet(it)
                     }
 
-                    function.extensionReceiverParameter?.also {
-                        this@call.extensionReceiver = irGet(it)
+                    function.extensionReceiverParameter0()?.also {
+                        this@call.extensionReceiver0(irGet(it))
                     }
 
-                    for ((index, parameter) in function.valueParameters.withIndex()) {
-                        this@call.putValueArgument(index, irGet(parameter))
+                    for ((index, parameter) in function.valueParameters0().withIndex()) {
+                        this@call.arguments[index] = irGet(parameter)
                     }
                 })
             }
@@ -180,8 +184,8 @@ fun IrFunction.paramsAndReceiversAsParamsList(): List<IrValueParameter> {
         if (!isStatic) {
             dispatchReceiverParameter?.let(this::add)
         }
-        extensionReceiverParameter?.let(this::add)
-        valueParameters.let(this::addAll)
+        extensionReceiverParameter0()?.let(this::add)
+        valueParameters0().let(this::addAll)
     }
 }
 
@@ -197,3 +201,10 @@ val Name.identifierOrMappedSpecialName: String
 
 val IrDeclarationContainer.functionsSequence: Sequence<IrSimpleFunction>
     get() = declarations.asSequence().filterIsInstance<IrSimpleFunction>()
+
+internal fun IrFunction.extensionReceiverParameter0() =
+    parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
+
+internal fun IrFunctionAccessExpression.extensionReceiver0(value: IrExpression?) {
+    arguments[symbol.owner.parameters.indexOfFirst { it.kind == IrParameterKind.ExtensionReceiver }] = value
+}

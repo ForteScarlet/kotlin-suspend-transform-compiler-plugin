@@ -51,12 +51,12 @@ fun Iterable<AnnotationDescriptor>.filterNotCompileAnnotations(): List<Annotatio
 //}
 
 data class TransformAnnotationData(
-    //val annotationDescriptor: AnnotationDescriptor,
     val baseName: String?,
     val suffix: String?,
     val rawAsProperty: Boolean?,
     val asProperty: Boolean,
     val functionName: String,
+    val markName: String?,
 ) {
     companion object {
         fun of(
@@ -64,6 +64,7 @@ data class TransformAnnotationData(
             annotationBaseNamePropertyName: String = "baseName",
             annotationSuffixPropertyName: String = "suffix",
             annotationAsPropertyPropertyName: String = "asProperty",
+            annotationMarkNamePropertyName: String? = null,
             defaultBaseName: String,
             defaultSuffix: String,
             defaultAsProperty: Boolean,
@@ -81,13 +82,21 @@ data class TransformAnnotationData(
 
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
+            val markName = if (annotationMarkNamePropertyName != null) {
+                annotationDescriptor.argumentValue(annotationMarkNamePropertyName)
+                    ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
+                    ?.takeIf { it.isNotEmpty() }
+            } else {
+                null
+            }
+
             return TransformAnnotationData(
-                //annotationDescriptor,
                 baseName,
                 suffix,
                 rawAsProperty,
                 rawAsProperty ?: defaultAsProperty,
                 functionName,
+                markName
             )
         }
 
@@ -97,6 +106,7 @@ data class TransformAnnotationData(
             annotationBaseNamePropertyName: String = "baseName",
             annotationSuffixPropertyName: String = "suffix",
             annotationAsPropertyPropertyName: String = "asProperty",
+            annotationMarkNamePropertyName: String? = null,
             defaultBaseName: String,
             defaultSuffix: String,
             defaultAsProperty: Boolean,
@@ -111,12 +121,20 @@ data class TransformAnnotationData(
 
             val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
 
+            val markName = if (annotationMarkNamePropertyName != null) {
+                firAnnotation.getStringArgument0(Name.identifier(annotationMarkNamePropertyName), session)
+                    ?.takeIf { it.isNotEmpty() }
+            } else {
+                null
+            }
+
             return TransformAnnotationData(
                 baseName,
                 suffix,
                 rawAsProperty,
                 rawAsProperty ?: defaultAsProperty,
                 functionName,
+                markName
             )
         }
     }
@@ -158,6 +176,7 @@ fun Transformer.resolveAnnotationData(
     annotationBaseNamePropertyName: String = this.markAnnotation.baseNameProperty,
     annotationSuffixPropertyName: String = this.markAnnotation.suffixProperty,
     annotationAsPropertyPropertyName: String = this.markAnnotation.asPropertyProperty,
+    annotationMarkNamePropertyName: String? = this.markAnnotation.markNameProperty?.propertyName
 ): TransformAnnotationData? {
     val markAnnotationClassId = markAnnotation.classInfo.toClassId()
     val annotationFqn =
@@ -172,6 +191,7 @@ fun Transformer.resolveAnnotationData(
             annotationBaseNamePropertyName,
             annotationSuffixPropertyName,
             annotationAsPropertyPropertyName,
+            annotationMarkNamePropertyName,
             defaultBaseName,
             markAnnotation.defaultSuffix,
             markAnnotation.defaultAsProperty,
