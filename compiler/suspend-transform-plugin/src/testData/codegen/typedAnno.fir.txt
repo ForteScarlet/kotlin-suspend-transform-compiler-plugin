@@ -1,0 +1,30 @@
+FILE: Main.kt
+    public abstract interface Inter : R|kotlin/Any| {
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<kotlin/String>|() @R|kotlin/jvm/JvmSynthetic|() public abstract suspend fun runner(): R|kotlin/Result<kotlin/String>|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<ERROR CLASS: Symbol not found for T>|() @R|kotlin/jvm/JvmSynthetic|() public abstract suspend fun <T> runner1(): R|kotlin/Result<T>|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<*>|() @R|kotlin/jvm/JvmSynthetic|() public abstract suspend fun runnerStar(): R|kotlin/Result<kotlin/String>|
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<kotlin/String>|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runnerBlocking(): R|kotlin/String| {
+            ^runnerBlocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|kotlin/Result<kotlin/String>| <inline=Unknown>  {
+                ^ this@R|/Inter|.R|/Inter.runner|()
+            }
+            )
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<ERROR CLASS: Symbol not found for T>|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <T> runner1Blocking(): R|T| {
+            ^runner1Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|kotlin/Result<T>| <inline=Unknown>  {
+                ^ this@R|/Inter|.R|/Inter.runner1|()
+            }
+            )
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<*>|() @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun runnerStarBlocking(): R|kotlin/Nothing| {
+            ^runnerStarBlocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|kotlin/Result<kotlin/String>| <inline=Unknown>  {
+                ^ this@R|/Inter|.R|/Inter.runnerStar|()
+            }
+            )
+        }
+
+    }

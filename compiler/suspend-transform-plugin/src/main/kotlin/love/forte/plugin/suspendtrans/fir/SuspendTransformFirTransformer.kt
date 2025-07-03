@@ -98,6 +98,7 @@ class SuspendTransformFirTransformer(
         val annotationData: TransformAnnotationData,
         val transformer: Transformer,
         val transformerFunctionSymbol: FirNamedFunctionSymbol,
+        val markAnnotationTypeArgument: FirTypeProjection?,
     )
 
     private fun initScopeSymbol() {
@@ -346,8 +347,9 @@ class SuspendTransformFirTransformer(
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
-        transformer: Transformer
+        funData: SyntheticFunData
     ): FirBlock = buildBlock {
+        val transformer = funData.transformer
         this.source = originFunc.body?.source
 
         // lambda: suspend () -> T
@@ -434,7 +436,7 @@ class SuspendTransformFirTransformer(
         }
         lambdaTarget.bind(lambda)
 
-        val returnType = resolveReturnType(transformer, originFunc.returnTypeRef)
+        val returnType = resolveReturnType(funData, originFunc.returnTypeRef)
 
         this.statements.add(
             buildReturnExpression {
@@ -640,7 +642,7 @@ class SuspendTransformFirTransformer(
                 copyParameters()
 
                 // resolve returnType (with wrapped) after copyParameters
-                returnTypeRef = resolveReturnType(funData.transformer, returnTypeRef)
+                returnTypeRef = resolveReturnType(funData, returnTypeRef)
 
                 val thisReceiverParameter = this.receiverParameter
                 val thisContextParameters = this.contextParameters
@@ -659,7 +661,7 @@ class SuspendTransformFirTransformer(
                     thisValueParameters,
                     realBridgeFunSymbol,
                     newFunTarget,
-                    funData.transformer
+                    funData
                 )
 
                 origin = key.origin
@@ -727,7 +729,7 @@ class SuspendTransformFirTransformer(
             )
 
             // copy完了再resolve，这样里面包的type parameter就不会有问题了（如果有type parameter的话）
-            val resolvedReturnType = resolveReturnType(funData.transformer, copiedReturnType)
+            val resolvedReturnType = resolveReturnType(funData, copiedReturnType)
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
 
@@ -808,7 +810,7 @@ class SuspendTransformFirTransformer(
                         thisValueParameters,
                         funData.transformerFunctionSymbol,
                         newFunTarget,
-                        funData.transformer
+                        funData
                     )
                 }.also { getter ->
                     newFunTarget.bind(getter)
@@ -963,6 +965,7 @@ class SuspendTransformFirTransformer(
                         val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
 
+                        val markAnnotationTypeArgument = anno.typeArguments.firstOrNull()
 
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
                             ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
@@ -982,7 +985,8 @@ class SuspendTransformFirTransformer(
                             syntheticFunName,
                             annoData,
                             transformer,
-                            transformerFunctionSymbol
+                            transformerFunctionSymbol,
+                            markAnnotationTypeArgument
                         )
                     }
                 }
@@ -1020,10 +1024,18 @@ class SuspendTransformFirTransformer(
         )?.firstOrNull()
 
     private fun resolveReturnType(
-        transformer: Transformer,
+        funData: SyntheticFunData,
         returnTypeRef: FirTypeRef
     ): FirTypeRef {
-        val resultConeType = resolveReturnConeType(transformer, returnTypeRef)
+        val transformer = funData.transformer
+        val returnTypeArg = funData.markAnnotationTypeArgument
+
+        val returnTypeConeType = returnTypeArg?.toConeTypeProjection()?.let {
+            // if is star projection, use Any or Nothing? and the nullable?
+            it.type ?: session.builtinTypes.nothingType.coneType
+        } ?: returnTypeRef.coneType
+
+        val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeConeType)
 
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
@@ -1039,15 +1051,15 @@ class SuspendTransformFirTransformer(
 
     private fun resolveReturnConeType(
         transformer: Transformer,
-        returnTypeRef: FirTypeRef
+        returnTypeConeType: ConeKotlinType
     ): ConeKotlinType {
         val returnType = transformer.transformReturnType
-            ?: return returnTypeRef.coneType // OrNull // original.symbol.resolvedReturnType
+            ?: return returnTypeConeType // OrNull // original.symbol.resolvedReturnType
 
         var typeArguments: Array<ConeTypeProjection> = emptyArray()
 
         if (transformer.transformReturnTypeGeneric) {
-            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(returnTypeRef.coneType))
+            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(returnTypeConeType))
         }
 
         val resultConeType = returnType.toClassId().createConeType(
@@ -1065,6 +1077,7 @@ class SuspendTransformFirTransformer(
     private fun copyAnnotations(
         original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
     ): CopyAnnotations {
+        // TODO Do not copy marker annotation itself.
         val transformer = syntheticFunData.transformer
 
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }

@@ -1,11 +1,17 @@
 package love.forte.plugin.suspendtrans.services
 
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
+import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmApi4JAnnotationClassInfo
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncMarkAnnotationClassInfo
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingMarkAnnotationClassInfo
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformFunction
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
-import love.forte.plugin.suspendtrans.configuration.TargetPlatform
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmNameAnnotationClassInfo
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmSyntheticClassInfo
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinOptInClassInfo
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -31,7 +37,43 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
         val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
             transformers = mapOf(
                 TargetPlatform.JS to listOf(jsPromiseTransformer),
-                TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer)
+                TargetPlatform.JVM to listOf(
+                    jvmBlockingTransformer,
+                    jvmAsyncTransformer,
+                    // Typed Mark Annotation
+                    Transformer(
+                        markAnnotation = MarkAnnotation(
+                            classInfo = ClassInfo(
+                                packageName = "love.forte.plugin.suspendtrans.annotation",
+                                className = "JvmBlockingWithType"
+                            ),
+                            defaultSuffix = "Blocking",
+                            markNameProperty = MarkNameProperty(
+                                propertyName = "markName",
+                                annotation = jvmNameAnnotationClassInfo,
+                                annotationMarkNamePropertyName = "name"
+                            )
+                        ),
+                        transformFunctionInfo = jvmBlockingTransformFunction,
+                        transformReturnType = null,
+                        transformReturnTypeGeneric = false,
+                        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+                        syntheticFunctionIncludeAnnotations = listOf(
+                            IncludeAnnotation(
+                                classInfo = jvmApi4JAnnotationClassInfo,
+                                includeProperty = true
+                            )
+                        ),
+                        copyAnnotationsToSyntheticFunction = true,
+                        copyAnnotationExcludes = listOf(
+                            jvmSyntheticClassInfo,
+                            jvmBlockingMarkAnnotationClassInfo,
+                            jvmAsyncMarkAnnotationClassInfo,
+                            kotlinOptInClassInfo,
+                            jvmNameAnnotationClassInfo,
+                        ),
+                    )
+                )
             )
         )
         // register plugin
@@ -54,6 +96,11 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
             )
         }
         getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmBlocking")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmBlockingWithType")?.let {
             configuration.addJvmClasspathRoot(
                 it
             )
