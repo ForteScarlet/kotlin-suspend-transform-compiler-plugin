@@ -1,6 +1,7 @@
 package love.forte.plugin.suspendtrans.configuration
 
 import kotlinx.serialization.Serializable
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 
 // NOTE:
 //   配置信息均使用 `Protobuf` 进行序列化
@@ -80,6 +81,7 @@ enum class TargetPlatform {
  * 用于标记的注解信息, 例如 `@JvmBlocking`, `@JvmAsync`, `@JsPromise`.
  */
 @Serializable
+@OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
 class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
     /**
      * 注解类信息
@@ -113,12 +115,60 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
      */
     // 'null' is not supported for optional properties in ProtoBuf
     val markNameProperty: MarkNameProperty?,
+
+    /**
+     * Indicates whether there is a generic type used to override the function return type
+     * on the current mark annotation.
+     *
+     * If `true`, when determining the return type of the generated function,
+     * the content of this generic type will be directly regarded as the return type of the origin function,
+     * rather than the actual type of the origin function.
+     *
+     * For example, Normally, the return type of the generated function
+     * depends on the return type of the origin function:
+     *
+     * ```Kotlin
+     * @JvmBlocking
+     * suspend fun run(): Result<String>
+     *
+     * // Generated
+     *
+     * @Api4J
+     * fun runBlocking(): Result<String>
+     * ```
+     *
+     * However, if the annotation has a generic type and `hasReturnTypeOverrideGeneric` is true:
+     *
+     * ```Kotlin
+     * @JvmBlockingWithType<String?>
+     * suspend fun run(): Result<String>
+     *
+     * // Generated
+     *
+     * @Api4J
+     * fun runBlocking(): String?
+     * ```
+     *
+     * As can be seen, the generated function ignores the actual return type of the origin function
+     * and instead treats the generic type specified in the annotation as the return type
+     * of the origin function.
+     *
+     * Note: If you want to determine the return type through type overloading,
+     * you must ensure that the transformer function you use correctly matches the input and output parameter types.
+     * Otherwise, it may result in compilation errors or runtime exceptions.
+     *
+     * @since 0.14.0
+     */
+    @property:ExperimentalReturnTypeOverrideGenericApi
+    val hasReturnTypeOverrideGeneric: Boolean,
 ) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MarkAnnotation) return false
 
         if (defaultAsProperty != other.defaultAsProperty) return false
+        if (hasReturnTypeOverrideGeneric != other.hasReturnTypeOverrideGeneric) return false
         if (classInfo != other.classInfo) return false
         if (baseNameProperty != other.baseNameProperty) return false
         if (suffixProperty != other.suffixProperty) return false
@@ -131,6 +181,7 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
 
     override fun hashCode(): Int {
         var result = defaultAsProperty.hashCode()
+        result = 31 * result + hasReturnTypeOverrideGeneric.hashCode()
         result = 31 * result + classInfo.hashCode()
         result = 31 * result + baseNameProperty.hashCode()
         result = 31 * result + suffixProperty.hashCode()
@@ -141,7 +192,7 @@ class MarkAnnotation @InternalSuspendTransformConfigurationApi constructor(
     }
 
     override fun toString(): String {
-        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty, markName=$markNameProperty)"
+        return "MarkAnnotation(asPropertyProperty='$asPropertyProperty', classInfo=$classInfo, baseNameProperty='$baseNameProperty', suffixProperty='$suffixProperty', defaultSuffix='$defaultSuffix', defaultAsProperty=$defaultAsProperty, markNameProperty=$markNameProperty, hasReturnTypeOverrideGeneric=$hasReturnTypeOverrideGeneric)"
     }
 }
 
@@ -457,7 +508,8 @@ object SuspendTransformConfigurations {
             propertyName = "markName",
             annotation = jvmNameAnnotationClassInfo,
             annotationMarkNamePropertyName = "name"
-        )
+        ),
+        hasReturnTypeOverrideGeneric = false
     )
 
     @JvmStatic
@@ -480,7 +532,8 @@ object SuspendTransformConfigurations {
             propertyName = "markName",
             annotation = jvmNameAnnotationClassInfo,
             annotationMarkNamePropertyName = "name"
-        )
+        ),
+        hasReturnTypeOverrideGeneric = false
     )
 
     @JvmStatic
@@ -577,7 +630,8 @@ object SuspendTransformConfigurations {
             propertyName = "markName",
             annotation = jsNameAnnotationClassInfo,
             annotationMarkNamePropertyName = "name"
-        )
+        ),
+        hasReturnTypeOverrideGeneric = false
     )
 
     @JvmStatic

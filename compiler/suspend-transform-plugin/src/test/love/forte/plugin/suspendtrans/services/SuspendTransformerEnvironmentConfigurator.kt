@@ -34,7 +34,7 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
-        val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
+        val testConfiguration = SuspendTransformConfiguration(
             transformers = mapOf(
                 TargetPlatform.JS to listOf(jsPromiseTransformer),
                 TargetPlatform.JVM to listOf(
@@ -52,7 +52,8 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                                 propertyName = "markName",
                                 annotation = jvmNameAnnotationClassInfo,
                                 annotationMarkNamePropertyName = "name"
-                            )
+                            ),
+                            hasReturnTypeOverrideGeneric = true,
                         ),
                         transformFunctionInfo = jvmBlockingTransformFunction,
                         transformReturnType = null,

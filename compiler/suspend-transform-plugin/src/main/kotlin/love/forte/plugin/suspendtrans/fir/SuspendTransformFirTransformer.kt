@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.fir
 
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import love.forte.plugin.suspendtrans.configuration.MarkAnnotation
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.configuration.TargetPlatform
@@ -116,6 +117,42 @@ class SuspendTransformFirTransformer(
 
     }
 
+    private fun findTransformerFunctionSymbol(transformer: Transformer): FirNamedFunctionSymbol? {
+        val symbolProvider = session.symbolProvider
+        val dependenciesSymbolProvider = session.dependenciesSymbolProvider
+
+        val transformFunctionInfo = transformer.transformFunctionInfo
+        val packageName = transformFunctionInfo.packageName
+        val functionName = transformFunctionInfo.functionName
+
+        val functionNameIdentifier = Name.identifier(functionName)
+
+        val transformerFunctionSymbols =
+            symbolProvider.getTopLevelFunctionSymbols(
+                packageName.fqn,
+                functionNameIdentifier
+            ).ifEmpty {
+                dependenciesSymbolProvider.getTopLevelFunctionSymbols(
+                    packageName.fqn,
+                    functionNameIdentifier
+                )
+            }
+
+        if (transformerFunctionSymbols.isNotEmpty()) {
+            if (transformerFunctionSymbols.size == 1) {
+                transformerFunctionSymbolMap[transformer] = transformerFunctionSymbols.first()
+                return transformerFunctionSymbols.first()
+            } else {
+                error("Found multiple transformer function symbols for transformer: $transformer")
+            }
+        } else {
+            // 有时候在不同平台中寻找，可能会找不到，例如在jvm中找不到js的函数
+            // error("Cannot find transformer function symbol $packageName.$functionName (${session.moduleData.platform}) for transformer: $transformer")
+        }
+
+        return null
+    }
+
     private fun initTransformerFunctionSymbolMap(
         classSymbol: FirClassSymbol<*>,
         memberScope: FirClassDeclaredMemberScope?
@@ -129,35 +166,9 @@ class SuspendTransformFirTransformer(
         suspendTransformConfiguration.transformers
             .forEach { (_, transformerList) ->
                 for (transformer in transformerList) {
-                    val transformFunctionInfo = transformer.transformFunctionInfo
-                    val packageName = transformFunctionInfo.packageName
-                    val functionName = transformFunctionInfo.functionName
-
-                    // TODO 校验funcs?
-
-                    val functionNameIdentifier = Name.identifier(functionName)
-
-                    val transformerFunctionSymbols =
-                        symbolProvider.getTopLevelFunctionSymbols(
-                            packageName.fqn,
-                            functionNameIdentifier
-                        ).ifEmpty {
-                            dependenciesSymbolProvider.getTopLevelFunctionSymbols(
-                                packageName.fqn,
-                                functionNameIdentifier
-                            )
-                        }
-
-                    if (transformerFunctionSymbols.isNotEmpty()) {
-                        if (transformerFunctionSymbols.size == 1) {
-                            transformerFunctionSymbolMap[transformer] = transformerFunctionSymbols.first()
-                            map[transformer] = transformerFunctionSymbols.first()
-                        } else {
-                            error("Found multiple transformer function symbols for transformer: $transformer")
-                        }
-                    } else {
-                        // 有时候在不同平台中寻找，可能会找不到，例如在jvm中找不到js的函数
-                        // error("Cannot find transformer function symbol $packageName.$functionName (${session.moduleData.platform}) for transformer: $transformer")
+                    val transformerFunctionSymbol = findTransformerFunctionSymbol(transformer)
+                    if (transformerFunctionSymbol != null) {
+                        map[transformer] = transformerFunctionSymbol
                     }
                 }
             }
@@ -965,8 +976,15 @@ class SuspendTransformFirTransformer(
                         val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
 
-                        val markAnnotationTypeArgument = anno.typeArguments.firstOrNull()
+                        @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
+                        val markAnnotationTypeArgument = if (markAnnotation.hasReturnTypeOverrideGeneric) {
+                            anno.typeArguments.firstOrNull()
+                        } else {
+                            null
+                        }
 
+                        // TODO 也许错误延后抛出，缓存里找不到的话即用即找，可以解决无法在当前模块下使用的问题？
+                        //  see https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
                             ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
 
