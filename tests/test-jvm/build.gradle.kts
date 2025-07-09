@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
+
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 
 plugins {
@@ -30,6 +33,7 @@ dependencies {
     api(project(":runtime:suspend-transform-annotation"))
     api(project(":runtime:suspend-transform-runtime"))
     api(libs.kotlinx.coroutines.core)
+    api(project(":tests:test-runner"))
 }
 
 // @Suppress("DEPRECATION")
@@ -45,6 +49,43 @@ suspendTransformPlugin {
     includeRuntime = false
     transformers {
         useDefault()
+
+        addJvmBlocking {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.suspendtrans.test.runner"
+                    className = "JvmResultBlock"
+                }
+                hasReturnTypeOverrideGeneric = true
+            }
+            transformFunctionInfo {
+                packageName = "love.forte.suspendtrans.test.runner"
+                functionName = "jvmResultToBlock"
+            }
+            // T itself
+            // transformReturnType {
+            // }
+            transformReturnTypeGeneric = false
+        }
+        //
+        // addJvmAsync {
+        //     markAnnotation {
+        //         classInfo {
+        //             packageName = "love.forte.suspendtrans.test.runner"
+        //             className = "JvmResultAsync"
+        //         }
+        //         hasReturnTypeOverrideGeneric = true
+        //     }
+        //     transformFunctionInfo {
+        //         packageName = "love.forte.suspendtrans.test.runner"
+        //         functionName = "jvmResultToAsync"
+        //     }
+        //     // CompletableFuture<T>
+        //     // transformReturnType {
+        //     // }
+        //     transformReturnTypeGeneric = true
+        // }
+
     }
 }
 

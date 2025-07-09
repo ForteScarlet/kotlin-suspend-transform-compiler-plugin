@@ -37,6 +37,7 @@ include(":plugins:suspend-transform-plugin-gradle")
 
 //Samples
 include(":tests:test-jvm")
-//include(":tests:test-js")
+include(":tests:test-js")
+include(":tests:test-runner")
 //include(":tests:test-kmp")
 // include(":tests:test-android")

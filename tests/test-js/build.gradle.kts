@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
+
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
@@ -41,6 +44,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(project(":runtime:suspend-transform-annotation"))
             implementation(project(":runtime:suspend-transform-runtime"))
+            implementation(project(":tests:test-runner"))
         }
         jsTest.dependencies {
             implementation(kotlin("test"))
@@ -64,5 +68,22 @@ suspendTransformPlugin {
                 from(kotlinJsExportIgnoreClassInfo)
             }
         }
+        addJsPromise {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.suspendtrans.test.runner"
+                    className = "JsResultPromise"
+                }
+                hasReturnTypeOverrideGeneric = true
+            }
+
+            transformFunctionInfo {
+                packageName = "love.forte.suspendtrans.test.runner"
+                functionName = "jsResultToAsync"
+            }
+
+
+        }
+        // love.forte.suspendtrans.test.runner
     }
 }
