@@ -1,15 +1,9 @@
 package love.forte.plugin.suspendtrans.fir
 
 import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
-import love.forte.plugin.suspendtrans.configuration.MarkAnnotation
-import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
-import love.forte.plugin.suspendtrans.configuration.TargetPlatform
-import love.forte.plugin.suspendtrans.configuration.Transformer
+import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.fqn
-import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
-import love.forte.plugin.suspendtrans.utils.includeAnnotations
-import love.forte.plugin.suspendtrans.utils.toClassId
-import love.forte.plugin.suspendtrans.utils.toInfo
+import love.forte.plugin.suspendtrans.utils.*
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fakeElement
@@ -55,11 +49,6 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.name.*
-import org.jetbrains.kotlin.platform.isCommon
-import org.jetbrains.kotlin.platform.isJs
-import org.jetbrains.kotlin.platform.isWasm
-import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
@@ -87,6 +76,11 @@ class SuspendTransformFirTransformer(
     private val transformerFunctionSymbolMap =
         ConcurrentHashMap<Transformer, FirNamedFunctionSymbol>()
 
+    private val allMarkAnnotationClassInfos: Set<ClassInfo> =
+        suspendTransformConfiguration.transformers.values.flatMapTo(mutableSetOf()) { transformerList ->
+            transformerList.map { transformer -> transformer.markAnnotation.classInfo }
+        }
+
     private lateinit var coroutineScopeSymbol: FirClassLikeSymbol<*>
 
     private data class FirCacheKey(
@@ -98,12 +92,23 @@ class SuspendTransformFirTransformer(
         val funName: Name,
         val annotationData: TransformAnnotationData,
         val transformer: Transformer,
-        val transformerFunctionSymbol: FirNamedFunctionSymbol,
+        val transformerFunctionSymbol: FirNamedFunctionSymbol?,
         val markAnnotationTypeArgument: FirTypeProjection?,
-    )
+        val platform: org.jetbrains.kotlin.platform.TargetPlatform
+    ) {
+        fun transformerFunctionSymbol(
+            transformerFunctionSymbolMap: Map<Transformer, FirNamedFunctionSymbol>,
+            finder: (Transformer) -> FirNamedFunctionSymbol?
+        ): FirNamedFunctionSymbol {
+            return transformerFunctionSymbol
+                ?: transformerFunctionSymbolMap[transformer]
+                ?: finder(transformer)
+                ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
+        }
+
+    }
 
     private fun initScopeSymbol() {
-
         val classId = ClassId(
             FqName.fromSegments(listOf("kotlinx", "coroutines")),
             Name.identifier("CoroutineScope")
@@ -114,7 +119,6 @@ class SuspendTransformFirTransformer(
                 ?: session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId)
                         ?: error("Cannot resolve `kotlinx.coroutines.CoroutineScope` symbol.")
         }
-
     }
 
     private fun findTransformerFunctionSymbol(transformer: Transformer): FirNamedFunctionSymbol? {
@@ -140,8 +144,9 @@ class SuspendTransformFirTransformer(
 
         if (transformerFunctionSymbols.isNotEmpty()) {
             if (transformerFunctionSymbols.size == 1) {
-                transformerFunctionSymbolMap[transformer] = transformerFunctionSymbols.first()
-                return transformerFunctionSymbols.first()
+                val firstFunctionSymbol = transformerFunctionSymbols.first()
+                transformerFunctionSymbolMap[transformer] = firstFunctionSymbol
+                return firstFunctionSymbol
             } else {
                 error("Found multiple transformer function symbols for transformer: $transformer")
             }
@@ -153,14 +158,8 @@ class SuspendTransformFirTransformer(
         return null
     }
 
-    private fun initTransformerFunctionSymbolMap(
-        classSymbol: FirClassSymbol<*>,
-        memberScope: FirClassDeclaredMemberScope?
-    ): Map<Transformer, FirNamedFunctionSymbol> {
+    private fun initTransformerFunctionSymbolMap(): Map<Transformer, FirNamedFunctionSymbol> {
         // 尝试找到所有配置的 bridge function, 例如 `runBlocking` 等
-        val symbolProvider = session.symbolProvider
-        val dependenciesSymbolProvider = session.dependenciesSymbolProvider
-
         val map = mutableMapOf<Transformer, FirNamedFunctionSymbol>()
 
         suspendTransformConfiguration.transformers
@@ -180,8 +179,7 @@ class SuspendTransformFirTransformer(
         session.firCachesFactory.createCache { cacheKey, c ->
             val (symbol, scope) = cacheKey
             initScopeSymbol()
-            val transformerFunctionMap = initTransformerFunctionSymbolMap(symbol, scope)
-
+            val transformerFunctionMap = initTransformerFunctionSymbolMap()
             createCache(symbol, scope, transformerFunctionMap)
         }
 
@@ -261,9 +259,8 @@ class SuspendTransformFirTransformer(
         return copyConeType(originalTypeParameterCache) ?: this
     }
 
-    private fun FirSimpleFunctionBuilder.copyParameters() {
+    private fun FirSimpleFunctionBuilder.copyParameters(originalTypeParameterCache: MutableList<CopiedTypeParameterPair>) {
         val newFunSymbol = symbol
-        val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
         val newTypeParameters = typeParameters.mapToNewTypeParameters(newFunSymbol, originalTypeParameterCache)
         typeParameters.clear()
@@ -358,9 +355,9 @@ class SuspendTransformFirTransformer(
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
-        funData: SyntheticFunData
+        funData: SyntheticFunData,
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>
     ): FirBlock = buildBlock {
-        val transformer = funData.transformer
         this.source = originFunc.body?.source
 
         // lambda: suspend () -> T
@@ -447,7 +444,7 @@ class SuspendTransformFirTransformer(
         }
         lambdaTarget.bind(lambda)
 
-        val returnType = resolveReturnType(funData, originFunc.returnTypeRef)
+        val returnType = resolveReturnType(funData, originFunc.returnTypeRef, originalTypeParameterCache)
 
         this.statements.add(
             buildReturnExpression {
@@ -593,7 +590,8 @@ class SuspendTransformFirTransformer(
         funData: SyntheticFunData,
         results: MutableList<FirNamedFunctionSymbol>,
     ) {
-        val realBridgeFunSymbol = funData.transformerFunctionSymbol
+        val realBridgeFunSymbol =
+            funData.transformerFunctionSymbol(transformerFunctionSymbolMap, ::findTransformerFunctionSymbol)
 
         val annotationData = funData.annotationData
         if (!annotationData.asProperty) {
@@ -623,6 +621,7 @@ class SuspendTransformFirTransformer(
 //                )
 //            )
             val key = SuspendTransformK2V3Key
+            val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
             val newFun = buildSimpleFunctionCopy(originFunc) {
@@ -650,10 +649,10 @@ class SuspendTransformFirTransformer(
                 // In the generated IR, data and dataBlocking will share an `A`, generating the error.
                 // The error: Duplicate IR node
                 //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
-                copyParameters()
+                copyParameters(originalTypeParameterCache)
 
                 // resolve returnType (with wrapped) after copyParameters
-                returnTypeRef = resolveReturnType(funData, returnTypeRef)
+                returnTypeRef = resolveReturnType(funData, returnTypeRef, originalTypeParameterCache)
 
                 val thisReceiverParameter = this.receiverParameter
                 val thisContextParameters = this.contextParameters
@@ -672,7 +671,8 @@ class SuspendTransformFirTransformer(
                     thisValueParameters,
                     realBridgeFunSymbol,
                     newFunTarget,
-                    funData
+                    funData,
+                    originalTypeParameterCache
                 )
 
                 origin = key.origin
@@ -692,6 +692,8 @@ class SuspendTransformFirTransformer(
         context: MemberGenerationContext?
     ): List<FirPropertySymbol> {
         val owner = context?.owner ?: return emptyList()
+        val originalTypeParameterCache: MutableList<CopiedTypeParameterPair> = mutableListOf()
+
         val funcMap = cache.getValue(FirCacheKey(owner, context.declaredScope))
             ?.get(callableId.callableName)
             ?: return emptyList()
@@ -734,13 +736,12 @@ class SuspendTransformFirTransformer(
 
             val originalReturnType = original.returnTypeRef
 
-            val originalTypeParameterCache: MutableList<CopiedTypeParameterPair> = mutableListOf()
             val copiedReturnType = originalReturnType.withReplacedConeType(
                 originalReturnType.coneTypeOrNull?.copyConeTypeOrSelf(originalTypeParameterCache)
             )
 
             // copy完了再resolve，这样里面包的type parameter就不会有问题了（如果有type parameter的话）
-            val resolvedReturnType = resolveReturnType(funData, copiedReturnType)
+            val resolvedReturnType = resolveReturnType(funData, copiedReturnType, originalTypeParameterCache)
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
 
@@ -819,9 +820,13 @@ class SuspendTransformFirTransformer(
                         null,
                         propertyAccessorSymbol,
                         thisValueParameters,
-                        funData.transformerFunctionSymbol,
+                        funData.transformerFunctionSymbol(
+                            transformerFunctionSymbolMap,
+                            ::findTransformerFunctionSymbol
+                        ),
                         newFunTarget,
-                        funData
+                        funData,
+                        originalTypeParameterCache
                     )
                 }.also { getter ->
                     newFunTarget.bind(getter)
@@ -943,14 +948,7 @@ class SuspendTransformFirTransformer(
         val platform = classSymbol.moduleData.platform
 
         fun check(targetPlatform: TargetPlatform): Boolean {
-            return when {
-                platform.isJvm() && targetPlatform == TargetPlatform.JVM -> true
-                platform.isJs() && targetPlatform == TargetPlatform.JS -> true
-                platform.isWasm() && targetPlatform == TargetPlatform.WASM -> true
-                platform.isNative() && targetPlatform == TargetPlatform.NATIVE -> true
-                platform.isCommon() && targetPlatform == TargetPlatform.COMMON -> true
-                else -> false
-            }
+            return checkPlatform(platform, targetPlatform)
         }
 
         // Key -> synthetic fun name
@@ -986,7 +984,6 @@ class SuspendTransformFirTransformer(
                         // TODO 也许错误延后抛出，缓存里找不到的话即用即找，可以解决无法在当前模块下使用的问题？
                         //  see https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100
                         val transformerFunctionSymbol = transformerFunctionSymbolMap[transformer]
-                            ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
 
                         // 读不到注解的参数？
                         // 必须使用 anno.getXxxArgument(Name(argument name)),
@@ -1004,7 +1001,8 @@ class SuspendTransformFirTransformer(
                             annoData,
                             transformer,
                             transformerFunctionSymbol,
-                            markAnnotationTypeArgument
+                            markAnnotationTypeArgument,
+                            platform
                         )
                     }
                 }
@@ -1043,14 +1041,16 @@ class SuspendTransformFirTransformer(
 
     private fun resolveReturnType(
         funData: SyntheticFunData,
-        returnTypeRef: FirTypeRef
+        returnTypeRef: FirTypeRef,
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>
     ): FirTypeRef {
         val transformer = funData.transformer
         val returnTypeArg = funData.markAnnotationTypeArgument
 
         val returnTypeConeType = returnTypeArg?.toConeTypeProjection()?.let {
             // if is star projection, use Any or Nothing? and the nullable?
-            it.type ?: session.builtinTypes.nothingType.coneType
+            it.type?.copyWithTypeParameters(originalTypeParameterCache)
+                ?: session.builtinTypes.nothingType.coneType
         } ?: returnTypeRef.coneType
 
         val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeConeType)
@@ -1095,18 +1095,24 @@ class SuspendTransformFirTransformer(
     private fun copyAnnotations(
         original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
     ): CopyAnnotations {
-        // TODO Do not copy marker annotation itself.
         val transformer = syntheticFunData.transformer
 
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
 
         val copyFunction = transformer.copyAnnotationsToSyntheticFunction
         val copyProperty = transformer.copyAnnotationsToSyntheticProperty
-        val excludes = transformer.copyAnnotationExcludes.map { it.toClassId() }
+
+        val includeClassInfos = transformer.syntheticFunctionIncludeAnnotations.mapTo(mutableSetOf()) { it.classInfo }
+        // 对于 all mark annotation class infos 来说，它们必须包括在 include class infos 中才能被拷贝
+        // 将 all mark annotation class infos 添加到 excludes, 但是排除掉在 include 中包含的。
+        val excludeMarkAnnotations = allMarkAnnotationClassInfos - includeClassInfos
+
+        val excludes =
+            transformer.copyAnnotationExcludes.map { it.toClassId() } + excludeMarkAnnotations.map { it.toClassId() }
         val includes = transformer.syntheticFunctionIncludeAnnotations.map { it.toInfo() }
         val markNameProperty = transformer.markAnnotation.markNameProperty
 
-        val functionAnnotationList = buildList<FirAnnotation> {
+        val functionAnnotationList: List<FirAnnotation> = buildList {
             if (copyFunction) {
                 val notCompileAnnotationsCopied = originalAnnotationClassIdMap.filterNot { (_, annotationClassId) ->
                     if (annotationClassId == null) return@filterNot true
@@ -1122,7 +1128,7 @@ class SuspendTransformFirTransformer(
                  *
                  * See https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/56
                  */
-                val copied = notCompileAnnotationsCopied.map { a ->
+                val copied: List<FirAnnotation> = notCompileAnnotationsCopied.map { a ->
                     buildAnnotation {
                         annotationTypeRef = buildResolvedTypeRef {
                             coneType = a.resolvedType
@@ -1140,7 +1146,13 @@ class SuspendTransformFirTransformer(
 
             // add includes
             includes.forEach { include ->
+                if (include.classInfo in allMarkAnnotationClassInfos) {
+                    // 如果 classId 在 allMarkAnnotationClassInfos 中，不直接添加
+                    return@forEach
+                }
+
                 val classId = include.classId
+
                 val includeAnnotation = buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
                     annotationTypeRef = buildResolvedTypeRef {
@@ -1179,7 +1191,7 @@ class SuspendTransformFirTransformer(
             }
         }
 
-        val propertyAnnotationList = buildList<FirAnnotation> {
+        val propertyAnnotationList: List<FirAnnotation> = buildList {
             if (copyProperty) {
                 val notCompileAnnotationsCopied = originalAnnotationClassIdMap.filterNot { (_, annotationClassId) ->
                     if (annotationClassId == null) return@filterNot true
@@ -1209,7 +1221,7 @@ class SuspendTransformFirTransformer(
         val infos = transformer.originFunctionIncludeAnnotations.map { it.toInfo() }
 
         val includeToOriginals: List<FirAnnotation> = infos
-            .mapNotNull { (classId, repeatable, _) ->
+            .mapNotNull { (classId, _, repeatable, _) ->
                 if (!repeatable) {
                     // 不能是已经存在的
                     if (originalAnnotationClassIdMap.values.any { it == classId }) {
