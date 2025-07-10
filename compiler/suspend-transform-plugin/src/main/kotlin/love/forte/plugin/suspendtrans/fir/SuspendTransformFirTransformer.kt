@@ -1,6 +1,5 @@
 package love.forte.plugin.suspendtrans.fir
 
-import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
@@ -356,7 +355,8 @@ class SuspendTransformFirTransformer(
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
         funData: SyntheticFunData,
-        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
+        returnTypeRef: FirTypeRef
     ): FirBlock = buildBlock {
         this.source = originFunc.body?.source
 
@@ -444,13 +444,13 @@ class SuspendTransformFirTransformer(
         }
         lambdaTarget.bind(lambda)
 
-        val returnType = resolveReturnType(funData, originFunc.returnTypeRef, originalTypeParameterCache)
+        // val returnType = resolveReturnType(funData, originFunc.returnTypeRef, originalTypeParameterCache)
 
         this.statements.add(
             buildReturnExpression {
                 this.target = newFunTarget
                 this.result = buildFunctionCall {
-                    this.coneTypeOrNull = returnType.coneType
+                    this.coneTypeOrNull = returnTypeRef.coneType
                     this.source = originFunc.body?.source
                     this.calleeReference = buildResolvedNamedReference {
                         this.source = bridgeFunSymbol.source
@@ -672,7 +672,8 @@ class SuspendTransformFirTransformer(
                     realBridgeFunSymbol,
                     newFunTarget,
                     funData,
-                    originalTypeParameterCache
+                    originalTypeParameterCache,
+                    returnTypeRef
                 )
 
                 origin = key.origin
@@ -826,7 +827,8 @@ class SuspendTransformFirTransformer(
                         ),
                         newFunTarget,
                         funData,
-                        originalTypeParameterCache
+                        originalTypeParameterCache,
+                        returnTypeRef
                     )
                 }.also { getter ->
                     newFunTarget.bind(getter)
@@ -974,12 +976,16 @@ class SuspendTransformFirTransformer(
                         val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
 
-                        @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
-                        val markAnnotationTypeArgument = if (markAnnotation.hasReturnTypeOverrideGeneric) {
-                            anno.typeArguments.firstOrNull()
-                        } else {
-                            null
-                        }
+                        val markAnnotationTypeArgument: FirTypeProjection? = null
+
+                        // TODO 只要是一个标记注解，范型就会 'ERROR CLASS: Symbol not found for T'
+                        //  为什么？
+                        // @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
+                        // val markAnnotationTypeArgument: FirTypeProjection? = if (markAnnotation.hasReturnTypeOverrideGeneric) {
+                        //     anno.typeArguments.firstOrNull()
+                        // } else {
+                        //     null
+                        // }
 
                         // TODO 也许错误延后抛出，缓存里找不到的话即用即找，可以解决无法在当前模块下使用的问题？
                         //  see https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100
@@ -1030,14 +1036,16 @@ class SuspendTransformFirTransformer(
         func: FirNamedFunctionSymbol,
         markAnnotation: MarkAnnotation,
         classSymbol: FirBasedSymbol<*>?
-    ) = func.resolvedAnnotationsWithArguments.getAnnotationsByClassId(
-        markAnnotation.classId,
-        session
-    ).firstOrNull()
-        ?: classSymbol?.resolvedAnnotationsWithArguments?.getAnnotationsByClassId(
+    ): FirAnnotation? {
+        return func.resolvedAnnotationsWithArguments.getAnnotationsByClassId(
             markAnnotation.classId,
             session
-        )?.firstOrNull()
+        ).firstOrNull()
+            ?: classSymbol?.resolvedAnnotationsWithArguments?.getAnnotationsByClassId(
+                markAnnotation.classId,
+                session
+            )?.firstOrNull()
+    }
 
     private fun resolveReturnType(
         funData: SyntheticFunData,
@@ -1047,9 +1055,10 @@ class SuspendTransformFirTransformer(
         val transformer = funData.transformer
         val returnTypeArg = funData.markAnnotationTypeArgument
 
-        val returnTypeConeType = returnTypeArg?.toConeTypeProjection()?.let {
+        val returnTypeConeType: ConeKotlinType = returnTypeArg?.toConeTypeProjection()?.let {
             // if is star projection, use Any or Nothing? and the nullable?
-            it.type?.copyWithTypeParameters(originalTypeParameterCache)
+            it.type
+                ?.copyConeTypeOrSelf(originalTypeParameterCache)
                 ?: session.builtinTypes.nothingType.coneType
         } ?: returnTypeRef.coneType
 
@@ -1093,10 +1102,12 @@ class SuspendTransformFirTransformer(
      * @return function annotations `to` property annotations.
      */
     private fun copyAnnotations(
-        original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
+        original: FirSimpleFunction,
+        syntheticFunData: SyntheticFunData,
     ): CopyAnnotations {
         val transformer = syntheticFunData.transformer
 
+        // val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
 
         val copyFunction = transformer.copyAnnotationsToSyntheticFunction
@@ -1133,6 +1144,7 @@ class SuspendTransformFirTransformer(
                         annotationTypeRef = buildResolvedTypeRef {
                             coneType = a.resolvedType
                         }
+
                         this.typeArguments.addAll(a.typeArguments)
                         this.argumentMapping = buildAnnotationArgumentMapping {
                             this.source = a.source

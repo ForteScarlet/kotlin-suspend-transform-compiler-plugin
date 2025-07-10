@@ -68,23 +68,23 @@ suspendTransformPlugin {
             transformReturnTypeGeneric = false
         }
         //
-        // addJvmAsync {
-        //     markAnnotation {
-        //         classInfo {
-        //             packageName = "love.forte.suspendtrans.test.runner"
-        //             className = "JvmResultAsync"
-        //         }
-        //         hasReturnTypeOverrideGeneric = true
-        //     }
-        //     transformFunctionInfo {
-        //         packageName = "love.forte.suspendtrans.test.runner"
-        //         functionName = "jvmResultToAsync"
-        //     }
-        //     // CompletableFuture<T>
-        //     // transformReturnType {
-        //     // }
-        //     transformReturnTypeGeneric = true
-        // }
+        addJvmAsync {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.suspendtrans.test.runner"
+                    className = "JvmResultAsync"
+                }
+                hasReturnTypeOverrideGeneric = true
+            }
+            transformFunctionInfo {
+                packageName = "love.forte.suspendtrans.test.runner"
+                functionName = "jvmResultToAsync"
+            }
+            // CompletableFuture<T>
+            // transformReturnType {
+            // }
+            transformReturnTypeGeneric = true
+        }
 
     }
 }
