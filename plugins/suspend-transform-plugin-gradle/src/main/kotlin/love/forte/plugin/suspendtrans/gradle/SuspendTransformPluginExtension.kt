@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.gradle
 
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
@@ -781,6 +782,54 @@ abstract class MarkAnnotationSpec
      */
     abstract val markNameProperty: Property<MarkNamePropertySpec>
 
+    /**
+     * Indicates whether there is a generic type used to override the function return type
+     * on the current mark annotation.
+     *
+     * If `true`, when determining the return type of the generated function,
+     * the content of this generic type will be directly regarded as the return type of the origin function,
+     * rather than the actual type of the origin function.
+     *
+     * For example, Normally, the return type of the generated function
+     * depends on the return type of the origin function:
+     *
+     * ```Kotlin
+     * @JvmBlocking
+     * suspend fun run(): Result<String>
+     *
+     * // Generated
+     *
+     * @Api4J
+     * fun runBlocking(): Result<String>
+     * ```
+     *
+     * However, if the annotation has a generic type and `hasReturnTypeOverrideGeneric` is true:
+     *
+     * ```Kotlin
+     * @JvmBlockingWithType<String?>
+     * suspend fun run(): Result<String>
+     *
+     * // Generated
+     *
+     * @Api4J
+     * fun runBlocking(): String?
+     * ```
+     *
+     * As can be seen, the generated function ignores the actual return type of the origin function
+     * and instead treats the generic type specified in the annotation as the return type
+     * of the origin function.
+     *
+     * Note: If you want to determine the return type through type overloading,
+     * you must ensure that the transformer function you use correctly matches the input and output parameter types.
+     * Otherwise, it may result in compilation errors or runtime exceptions.
+     *
+     * @since 0.14.0
+     */
+    @ExperimentalReturnTypeOverrideGenericApi
+    val hasReturnTypeOverrideGeneric: Property<Boolean> =
+        objects.property(Boolean::class.java).convention(false)
+
+
     fun markNameProperty(action: Action<in MarkNamePropertySpec>) {
         markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action::execute))
     }
@@ -789,6 +838,7 @@ abstract class MarkAnnotationSpec
         markNameProperty.set(markNameProperty.getOrElse(objects.newInstance<MarkNamePropertySpec>()).also(action))
     }
 
+    @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
     fun from(markAnnotation: MarkAnnotation) {
         classInfo {
             from(markAnnotation.classInfo)
@@ -805,7 +855,7 @@ abstract class MarkAnnotationSpec
 
             }
         }
-
+        hasReturnTypeOverrideGeneric.set(markAnnotation.hasReturnTypeOverrideGeneric)
     }
 }
 
@@ -992,7 +1042,7 @@ internal fun TransformerSpec.toTransformer(): Transformer {
     )
 }
 
-@OptIn(InternalSuspendTransformConfigurationApi::class)
+@OptIn(InternalSuspendTransformConfigurationApi::class, ExperimentalReturnTypeOverrideGenericApi::class)
 internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
     return MarkAnnotation(
         classInfo = classInfo.get().toClassInfo(),
@@ -1001,7 +1051,8 @@ internal fun MarkAnnotationSpec.toMarkAnnotation(): MarkAnnotation {
         asPropertyProperty = asPropertyProperty.get(),
         defaultSuffix = defaultSuffix.get(),
         defaultAsProperty = defaultAsProperty.get(),
-        markNameProperty = markNameProperty.orNull?.toMarkNameProperty()
+        markNameProperty = markNameProperty.orNull?.toMarkNameProperty(),
+        hasReturnTypeOverrideGeneric = hasReturnTypeOverrideGeneric.getOrElse(false)
     )
 }
 

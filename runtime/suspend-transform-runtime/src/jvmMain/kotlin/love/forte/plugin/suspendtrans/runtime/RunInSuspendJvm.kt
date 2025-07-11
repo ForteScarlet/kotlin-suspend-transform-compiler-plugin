@@ -94,3 +94,8 @@ public fun <T> `$runInAsync$`(
 
 
 
+
+@OptIn(DelicateCoroutinesApi::class)
+public fun <T> jvmResultToBlock(block: suspend () -> Result<T>): T {
+    return runBlocking { block().getOrThrow() }
+}
