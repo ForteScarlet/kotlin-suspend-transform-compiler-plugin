@@ -310,15 +310,15 @@ class SuspendTransformFirTransformer(
         owner: FirClassSymbol<*>,
         thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
-        newFunSymbol: FirBasedSymbol<*>,
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
-        funData: SyntheticFunData,
         originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
-        returnTypeRef: FirTypeRef
+        functionReturnTypeRef: FirTypeRef,
     ): FirBlock = buildBlock {
         this.source = originFunc.body?.source
+
+        val originalFunReturnType = originFunSymbol.resolvedReturnTypeRef.coneType.copyConeTypeOrSelf(originalTypeParameterCache)
 
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
@@ -329,8 +329,12 @@ class SuspendTransformFirTransformer(
             this.moduleData = originFunSymbol.moduleData
             // this.origin = FirDeclarationOrigin.Source
             // this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
-            this.origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
-            this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef
+            this.origin = SuspendTransformK2V3Key.origin
+            // lambda 的返回值类型，() -> T 的 T, 应当是原始函数真正的返回值
+            this.returnTypeRef = buildResolvedTypeRef {
+                coneType = originalFunReturnType
+            }
+
             this.hasExplicitParameterList = false
             // this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
             this.status = this.status.copy(isSuspend = true)
@@ -340,7 +344,8 @@ class SuspendTransformFirTransformer(
                     target = lambdaTarget
                     result = buildFunctionCall {
                         // Call original fun
-                        this.coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
+                        // this.coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
+                        this.coneTypeOrNull = originalFunReturnType
                         this.source = originFunSymbol.source
                         this.calleeReference = buildResolvedNamedReference {
                             this.source = originFunSymbol.source
@@ -399,16 +404,20 @@ class SuspendTransformFirTransformer(
 
             this.typeRef = buildResolvedTypeRef {
                 this.coneType = StandardClassIds.SuspendFunctionN(0)
-                    .createConeType(session, arrayOf(originFunSymbol.resolvedReturnType))
+                    // .createConeType(session, arrayOf(originFunSymbol.resolvedReturnType))
+                    .createConeType(session, arrayOf(originalFunReturnType))
             }
         }
         lambdaTarget.bind(lambda)
 
+        // 合成函数内部
         this.statements.add(
+            // 调用桥接函数并返回
             buildReturnExpression {
                 this.target = newFunTarget
                 this.result = buildFunctionCall {
-                    this.coneTypeOrNull = returnTypeRef.coneType
+                    // 返回合成函数应该返回的类型
+                    this.coneTypeOrNull = functionReturnTypeRef.coneType
                     this.source = originFunc.body?.source
                     this.calleeReference = buildResolvedNamedReference {
                         this.source = bridgeFunSymbol.source
@@ -521,10 +530,7 @@ class SuspendTransformFirTransformer(
                                         }
                                     }
                                 }
-
-
                             }
-
                         }
                     )
                 }
@@ -556,12 +562,12 @@ class SuspendTransformFirTransformer(
 
             val newFunSymbol = FirNamedFunctionSymbol(callableId)
 
-            val key = SuspendTransformK2V3Key
+            val pluginKey = SuspendTransformK2V3Key
             val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
             val newFun = buildSimpleFunctionCopy(originFunc) {
-                origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
+                origin = pluginKey.origin
                 source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 name = callableId.callableName
                 symbol = newFunSymbol
@@ -588,7 +594,12 @@ class SuspendTransformFirTransformer(
                 copyParameters(originalTypeParameterCache)
 
                 // resolve returnType (with wrapped) after copyParameters
-                returnTypeRef = resolveReturnType(funData, returnTypeRef, originalTypeParameterCache)
+                returnTypeRef = resolveReturnType(
+                    funData,
+                    returnTypeRef,
+                    originalTypeParameterCache,
+                    funData.markAnnotationTypeArgument
+                )
 
                 val thisReceiverParameter = this.receiverParameter
                 val thisContextParameters = this.contextParameters
@@ -603,16 +614,12 @@ class SuspendTransformFirTransformer(
                     owner,
                     thisContextParameters,
                     thisReceiverParameter,
-                    newFunSymbol,
                     thisValueParameters,
                     realBridgeFunSymbol,
                     newFunTarget,
-                    funData,
                     originalTypeParameterCache,
-                    returnTypeRef
+                    returnTypeRef,
                 )
-
-                origin = key.origin
             }
 
             newFunTarget.bind(newFun)
@@ -678,7 +685,12 @@ class SuspendTransformFirTransformer(
             )
 
             // copy完了再resolve，这样里面包的type parameter就不会有问题了（如果有type parameter的话）
-            val resolvedReturnType = resolveReturnType(funData, copiedReturnType, originalTypeParameterCache)
+            val resolvedReturnType = resolveReturnType(
+                funData,
+                copiedReturnType,
+                originalTypeParameterCache,
+                funData.markAnnotationTypeArgument
+            )
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
 
@@ -755,16 +767,14 @@ class SuspendTransformFirTransformer(
                         owner,
                         emptyList(),
                         null,
-                        propertyAccessorSymbol,
                         thisValueParameters,
                         funData.transformerFunctionSymbol(
                             transformerFunctionSymbolMap,
                             ::findTransformerFunctionSymbol
                         ),
                         newFunTarget,
-                        funData,
                         originalTypeParameterCache,
-                        returnTypeRef
+                        returnTypeRef,
                     )
                 }.also { getter ->
                     newFunTarget.bind(getter)
@@ -972,12 +982,12 @@ class SuspendTransformFirTransformer(
     private fun resolveReturnType(
         funData: SyntheticFunData,
         returnTypeRef: FirTypeRef,
-        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>
+        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
+        returnTypeFromProjection: FirTypeProjection?
     ): FirTypeRef {
         val transformer = funData.transformer
-        val returnTypeArg = funData.markAnnotationTypeArgument
 
-        val returnTypeConeType: ConeKotlinType = returnTypeArg?.toConeTypeProjection()?.let {
+        val returnTypeConeType: ConeKotlinType = returnTypeFromProjection?.toConeTypeProjection()?.let {
             // TODO if is star projection, use Any or Nothing? and the nullable?
             it.type
                 ?.copyConeTypeOrSelf(originalTypeParameterCache)
