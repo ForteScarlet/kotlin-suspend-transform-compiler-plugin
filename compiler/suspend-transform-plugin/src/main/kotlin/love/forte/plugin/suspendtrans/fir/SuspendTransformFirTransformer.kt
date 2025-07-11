@@ -1,5 +1,6 @@
 package love.forte.plugin.suspendtrans.fir
 
+import love.forte.plugin.suspendtrans.annotation.ExperimentalReturnTypeOverrideGenericApi
 import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.fqn
 import love.forte.plugin.suspendtrans.utils.*
@@ -24,9 +25,7 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
-import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
-import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
 import org.jetbrains.kotlin.fir.references.builder.buildExplicitThisReference
 import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
@@ -557,20 +556,6 @@ class SuspendTransformFirTransformer(
 
             val newFunSymbol = FirNamedFunctionSymbol(callableId)
 
-//            val key = SuspendTransformPluginKey(
-//                data = SuspendTransformUserDataFir(
-//                    markerId = UUID.randomUUID().toString(),
-//                    originSymbol = originFunc.symbol.asOriginSymbol(
-//                        targetMarkerAnnotation,
-//                        typeParameters = originFunc.typeParameters,
-//                        valueParameters = originFunc.valueParameters,
-//                        originFunc.returnTypeRef.coneTypeOrNull?.classId,
-//                        session,
-//                    ),
-//                    asProperty = false,
-//                    transformer = funData.transformer
-//                )
-//            )
             val key = SuspendTransformK2V3Key
             val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
@@ -860,19 +845,23 @@ class SuspendTransformFirTransformer(
         return isOverride
     }
 
-    private val annotationPredicates
-        get() = DeclarationPredicate.create {
-            val annotationFqNames = suspendTransformConfiguration.transformers.values
-                .flatMapTo(mutableSetOf()) { transformerList ->
-                    transformerList.map { it.markAnnotation.fqName }
-                }
-
-            hasAnnotated(annotationFqNames)
-        }
-
-    override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-        register(annotationPredicates)
-    }
+    // private val annotationPredicates
+    //     get() = DeclarationPredicate.create {
+    //         val annotationFqNames = suspendTransformConfiguration.transformers.values
+    //             .flatMapTo(mutableSetOf()) { transformerList ->
+    //                 transformerList.map { it.markAnnotation.fqName }
+    //             }
+    //
+    //         hasAnnotated(annotationFqNames)
+    //     }
+    //
+    // 在进行 #102 的时候，使用 registerPredicates { register(annotationPredicates) }
+    // 会导致FIR中原函数的 mark annotation 中的范型 (如果有的话，以 `T` 为例) 无法被解析，产生如下错误：
+    //  @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<ERROR CLASS: Symbol not found for T>
+    //  即: ERROR CLASS: Symbol not found for T
+    // override fun FirDeclarationPredicateRegistrar.registerPredicates() {
+    //     register(annotationPredicates)
+    // }
 
     private fun createCache(
         classSymbol: FirClassSymbol<*>,
@@ -909,16 +898,13 @@ class SuspendTransformFirTransformer(
                         val anno = firAnnotation(func, markAnnotation, classSymbol)
                             ?: continue
 
-                        val markAnnotationTypeArgument: FirTypeProjection? = null
-
-                        // TODO 只要是一个标记注解，范型就会 'ERROR CLASS: Symbol not found for T'
-                        //  为什么？
-                        // @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
-                        // val markAnnotationTypeArgument: FirTypeProjection? = if (markAnnotation.hasReturnTypeOverrideGeneric) {
-                        //     anno.typeArguments.firstOrNull()
-                        // } else {
-                        //     null
-                        // }
+                        @OptIn(ExperimentalReturnTypeOverrideGenericApi::class)
+                        val markAnnotationTypeArgument: FirTypeProjection? =
+                            if (markAnnotation.hasReturnTypeOverrideGeneric) {
+                                anno.typeArguments.firstOrNull()
+                            } else {
+                                null
+                            }
 
                         // TODO 也许错误延后抛出，缓存里找不到的话即用即找，可以解决无法在当前模块下使用的问题？
                         //  see https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100
@@ -992,10 +978,10 @@ class SuspendTransformFirTransformer(
         val returnTypeArg = funData.markAnnotationTypeArgument
 
         val returnTypeConeType: ConeKotlinType = returnTypeArg?.toConeTypeProjection()?.let {
-            // if is star projection, use Any or Nothing? and the nullable?
+            // TODO if is star projection, use Any or Nothing? and the nullable?
             it.type
                 ?.copyConeTypeOrSelf(originalTypeParameterCache)
-                ?: session.builtinTypes.nothingType.coneType
+                ?: session.builtinTypes.nullableAnyType.coneType
         } ?: returnTypeRef.coneType
 
         val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeConeType)

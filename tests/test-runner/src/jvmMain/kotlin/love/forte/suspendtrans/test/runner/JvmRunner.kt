@@ -18,3 +18,8 @@ fun <T> jvmResultToAsync(block: suspend () -> Result<T>): CompletableFuture<T> {
 fun <T> jvmResultToBlock(block: suspend () -> Result<T>): T {
     return runBlocking { block().getOrThrow() }
 }
+
+@OptIn(DelicateCoroutinesApi::class)
+fun <T> jvmResToBlock(block: suspend () -> Res<T>): T {
+    return runBlocking { block().value }
+}

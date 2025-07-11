@@ -67,6 +67,23 @@ suspendTransformPlugin {
             // }
             transformReturnTypeGeneric = false
         }
+        addJvmBlocking {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.suspendtrans.test.runner"
+                    className = "JvmResBlock"
+                }
+                hasReturnTypeOverrideGeneric = true
+            }
+            transformFunctionInfo {
+                packageName = "love.forte.suspendtrans.test.runner"
+                functionName = "jvmResToBlock"
+            }
+            // T itself
+            // transformReturnType {
+            // }
+            transformReturnTypeGeneric = false
+        }
         //
         addJvmAsync {
             markAnnotation {

@@ -49,3 +49,5 @@ fun Project.setupWith(ktVersion: String) {
     val mergedVersion = ktVersion + "-" + IProject.pluginVersion
     version = if (IS_SNAPSHOT) "$mergedVersion-SNAPSHOT" else mergedVersion
 }
+
+fun isLocal(): Boolean = System.getenv("IS_LOCAL").toBoolean()

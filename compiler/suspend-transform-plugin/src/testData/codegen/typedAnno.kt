@@ -14,5 +14,5 @@ class Foo {
     @JvmBlockingWithType<T>
     @JvmBlockingWithType0<T>
     @FooAnno<T>
-    suspend fun <T> foo(): T = "foo"
+    suspend fun <T> foo(): kotlin.Result<T> = Result.success("foo")
 }

@@ -7,7 +7,6 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncMarkAnnotationClassInfo
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingMarkAnnotationClassInfo
-import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformFunction
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmNameAnnotationClassInfo
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmSyntheticClassInfo
@@ -56,7 +55,11 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                             ),
                             hasReturnTypeOverrideGeneric = true
                         ),
-                        transformFunctionInfo = jvmBlockingTransformFunction,
+                        // jvmResultToBlock
+                        transformFunctionInfo = FunctionInfo(
+                            packageName = "love.forte.plugin.suspendtrans.runtime",
+                            functionName = "jvmResultToBlock",
+                        ),
                         transformReturnType = null,
                         transformReturnTypeGeneric = false,
                         originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),

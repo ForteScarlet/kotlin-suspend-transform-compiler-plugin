@@ -3,7 +3,7 @@
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="SIMBOT_LOCAL" value="true" />
+          <entry key="IS_LOCAL" value="true" />
         </map>
       </option>
       <option name="executionName" />
