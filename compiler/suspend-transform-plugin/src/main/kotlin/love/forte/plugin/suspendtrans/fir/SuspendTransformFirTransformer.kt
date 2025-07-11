@@ -52,17 +52,6 @@ import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
-private data class CopiedTypeParameterPair(
-    val original: FirTypeParameter,
-    val copied: FirTypeParameter
-)
-
-private data class CopyAnnotations(
-    val functionAnnotations: List<FirAnnotation>,
-    val propertyAnnotations: List<FirAnnotation>,
-    val toOriginalAnnotations: List<FirAnnotation>
-)
-
 /**
  *
  * @author ForteScarlet
@@ -81,31 +70,6 @@ class SuspendTransformFirTransformer(
         }
 
     private lateinit var coroutineScopeSymbol: FirClassLikeSymbol<*>
-
-    private data class FirCacheKey(
-        val classSymbol: FirClassSymbol<*>,
-        val memberScope: FirClassDeclaredMemberScope?
-    )
-
-    private data class SyntheticFunData(
-        val funName: Name,
-        val annotationData: TransformAnnotationData,
-        val transformer: Transformer,
-        val transformerFunctionSymbol: FirNamedFunctionSymbol?,
-        val markAnnotationTypeArgument: FirTypeProjection?,
-        val platform: org.jetbrains.kotlin.platform.TargetPlatform
-    ) {
-        fun transformerFunctionSymbol(
-            transformerFunctionSymbolMap: Map<Transformer, FirNamedFunctionSymbol>,
-            finder: (Transformer) -> FirNamedFunctionSymbol?
-        ): FirNamedFunctionSymbol {
-            return transformerFunctionSymbol
-                ?: transformerFunctionSymbolMap[transformer]
-                ?: finder(transformer)
-                ?: error("Cannot find transformer function symbol for transformer: $transformer in $platform")
-        }
-
-    }
 
     private fun initScopeSymbol() {
         val classId = ClassId(
@@ -181,7 +145,6 @@ class SuspendTransformFirTransformer(
             val transformerFunctionMap = initTransformerFunctionSymbolMap()
             createCache(symbol, scope, transformerFunctionMap)
         }
-
 
     override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
         val names = mutableSetOf<Name>()
@@ -346,11 +309,9 @@ class SuspendTransformFirTransformer(
         originFunc: FirSimpleFunction,
         originFunSymbol: FirNamedFunctionSymbol,
         owner: FirClassSymbol<*>,
-//        thisContextReceivers: MutableList<FirContextReceiver>,
         thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
         newFunSymbol: FirBasedSymbol<*>,
-//        newFunSymbol: FirNamedFunctionSymbol,
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
@@ -444,8 +405,6 @@ class SuspendTransformFirTransformer(
         }
         lambdaTarget.bind(lambda)
 
-        // val returnType = resolveReturnType(funData, originFunc.returnTypeRef, originalTypeParameterCache)
-
         this.statements.add(
             buildReturnExpression {
                 this.target = newFunTarget
@@ -457,14 +416,6 @@ class SuspendTransformFirTransformer(
                         this.name = bridgeFunSymbol.name
                         this.resolvedSymbol = bridgeFunSymbol
                     }
-
-                    // this.dispatchReceiver = buildThisReceiverExpression {
-                    //     coneTypeOrNull = originFunSymbol.dispatchReceiverType
-                    //     source = originFunSymbol.source
-                    //     calleeReference = buildImplicitThisReference {
-                    //         boundSymbol = owner
-                    //     }
-                    // }
 
                     this.argumentList = buildResolvedArgumentList(
                         null,
@@ -909,33 +860,16 @@ class SuspendTransformFirTransformer(
         return isOverride
     }
 
-    private val annotationPredicates = DeclarationPredicate.create {
-        val annotationFqNames = suspendTransformConfiguration.transformers.values
-            .flatMapTo(mutableSetOf()) { transformerList ->
-                transformerList.map { it.markAnnotation.fqName }
-            }
+    private val annotationPredicates
+        get() = DeclarationPredicate.create {
+            val annotationFqNames = suspendTransformConfiguration.transformers.values
+                .flatMapTo(mutableSetOf()) { transformerList ->
+                    transformerList.map { it.markAnnotation.fqName }
+                }
 
-        hasAnnotated(annotationFqNames)
-        // var predicate: DeclarationPredicate? = null
-        // for (value in suspendTransformConfiguration.transformers.values) {
-        //     for (transformer in value) {
-        //         val afq = transformer.markAnnotation.fqName
-        //         predicate = if (predicate == null) {
-        //             annotated(afq)
-        //         } else {
-        //             predicate or annotated(afq)
-        //         }
-        //     }
-        // }
-        //
-        // predicate ?: annotated()
-    }
+            hasAnnotated(annotationFqNames)
+        }
 
-
-    /**
-     * NB: The predict needs to be *registered* in order to parse the [@XSerializable] type
-     * otherwise, the annotation remains unresolved
-     */
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
         register(annotationPredicates)
     }
@@ -958,7 +892,6 @@ class SuspendTransformFirTransformer(
         //      Key: -> origin fun symbol
         //      Values -> FunData
         val map = ConcurrentHashMap<Name, MutableMap<FirNamedFunctionSymbol, SyntheticFunData>>()
-//        val transformerFunctionSymbolMap = ConcurrentHashMap<Transformer, FirNamedFunctionSymbol>()
 
         val platformTransformers = suspendTransformConfiguration.transformers
             .filter { (platform, _) -> check(platform) }
@@ -1032,6 +965,9 @@ class SuspendTransformFirTransformer(
         defaultAsProperty = markAnnotation.defaultAsProperty,
     )
 
+    /**
+     * Find mark annotation from the function, and if not found, find from the class.
+     */
     private fun firAnnotation(
         func: FirNamedFunctionSymbol,
         markAnnotation: MarkAnnotation,
@@ -1544,3 +1480,4 @@ private val FirSimpleFunction.syntheticModifier: Modality?
         modality == Modality.ABSTRACT -> Modality.OPEN
         else -> status.modality
     }
+
