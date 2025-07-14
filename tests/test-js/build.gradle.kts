@@ -69,6 +69,12 @@ suspendTransformPlugin {
             }
         }
         addJsPromise {
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(kotlinJsExportIgnoreClassInfo)
+                }
+            }
+            
             markAnnotation {
                 classInfo {
                     packageName = "love.forte.suspendtrans.test.runner"
@@ -82,7 +88,9 @@ suspendTransformPlugin {
                 functionName = "jsResultToAsync"
             }
 
-
+            addCopyAnnotationExclude {
+                from(kotlinJsExportIgnoreClassInfo)
+            }
         }
         // love.forte.suspendtrans.test.runner
     }
