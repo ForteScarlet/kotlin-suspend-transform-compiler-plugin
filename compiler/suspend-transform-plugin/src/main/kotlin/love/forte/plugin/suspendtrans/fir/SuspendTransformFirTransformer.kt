@@ -45,9 +45,10 @@ import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
-import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.builder.buildTypeProjectionWithVariance
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.types.ConstantValueKind
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -202,11 +203,11 @@ class SuspendTransformFirTransformer(
     ): FirReceiverParameter? {
         return typeRef.coneTypeOrNull
             ?.copyWithTypeParameters(originalTypeParameterCache)
-            ?.let { foundCopied ->
+            ?.let { copied ->
                 buildReceiverParameterCopy(this) {
                     symbol = FirReceiverParameterSymbol()
                     containingDeclarationSymbol = newContainingDeclarationSymbol
-                    typeRef = typeRef.withReplacedConeType(foundCopied)
+                    typeRef = typeRef.withReplacedConeType(copied)
                 }
             }
     }
@@ -245,6 +246,10 @@ class SuspendTransformFirTransformer(
             this.receiverParameter = it
         }
 
+        copyReturnType(originalTypeParameterCache)
+    }
+
+    private fun FirSimpleFunctionBuilder.copyReturnType(originalTypeParameterCache: MutableList<CopiedTypeParameterPair>) {
         val coneTypeOrNull = returnTypeRef.coneTypeOrNull
         if (coneTypeOrNull != null) {
             returnTypeRef = returnTypeRef
@@ -311,6 +316,7 @@ class SuspendTransformFirTransformer(
         thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
         thisValueParameters: List<FirValueParameter>,
+        thisTypeParameters: List<FirTypeParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
         originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
@@ -318,25 +324,22 @@ class SuspendTransformFirTransformer(
     ): FirBlock = buildBlock {
         this.source = originFunc.body?.source
 
-        val originalFunReturnType = originFunSymbol.resolvedReturnTypeRef.coneType.copyConeTypeOrSelf(originalTypeParameterCache)
+        val originalFunReturnType =
+            originFunSymbol.resolvedReturnTypeRef.coneType.copyConeTypeOrSelf(originalTypeParameterCache)
 
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
         val lambda = buildAnonymousFunction {
             this.resolvePhase = FirResolvePhase.BODY_RESOLVE
-            // this.resolvePhase = FirResolvePhase.RAW_FIR
             this.isLambda = true
             this.moduleData = originFunSymbol.moduleData
             // this.origin = FirDeclarationOrigin.Source
             // this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
             this.origin = SuspendTransformK2V3Key.origin
             // lambda 的返回值类型，() -> T 的 T, 应当是原始函数真正的返回值
-            this.returnTypeRef = buildResolvedTypeRef {
-                coneType = originalFunReturnType
-            }
+            this.returnTypeRef = originalFunReturnType.toResolvedTypeRef()
 
             this.hasExplicitParameterList = false
-            // this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
             this.status = this.status.copy(isSuspend = true)
             this.symbol = FirAnonymousFunctionSymbol()
             this.body = buildSingleExpressionBlock(
@@ -347,6 +350,14 @@ class SuspendTransformFirTransformer(
                         // this.coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
                         this.coneTypeOrNull = originalFunReturnType
                         this.source = originFunSymbol.source
+                        for (tp in thisTypeParameters) {
+                            val ta = buildTypeProjectionWithVariance {
+                                typeRef = tp.toConeType().toResolvedTypeRef()
+                                this.variance = Variance.INVARIANT
+                            }
+                            this.typeArguments.add(ta)
+                        }
+
                         this.calleeReference = buildResolvedNamedReference {
                             this.source = originFunSymbol.source
                             this.name = originFunSymbol.name
@@ -402,11 +413,10 @@ class SuspendTransformFirTransformer(
                 }
             )
 
-            this.typeRef = buildResolvedTypeRef {
-                this.coneType = StandardClassIds.SuspendFunctionN(0)
-                    // .createConeType(session, arrayOf(originFunSymbol.resolvedReturnType))
-                    .createConeType(session, arrayOf(originalFunReturnType))
-            }
+            this.typeRef = StandardClassIds.SuspendFunctionN(0)
+                .createConeType(session, arrayOf(originalFunReturnType))
+                .toResolvedTypeRef()
+
         }
         lambdaTarget.bind(lambda)
 
@@ -584,6 +594,16 @@ class SuspendTransformFirTransformer(
                     ),
                 )
 
+                val returnTypeProjection = funData.markAnnotationTypeArgument
+                if (returnTypeProjection != null) {
+                    val returnTypeProjectionType = returnTypeProjection.toConeTypeProjection().type
+                    returnTypeRef = if (returnTypeProjectionType != null) {
+                        returnTypeRef.withReplacedConeType(returnTypeProjectionType)
+                    } else {
+                        session.builtinTypes.nullableAnyType
+                    }
+                }
+
                 // Copy the typeParameters.
                 // Otherwise, in functions like the following, an error will occur
                 // suspend fun <A> data(value: A): T = ...
@@ -604,9 +624,11 @@ class SuspendTransformFirTransformer(
                 val thisReceiverParameter = this.receiverParameter
                 val thisContextParameters = this.contextParameters
                 val thisValueParameters = this.valueParameters
+                val thisTypeParameters = this.typeParameters
 
                 annotations.clear()
                 annotations.addAll(functionAnnotations)
+
 
                 body = generateSyntheticFunctionBody(
                     originFunc,
@@ -615,6 +637,7 @@ class SuspendTransformFirTransformer(
                     thisContextParameters,
                     thisReceiverParameter,
                     thisValueParameters,
+                    thisTypeParameters,
                     realBridgeFunSymbol,
                     newFunTarget,
                     originalTypeParameterCache,
@@ -662,34 +685,33 @@ class SuspendTransformFirTransformer(
 
             val pSymbol = FirPropertySymbol(callableId)
 
-//                val pKey = SuspendTransformPluginKey(
-//                    data = SuspendTransformUserDataFir(
-//                        markerId = uniqueFunHash,
-//                        originSymbol = original.symbol.asOriginSymbol(
-//                            targetMarkerAnnotation,
-//                            typeParameters = original.typeParameters,
-//                            valueParameters = original.valueParameters,
-//                            original.returnTypeRef.coneTypeOrNull?.classId,
-//                            session
-//                        ),
-//                        asProperty = true,
-//                        transformer = funData.transformer
-//                    )
-//                )
             val pKey = SuspendTransformK2V3Key
 
-            val originalReturnType = original.returnTypeRef
+            val returnTypeProjection = funData.markAnnotationTypeArgument
 
-            val copiedReturnType = originalReturnType.withReplacedConeType(
-                originalReturnType.coneTypeOrNull?.copyConeTypeOrSelf(originalTypeParameterCache)
-            )
+            val originalReturnType: FirTypeRef = original.returnTypeRef
+
+            val copiedReturnType: FirResolvedTypeRef = if (returnTypeProjection != null) {
+                returnTypeProjection.toConeTypeProjection().type
+                    ?.copyConeTypeOrSelf(originalTypeParameterCache)
+                    ?.let(originalReturnType::withReplacedConeType)
+                    ?: session.builtinTypes.nullableAnyType
+            } else {
+                originalReturnType.withReplacedConeType(
+                    originalReturnType.coneTypeOrNull?.copyConeTypeOrSelf(originalTypeParameterCache)
+                )
+            }
+
+            // val copiedReturnType = originalReturnType.withReplacedConeType(
+            //     originalReturnType.coneTypeOrNull?.copyConeTypeOrSelf(originalTypeParameterCache)
+            // )
 
             // copy完了再resolve，这样里面包的type parameter就不会有问题了（如果有type parameter的话）
             val resolvedReturnType = resolveReturnType(
                 funData,
                 copiedReturnType,
                 originalTypeParameterCache,
-                funData.markAnnotationTypeArgument
+                returnTypeProjection
             )
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
@@ -768,6 +790,7 @@ class SuspendTransformFirTransformer(
                         emptyList(),
                         null,
                         thisValueParameters,
+                        emptyList(),
                         funData.transformerFunctionSymbol(
                             transformerFunctionSymbolMap,
                             ::findTransformerFunctionSymbol
@@ -987,14 +1010,21 @@ class SuspendTransformFirTransformer(
     ): FirTypeRef {
         val transformer = funData.transformer
 
-        val returnTypeConeType: ConeKotlinType = returnTypeFromProjection?.toConeTypeProjection()?.let {
-            // TODO if is star projection, use Any or Nothing? and the nullable?
-            it.type
-                ?.copyConeTypeOrSelf(originalTypeParameterCache)
-                ?: session.builtinTypes.nullableAnyType.coneType
-        } ?: returnTypeRef.coneType
+        // val returnTypeConeType: ConeKotlinType = if (returnTypeFromProjection != null) {
+        //     returnTypeFromProjection.toConeTypeProjection().type
+        //         ?: session.builtinTypes.nullableAnyType.coneType
+        // } else {
+        //     returnTypeRef.coneType
+        // }
 
-        val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeConeType)
+        // val returnTypeConeType: ConeKotlinType = returnTypeFromProjection?.toConeTypeProjection()?.let {
+        //     // TODO if is star projection, use Any or Nothing? and the nullable?
+        //     it.type
+        //         ?.copyConeTypeOrSelf(originalTypeParameterCache)
+        //         ?: session.builtinTypes.nullableAnyType.coneType
+        // } ?: returnTypeRef.coneType
+
+        val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeRef.coneType)
 
         return if (resultConeType is ConeErrorType) {
             buildErrorTypeRef {
@@ -1002,9 +1032,7 @@ class SuspendTransformFirTransformer(
                 coneType = resultConeType
             }
         } else {
-            buildResolvedTypeRef {
-                coneType = resultConeType
-            }
+            resultConeType.toResolvedTypeRef()
         }
     }
 
@@ -1073,9 +1101,7 @@ class SuspendTransformFirTransformer(
                  */
                 val copied: List<FirAnnotation> = notCompileAnnotationsCopied.map { a ->
                     buildAnnotation {
-                        annotationTypeRef = buildResolvedTypeRef {
-                            coneType = a.resolvedType
-                        }
+                        annotationTypeRef = a.resolvedType.toResolvedTypeRef()
 
                         this.typeArguments.addAll(a.typeArguments)
                         this.argumentMapping = buildAnnotationArgumentMapping {
@@ -1099,9 +1125,7 @@ class SuspendTransformFirTransformer(
 
                 val includeAnnotation = buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
-                    annotationTypeRef = buildResolvedTypeRef {
-                        coneType = classId.createConeType(session)
-                    }
+                    annotationTypeRef = classId.createConeType(session).toResolvedTypeRef()
                 }
                 add(includeAnnotation)
             }
@@ -1125,9 +1149,7 @@ class SuspendTransformFirTransformer(
                             mapping[Name.identifier(annotationMarkNamePropertyName)] = markNameArgument
                         }
                         val markNameAnnotationClassId = markNameProperty.annotation.toClassId()
-                        annotationTypeRef = buildResolvedTypeRef {
-                            coneType = markNameAnnotationClassId.createConeType(session)
-                        }
+                        annotationTypeRef = markNameAnnotationClassId.createConeType(session).toResolvedTypeRef()
                     }
 
                     add(markNameAnnotation)
@@ -1152,9 +1174,7 @@ class SuspendTransformFirTransformer(
                     val classId = include.classId
                     val includeAnnotation = buildAnnotation {
                         argumentMapping = buildAnnotationArgumentMapping()
-                        annotationTypeRef = buildResolvedTypeRef {
-                            coneType = classId.createConeType(session)
-                        }
+                        annotationTypeRef = classId.createConeType(session).toResolvedTypeRef()
                     }
                     add(includeAnnotation)
                 }
@@ -1175,9 +1195,7 @@ class SuspendTransformFirTransformer(
 
                 buildAnnotation {
                     argumentMapping = buildAnnotationArgumentMapping()
-                    annotationTypeRef = buildResolvedTypeRef {
-                        coneType = classId.createConeType(session)
-                    }
+                    annotationTypeRef = classId.createConeType(session).toResolvedTypeRef()
                 }
             }
 

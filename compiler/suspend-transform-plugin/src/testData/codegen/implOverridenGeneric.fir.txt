@@ -30,7 +30,7 @@ FILE: Main.kt
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <A> data2Blocking(value: R|A|): R|T| {
             ^data2Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
-                ^ this@R|/FooInterface1Impl|.R|/FooInterface1Impl.data2|(R|<local>/value|)
+                ^ this@R|/FooInterface1Impl|.R|/FooInterface1Impl.data2|<R|A|>(R|<local>/value|)
             }
             )
         }
@@ -106,7 +106,7 @@ FILE: Main.kt
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <A> data2Blocking(value: R|A|): R|T| {
             ^data2Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
-                ^ this@R|/FooInterface3|.R|/FooInterface3.data2|(R|<local>/value|)
+                ^ this@R|/FooInterface3|.R|/FooInterface3.data2|<R|A|>(R|<local>/value|)
             }
             )
         }
@@ -145,7 +145,7 @@ FILE: Main.kt
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <A> data2Blocking(value: R|A|): R|T| {
             ^data2Blocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
-                ^ this@R|/FooInterface3Impl|.R|/FooInterface3Impl.data2|(R|<local>/value|)
+                ^ this@R|/FooInterface3Impl|.R|/FooInterface3Impl.data2|<R|A|>(R|<local>/value|)
             }
             )
         }
