@@ -222,6 +222,7 @@ private fun DeprecatedMarkAnnotation.toMarkAnnotation(): MarkAnnotation {
         defaultSuffix = this.defaultSuffix,
         defaultAsProperty = this.defaultAsProperty,
         markNameProperty = null,
+        hasReturnTypeOverrideGeneric = false
     )
 }
 

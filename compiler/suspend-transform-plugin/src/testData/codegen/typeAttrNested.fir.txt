@@ -10,7 +10,7 @@ FILE: Main.kt
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <T : R|kotlin/Any|> executeAsync(api: R|Api<T>|): R|java/util/concurrent/CompletableFuture<out ApiResult<Api<T>>>| {
             ^executeAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|ApiResult<Api<T>>| <inline=Unknown>  {
-                ^ this@R|/ApiExecutable|.R|/ApiExecutable.execute|(R|<local>/api|)
+                ^ this@R|/ApiExecutable|.R|/ApiExecutable.execute|<R|T|>(R|<local>/api|)
             }
             , (this@R|/ApiExecutable| as? R|kotlinx/coroutines/CoroutineScope|))
         }

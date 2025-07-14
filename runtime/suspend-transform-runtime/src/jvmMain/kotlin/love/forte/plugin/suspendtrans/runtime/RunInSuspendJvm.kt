@@ -83,14 +83,10 @@ public fun <T> `$runInAsync$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
 ): CompletableFuture<T> =
-    // 比起在内部构建一个使用 Dispatchers.IO、并且永不被关闭的 CoroutineScope，
-    // 为何不直接使用 GlobalScope？
-    // 作为作用域：它用不被关闭、无法被关闭
-    // 作为异步调度器：它没必要使用IO
-    // 而对于更加复杂的场景，也许需要考虑完全定制化，
-    // 而不是使用当前这个简单的runtime包内的实现
+    // Why not use `GlobalScope` directly instead of building an internal `CoroutineScope`
+    // that uses `Dispatchers.IO` and is never closed?
+    // 1. As a scope: it is not and cannot be closed
+    // 2. As async dispatcher: it does not need to use `Dispatchers.IO`
+    // For more complex scenarios, consider a fully customized implementation
+    // rather than using the current simple runtime package implementation
     transformer.trans(scope ?: GlobalScope, block)
-
-
-
-

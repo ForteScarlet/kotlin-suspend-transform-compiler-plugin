@@ -18,6 +18,11 @@ tasks.named("dokkaHtmlPartial").configure {
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
     dokkaSourceSets.configureEach {
+        val local = isLocal()
+        if (local) {
+            offlineMode = true
+        }
+
         version = project.version
         documentedVisibilities.set(
             listOf(
@@ -31,7 +36,6 @@ tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
         } else if (project.file("README.md").exists()) {
             includes.from("README.md")
         }
-
 
 //        sourceLink {
 //            localDirectory.set(projectDir.resolve("src"))
@@ -52,13 +56,15 @@ tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
             }
         }
 
-        // kotlin-coroutines doc
-        externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.coroutines"))
+        if (!local) {
+            // kotlin-coroutines doc
+            externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.coroutines"))
 
-        // kotlin-serialization doc
-        externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.serialization"))
+            // kotlin-serialization doc
+            externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.serialization"))
 
-        // SLF4J
-        externalDocumentation(URL("https://www.slf4j.org/apidocs"))
+            // SLF4J
+            externalDocumentation(URL("https://www.slf4j.org/apidocs"))
+        }
     }
 }

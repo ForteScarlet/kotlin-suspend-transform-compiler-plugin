@@ -16,10 +16,10 @@ public actual annotation class JsPromise(
     actual val asProperty: Boolean,
 
     /**
-     * The name of [@JsName][kotlin.js.JsName].
+     * The name of [@JsName][JsName].
      * Valid when not empty.
      *
-     * If [markName] is valid, [@JsName][kotlin.js.JsName] will be annotated on the generated function.
+     * If [markName] is valid, [@JsName][JsName] will be annotated on the generated function.
      *
      * For example:
      *

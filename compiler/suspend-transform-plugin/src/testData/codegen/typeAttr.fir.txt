@@ -38,14 +38,14 @@ FILE: Main.kt
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <R : R|kotlin/Any|> runAsync(api: R|Api<R>|): R|java/util/concurrent/CompletableFuture<out R>| {
             ^runAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|R| <inline=Unknown>  {
-                ^ this@R|/Foo|.R|/Foo.run|(R|<local>/api|)
+                ^ this@R|/Foo|.R|/Foo.run|<R|R|>(R|<local>/api|)
             }
             , (this@R|/Foo| as? R|kotlinx/coroutines/CoroutineScope|))
         }
 
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public open fun <R : R|kotlin/Any|> runBlocking(api: R|Api<R>|): R|R| {
             ^runBlocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|R| <inline=Unknown>  {
-                ^ this@R|/Foo|.R|/Foo.run|(R|<local>/api|)
+                ^ this@R|/Foo|.R|/Foo.run|<R|R|>(R|<local>/api|)
             }
             )
         }

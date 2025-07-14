@@ -82,18 +82,6 @@ kotlin {
         browser()
         nodejs()
     }
-
-
-//    extensions.findByType(KotlinTargetsContainer::class.java)?.also { kotlinExtension ->
-//        // find all compilations given sourceSet belongs to
-//        kotlinExtension.targets
-//            .all {
-//                compilations.all {
-//                    kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
-//                }
-//            }
-//    }
-
 }
 
 tasks.withType<JavaCompile> {
@@ -101,10 +89,3 @@ tasks.withType<JavaCompile> {
     targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }
-
-//fun Project.withKotlinTargets(fn: (KotlinTarget) -> Unit) {
-//    extensions.findByType(KotlinTargetsContainer::class.java)?.let { kotlinExtension ->
-//        // find all compilations given sourceSet belongs to
-//        kotlinExtension.targets.all { target -> fn(target) }
-//    }
-//}

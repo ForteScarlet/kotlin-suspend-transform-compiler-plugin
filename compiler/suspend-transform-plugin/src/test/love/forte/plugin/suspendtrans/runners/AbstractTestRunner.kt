@@ -39,13 +39,12 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
         val targetFrontend: FrontendKind<*> = FrontendKinds.FIR
         builder.globalDefaults {
             frontend = targetFrontend
-            targetBackend = TargetBackend.JVM_IR
+            targetBackend = TargetBackend.JVM_IR_SERIALIZE
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = ArtifactKinds.Jvm
             dependencyKind = DependencyKind.Source
             backendKind = BackendKinds.IrBackendForK1AndK2
 //            this.languageVersionSettings
-
 
 //            languageSettings {
 //                languageVersion = LanguageVersion.KOTLIN_2_1
