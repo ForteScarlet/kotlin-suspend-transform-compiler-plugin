@@ -1,5 +1,7 @@
 FILE: Main.kt
     public final typealias MoneyValue = R|kotlin/Long|
+    public final typealias JB = R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|
+    public final typealias JA = R|love/forte/plugin/suspendtrans/annotation/JvmAsync|
     public final class MyClass : R|kotlin/Any| {
         public constructor(): R|MyClass| {
             super<R|kotlin/Any|>()
@@ -9,9 +11,26 @@ FILE: Main.kt
             R|kotlin/io/println|(R|<local>/amount|)
         }
 
+        @R|{JB=} love/forte/plugin/suspendtrans/annotation/JvmBlocking|() @R|{JA=} love/forte/plugin/suspendtrans/annotation/JvmAsync|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun aliasFun(): R|kotlin/Unit| {
+        }
+
         @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun errorReproductionAsync(amount: R|{MoneyValue=} kotlin/Long|): R|java/util/concurrent/CompletableFuture<out kotlin/Unit>| {
             ^errorReproductionAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|kotlin/Unit| <inline=Unknown>  {
                 ^ this@R|/MyClass|.R|/MyClass.errorReproduction|(R|<local>/amount|)
+            }
+            , (this@R|/MyClass| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun aliasFunBlocking(): R|kotlin/Unit| {
+            ^aliasFunBlocking R|love/forte/plugin/suspendtrans/runtime/$runInBlocking$|(suspend fun <anonymous>(): R|kotlin/Unit| <inline=Unknown>  {
+                ^ this@R|/MyClass|.R|/MyClass.aliasFun|()
+            }
+            )
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun aliasFunAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/Unit>| {
+            ^aliasFunAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|kotlin/Unit| <inline=Unknown>  {
+                ^ this@R|/MyClass|.R|/MyClass.aliasFun|()
             }
             , (this@R|/MyClass| as? R|kotlinx/coroutines/CoroutineScope|))
         }

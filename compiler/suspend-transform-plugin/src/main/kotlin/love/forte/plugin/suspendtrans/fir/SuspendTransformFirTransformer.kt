@@ -25,7 +25,9 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
+import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
+import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.plugin.createConeType
 import org.jetbrains.kotlin.fir.references.builder.buildExplicitThisReference
 import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
@@ -325,7 +327,7 @@ class SuspendTransformFirTransformer(
         this.source = originFunc.body?.source
 
         val originalFunReturnType =
-            originFunSymbol.resolvedReturnTypeRef.coneType.copyConeTypeOrSelf(originalTypeParameterCache)
+            originFunSymbol.resolvedReturnTypeRef.coneType // .copyConeTypeOrSelf(originalTypeParameterCache)
 
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
@@ -337,7 +339,7 @@ class SuspendTransformFirTransformer(
             // this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
             this.origin = SuspendTransformK2V3Key.origin
             // lambda 的返回值类型，() -> T 的 T, 应当是原始函数真正的返回值
-            this.returnTypeRef = originalFunReturnType.toResolvedTypeRef()
+            this.returnTypeRef = originFunSymbol.resolvedReturnTypeRef // originalFunReturnType.toResolvedTypeRef()
 
             this.hasExplicitParameterList = false
             this.status = this.status.copy(isSuspend = true)
@@ -577,6 +579,7 @@ class SuspendTransformFirTransformer(
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
             val newFun = buildSimpleFunctionCopy(originFunc) {
+                // resolvePhase = FirResolvePhase.BODY_RESOLVE
                 origin = pluginKey.origin
                 source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 name = callableId.callableName
@@ -614,12 +617,7 @@ class SuspendTransformFirTransformer(
                 copyParameters(originalTypeParameterCache)
 
                 // resolve returnType (with wrapped) after copyParameters
-                returnTypeRef = resolveReturnType(
-                    funData,
-                    returnTypeRef,
-                    originalTypeParameterCache,
-                    funData.markAnnotationTypeArgument
-                )
+                returnTypeRef = resolveReturnType(funData, returnTypeRef)
 
                 val thisReceiverParameter = this.receiverParameter
                 val thisContextParameters = this.contextParameters
@@ -628,7 +626,6 @@ class SuspendTransformFirTransformer(
 
                 annotations.clear()
                 annotations.addAll(functionAnnotations)
-
 
                 body = generateSyntheticFunctionBody(
                     originFunc,
@@ -707,12 +704,7 @@ class SuspendTransformFirTransformer(
             // )
 
             // copy完了再resolve，这样里面包的type parameter就不会有问题了（如果有type parameter的话）
-            val resolvedReturnType = resolveReturnType(
-                funData,
-                copiedReturnType,
-                originalTypeParameterCache,
-                returnTypeProjection
-            )
+            val resolvedReturnType = resolveReturnType(funData, copiedReturnType)
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
 
@@ -750,7 +742,7 @@ class SuspendTransformFirTransformer(
                 // annotations
                 annotations.addAll(propertyAnnotations)
                 typeParameters.addAll(original.typeParameters)
-                resolvePhase = FirResolvePhase.BODY_RESOLVE
+                // resolvePhase = FirResolvePhase.BODY_RESOLVE
                 backingField = null
                 bodyResolveState = FirPropertyBodyResolveState.NOTHING_RESOLVED
 
@@ -878,23 +870,24 @@ class SuspendTransformFirTransformer(
         return isOverride
     }
 
-    // private val annotationPredicates
-    //     get() = DeclarationPredicate.create {
-    //         val annotationFqNames = suspendTransformConfiguration.transformers.values
-    //             .flatMapTo(mutableSetOf()) { transformerList ->
-    //                 transformerList.map { it.markAnnotation.fqName }
-    //             }
-    //
-    //         hasAnnotated(annotationFqNames)
-    //     }
-    //
+    private val annotationPredicate = DeclarationPredicate.create {
+            hasAnnotated(suspendTransformConfiguration.transformers.values
+                .flatMapTo(mutableSetOf()) { transformerList ->
+                    transformerList.map { it.markAnnotation.fqName }
+                })
+        }
+
     // 在进行 #102 的时候，使用 registerPredicates { register(annotationPredicates) }
     // 会导致FIR中原函数的 mark annotation 中的范型 (如果有的话，以 `T` 为例) 无法被解析，产生如下错误：
     //  @R|love/forte/plugin/suspendtrans/annotation/JvmBlockingWithType<ERROR CLASS: Symbol not found for T>
     //  即: ERROR CLASS: Symbol not found for T
-    // override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-    //     register(annotationPredicates)
-    // }
+    //
+    // 但是如果这个直接去掉的话，生成函数（在simbot中进行测试的时候）会存在的情况是：只会生存对应的meta信息，
+    // 而生成的class文件中不会有真正的函数。
+    // 但是另一个问题：为什么当前项目内的tests中测试没有问题？
+    override fun FirDeclarationPredicateRegistrar.registerPredicates() {
+        register(annotationPredicate)
+    }
 
     private fun createCache(
         classSymbol: FirClassSymbol<*>,
@@ -1004,25 +997,9 @@ class SuspendTransformFirTransformer(
 
     private fun resolveReturnType(
         funData: SyntheticFunData,
-        returnTypeRef: FirTypeRef,
-        originalTypeParameterCache: MutableList<CopiedTypeParameterPair>,
-        returnTypeFromProjection: FirTypeProjection?
+        returnTypeRef: FirTypeRef
     ): FirTypeRef {
         val transformer = funData.transformer
-
-        // val returnTypeConeType: ConeKotlinType = if (returnTypeFromProjection != null) {
-        //     returnTypeFromProjection.toConeTypeProjection().type
-        //         ?: session.builtinTypes.nullableAnyType.coneType
-        // } else {
-        //     returnTypeRef.coneType
-        // }
-
-        // val returnTypeConeType: ConeKotlinType = returnTypeFromProjection?.toConeTypeProjection()?.let {
-        //     // TODO if is star projection, use Any or Nothing? and the nullable?
-        //     it.type
-        //         ?.copyConeTypeOrSelf(originalTypeParameterCache)
-        //         ?: session.builtinTypes.nullableAnyType.coneType
-        // } ?: returnTypeRef.coneType
 
         val resultConeType: ConeKotlinType = resolveReturnConeType(transformer, returnTypeRef.coneType)
 
@@ -1067,7 +1044,6 @@ class SuspendTransformFirTransformer(
     ): CopyAnnotations {
         val transformer = syntheticFunData.transformer
 
-        // val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
         val originalAnnotationClassIdMap = original.annotations.keysToMap { it.toAnnotationClassId(session) }
 
         val copyFunction = transformer.copyAnnotationsToSyntheticFunction

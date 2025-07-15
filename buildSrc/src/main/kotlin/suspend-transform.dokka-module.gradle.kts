@@ -17,12 +17,12 @@ tasks.named("dokkaHtmlPartial").configure {
 }
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
+    val local = isLocal()
+    if (local) {
+        isEnabled = false
+        offlineMode = true
+    }
     dokkaSourceSets.configureEach {
-        val local = isLocal()
-        if (local) {
-            offlineMode = true
-        }
-
         version = project.version
         documentedVisibilities.set(
             listOf(

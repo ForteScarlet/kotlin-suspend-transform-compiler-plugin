@@ -1,7 +1,7 @@
 package love.forte.suspendtrans.test.runner
 
 @OptIn(markerClass = [ExperimentalMultiplatform::class])
-@Retention(value = AnnotationRetention.SOURCE)
+@Retention(value = AnnotationRetention.BINARY)
 actual annotation class JvmResultBlock<T> actual constructor(
     actual val baseName: String,
     actual val suffix: String,
@@ -9,7 +9,7 @@ actual annotation class JvmResultBlock<T> actual constructor(
 )
 
 @OptIn(markerClass = [ExperimentalMultiplatform::class])
-@Retention(value = AnnotationRetention.SOURCE)
+@Retention(value = AnnotationRetention.BINARY)
 actual annotation class JvmResultAsync<T> actual constructor(
     actual val baseName: String,
     actual val suffix: String,
@@ -17,7 +17,7 @@ actual annotation class JvmResultAsync<T> actual constructor(
 )
 
 @OptIn(markerClass = [ExperimentalMultiplatform::class])
-@Retention(value = AnnotationRetention.SOURCE)
+@Retention(value = AnnotationRetention.BINARY)
 actual annotation class JvmResBlock<T> actual constructor(
     actual val baseName: String,
     actual val suffix: String,

@@ -11,7 +11,7 @@ expect annotation class JvmResultBlock<T>(
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@Retention(AnnotationRetention.SOURCE)
+@Retention(AnnotationRetention.BINARY)
 expect annotation class JvmResBlock<T>(
     val baseName: String = "",
     val suffix: String = "Blocking",
@@ -20,7 +20,7 @@ expect annotation class JvmResBlock<T>(
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@Retention(AnnotationRetention.SOURCE)
+@Retention(AnnotationRetention.BINARY)
 expect annotation class JvmResultAsync<T>(
     val baseName: String = "",
     val suffix: String = "Async",
@@ -29,7 +29,7 @@ expect annotation class JvmResultAsync<T>(
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@Retention(AnnotationRetention.SOURCE)
+@Retention(AnnotationRetention.BINARY)
 expect annotation class JsResultPromise<T>(
     val baseName: String = "",
     val suffix: String = "Async",

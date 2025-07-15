@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.fir.types.builder.FirResolvedTypeRefBuilder
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 
 internal fun FirSimpleFunction.includeAnnotations(includes: List<FirAnnotation>) {
-    replaceAnnotations(symbol.resolvedAnnotationsWithArguments + includes)
+    replaceAnnotations(annotations + includes)
 }
 
 internal inline fun ConeKotlinType.toResolvedTypeRef(
