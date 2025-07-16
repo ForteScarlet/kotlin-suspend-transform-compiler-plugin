@@ -1,10 +1,8 @@
 package com.example.annotation
 
-import kotlin.reflect.KClass
-
 /**
  * A generic annotation that will be used to reproduce the issue with FirDeclarationPredicateRegistrar.registerPredicates().
- * 
+ *
  * The issue occurs when using an annotation with a generic type parameter (T in this case) and implementing
  * FirDeclarationPredicateRegistrar.registerPredicates() in a FirDeclarationGenerationExtension.
  */

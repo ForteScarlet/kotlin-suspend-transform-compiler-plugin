@@ -1,0 +1,15 @@
+FILE: genericAnnotationIssue.kt
+    public final class TestClass : R|kotlin/Any| {
+        public constructor(): R|TestClass| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|com/example/annotation/GenericAnnotation<kotlin/Boolean>|(name = String(foo1), enabled = Boolean(true)) public final fun foo1(): R|kotlin/Boolean| {
+            ^foo1 Boolean(true)
+        }
+
+        @R|com/example/annotation/GenericAnnotation<ERROR CLASS: Symbol not found for T>|(name = String(foo2), enabled = Boolean(true)) public final fun <T> foo2(): R|kotlin/Boolean| {
+            ^foo2 Boolean(true)
+        }
+
+    }

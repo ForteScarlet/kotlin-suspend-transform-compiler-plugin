@@ -1,21 +1,24 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
-    id("java")
-    id("maven-publish-local")
+    `java`
+    kotlin("jvm")
+    id("suspend-transform.maven-publish")
 }
 
 dependencies {
     compileOnly(kotlin("stdlib"))
     implementation(kotlin("compiler"))
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    compileOnly(libs.kotlinx.coroutines.core)
 
     testImplementation(kotlin("test"))
+    testImplementation(kotlin("compiler"))
+    testImplementation(kotlin("reflect"))
     testImplementation(kotlin("compiler-internal-test-framework"))
     testImplementation(kotlin("reflect"))
     testRuntimeOnly(kotlin("test"))
     testRuntimeOnly(kotlin("script-runtime"))
     testRuntimeOnly(kotlin("annotations-jvm"))
-    testImplementation(project(":annotation"))
+    testImplementation(project(":reproduction:annotation"))
+    testImplementation(libs.kotlinx.coroutines.core)
 }
 
 kotlin {

@@ -41,3 +41,7 @@ include(":tests:test-js")
 include(":tests:test-runner")
 include(":tests:test-kmp")
 // include(":tests:test-android")
+
+// TODO temp for reproduction
+include(":reproduction:annotation")
+include(":reproduction:compiler-plugin")

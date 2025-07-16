@@ -1,13 +1,17 @@
 plugins {
-    kotlin("multiplatform") version "2.0.0"
-    id("maven-publish-multiplatform")
+    kotlin("multiplatform")
+    id("suspend-transform.maven-publish")
 }
 
 kotlin {
     explicitApi()
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    jvmToolchain(11)
     jvm {
-        jvmToolchain(8)
     }
 
     js(IR) {
@@ -23,7 +27,6 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(kotlin("stdlib-common"))
             }
         }
     }
