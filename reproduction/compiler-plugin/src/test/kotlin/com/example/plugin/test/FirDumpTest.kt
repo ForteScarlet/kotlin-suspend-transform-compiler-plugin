@@ -71,12 +71,3 @@ class FirDumpTest : AbstractKotlinCompilerTest() {
     }
 }
 
-/**
- * Configurator for the minimal compiler plugin.
- */
-// class MinimalPluginConfigurator : CommonEnvironmentConfigurator() {
-//     override fun configureCompilerConfiguration(configuration: org.jetbrains.kotlin.config.CompilerConfiguration, module: org.jetbrains.kotlin.test.model.TestModule) {
-//         // Configure the compiler plugin
-//         // This is where you would add the plugin to the compiler configuration
-//     }
-// }

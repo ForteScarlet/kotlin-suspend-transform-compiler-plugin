@@ -11,13 +11,10 @@ import org.jetbrains.kotlin.name.FqName
  * to reproduce the issue with generic annotations.
  */
 class MinimalFirExtension(session: FirSession) : FirDeclarationGenerationExtension(session) {
-
-    // This is the predicate that checks for the presence of our annotation
     private val annotationPredicate = DeclarationPredicate.create {
         hasAnnotated(setOf(FqName("com.example.annotation.GenericAnnotation")))
     }
 
-    // This is the method that causes the issue with generic annotations
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
         register(annotationPredicate)
     }
