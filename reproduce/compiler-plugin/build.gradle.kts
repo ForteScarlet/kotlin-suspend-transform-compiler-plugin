@@ -17,7 +17,7 @@ dependencies {
     testRuntimeOnly(kotlin("test"))
     testRuntimeOnly(kotlin("script-runtime"))
     testRuntimeOnly(kotlin("annotations-jvm"))
-    testImplementation(project(":reproduction:annotation"))
+    testImplementation(project(":reproduce:annotation"))
     testImplementation(libs.kotlinx.coroutines.core)
 }
 

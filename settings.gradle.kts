@@ -43,5 +43,5 @@ include(":tests:test-kmp")
 // include(":tests:test-android")
 
 // TODO temp for reproduction
-include(":reproduction:annotation")
-include(":reproduction:compiler-plugin")
+include(":reproduce:annotation")
+include(":reproduce:compiler-plugin")
