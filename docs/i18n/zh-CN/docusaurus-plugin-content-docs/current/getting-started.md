@@ -1,10 +1,12 @@
 ---
 id: getting-started
 title: 快速开始
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Badge } from '@site/src/components/Snippets';
 
 本指南将引导您了解 Kotlin 挂起函数转换编译器插件在不同平台上的基本用法。
 
@@ -120,8 +122,8 @@ class Foo {
 
 ## WasmJS 平台
 
-<span className="badge badge--primary">实验性</span>
-<span className="badge badge--secondary">版本 0.6.0</span>
+<Badge type="primary">实验性</Badge>
+<Badge type="secondary">版本 0.6.0</Badge>
 
 ::::warning
 下面 WasmJS 示例中提到的转换器函数

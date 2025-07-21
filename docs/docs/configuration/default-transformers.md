@@ -1,6 +1,7 @@
 ---
 id: default-transformers
 title: Default Transformers
+sidebar_position: 2
 ---
 
 import Tabs from '@theme/Tabs';

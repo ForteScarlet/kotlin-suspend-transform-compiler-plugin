@@ -2,6 +2,7 @@
 id: overview
 title: Overview
 slug: /
+sidebar_position: 1
 ---
 
 import { CoverImage } from '@site/src/components/Snippets';

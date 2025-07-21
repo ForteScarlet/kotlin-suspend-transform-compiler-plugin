@@ -1,6 +1,7 @@
 ---
 id: installation
 title: 安装
+sidebar_position: 2
 ---
 
 import Tabs from '@theme/Tabs';

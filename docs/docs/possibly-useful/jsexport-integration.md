@@ -1,6 +1,7 @@
 ---
 id: jsexport-integration
 title: JsExport Integration
+sidebar_position: 1
 ---
 
 If you want to use `@JsExport` with the default JS configuration, 

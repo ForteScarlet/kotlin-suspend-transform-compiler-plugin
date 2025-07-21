@@ -1,5 +1,6 @@
 ---
 title: Configuration
+sidebar_position: 1
 ---
 
 This guide covers how to configure the Kotlin Suspend Transform Compiler Plugin extension.

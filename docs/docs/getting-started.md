@@ -1,10 +1,12 @@
 ---
 id: getting-started
 title: Getting Started
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Badge } from '@site/src/components/Snippets';
 
 This guide will walk you through the basic usage of the Kotlin Suspend Transform Compiler Plugin across different platforms.
 
@@ -120,8 +122,8 @@ class Foo {
 
 ## WasmJS Platform
 
-<span className="badge badge--primary">Experimental</span>
-<span className="badge badge--secondary">Version 0.6.0</span>
+<Badge type="primary">Experimental</Badge>
+<Badge type="secondary">Version 0.6.0</Badge>
 
 :::warning
 The transformer functions mentioned in the WasmJS example below 

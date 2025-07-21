@@ -1,13 +1,15 @@
 ---
 id: mark-name
 title: MarkName
+sidebar_position: 1
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Badge } from '@site/src/components/Snippets';
 
-<span className="badge badge--primary">Experimental</span>
-<span className="badge badge--secondary">Version 0.13.0</span>
+<Badge type="primary">Experimental</Badge>
+<Badge type="secondary">Version 0.13.0</Badge>
 
 You can use `markName` to add a name mark annotation (e.g. `@JvmName`, `@JsName`) to the generated synthetic function.
 

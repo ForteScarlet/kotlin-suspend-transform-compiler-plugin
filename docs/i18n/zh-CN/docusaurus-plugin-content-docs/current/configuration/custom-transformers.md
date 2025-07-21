@@ -1,75 +1,74 @@
 ---
 id: custom-transformers
-title: Custom Transformers
-sidebar_position: 3
+title: 自定义转换器
 ---
 
 import { Badge } from '@site/src/components/Snippets';
 
-This guide covers how to create custom transformers when the default transformers don't meet your specific needs.
+本指南介绍当默认转换器不能满足您的特定需求时，如何创建自定义转换器。
 
-## Overview
+## 概述
 
-You can create fully customized transformers if the default ones don't meet your requirements. 
-For example, if you want to implement blocking logic without using `kotlinx.coroutines.runBlocking`, or if you need platform-specific behavior.
+如果默认转换器不能满足您的需求，您可以创建完全自定义的转换器。
+例如，如果您想在不使用 `kotlinx.coroutines.runBlocking` 的情况下实现阻塞逻辑，或者如果您需要平台特定的行为。
 
-> Reference Implementation: A fully customized implementation of JVM Blocking/Async Transformers can be found at: 
+> 参考实现：JVM 阻塞/异步转换器的完全自定义实现可以在以下位置找到：
 > [simbot's BlockingRunner](https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt)
 
-:::warning Known Issue
-Custom transformer functions cannot be placed in the same module as the one using the compiler plugin. They need to
-be created in a separate module.
+:::warning 已知问题
+自定义转换器函数不能放在使用编译器插件的同一模块中。它们需要
+在单独的模块中创建。
 
-For more information: [#100](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100)
+更多信息：[#100](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues/100)
 :::
 
-## Basic Setup
+## 基本设置
 
-When using custom transformers, you typically won't need the default annotation and runtime dependencies:
+使用自定义转换器时，您通常不需要默认的注解和运行时依赖项：
 
 ```kotlin
 suspendTransformPlugin {
-    // If customized, then you may not use the annotation and runtime we provide.
+    // 如果自定义，那么您可能不会使用我们提供的注解和运行时。
     includeAnnotation = false
     includeRuntime = false
     
     transformers {
-        // Your custom transformer configuration
+        // 您的自定义转换器配置
     }
 }
 ```
 
-## Creating a Custom Transformer
+## 创建自定义转换器
 
-Let's create a custom transformer step by step. We'll create a `@JBlock` annotation that uses a custom `inBlock` function.
+让我们逐步创建一个自定义转换器。我们将创建一个使用自定义 `inBlock` 函数的 `@JBlock` 注解。
 
-### Step 1: Define Your Custom Components
+### 步骤 1：定义您的自定义组件
 
-First, define your custom annotation and transform function:
+首先，定义您的自定义注解和转换函数：
 
 ```kotlin
-// Your custom annotation
+// 您的自定义注解
 annotation class JBlock(
     val baseName: String = "",
     val suffix: String = "Blocking",
     val asProperty: Boolean = false
 )
 
-// Your custom transform function
+// 您的自定义转换函数
 fun <T> inBlock(block: suspend () -> T): T {
-    // Your custom implementation
+    // 您的自定义实现
     TODO("Your impl")
 }
 ```
 
-:::tip Agreement
-According to the agreement: **the first parameter** of a transform function 
-should be a lambda of type `suspend () -> T`.
+:::tip 约定
+根据约定：转换函数的**第一个参数**
+应该是类型为 `suspend () -> T` 的 lambda。
 :::
 
-### Step 2: Configure the Annotation
+### 步骤 2：配置注解
 
-Configure the annotation properties in your transformer:
+在您的转换器中配置注解属性：
 
 ```kotlin
 suspendTransformPlugin {
@@ -78,19 +77,19 @@ suspendTransformPlugin {
     transformers {
         addJvm {
             markAnnotation {
-                // Your annotation class information
+                // 您的注解类信息
                 classInfo {
                     packageName = "com.example"
                     className = "JBlock"
                 }
 
-                // Property names in your annotation
-                baseNameProperty = "baseName"      // Default is `baseName`
-                suffixProperty = "suffix"          // Default is `suffix`
-                asPropertyProperty = "asProperty"  // Default is `asProperty`
+                // 您的注解中的属性名称
+                baseNameProperty = "baseName"      // 默认是 `baseName`
+                suffixProperty = "suffix"          // 默认是 `suffix`
+                asPropertyProperty = "asProperty"  // 默认是 `asProperty`
 
-                // Default values (compiler plugin can't get annotation defaults)
-                defaultSuffix = "Blocking" 
+                // 默认值（编译器插件无法获取注解默认值）
+                defaultSuffix = "Blocking"
                 defaultAsProperty = false
             }
         }
@@ -98,37 +97,37 @@ suspendTransformPlugin {
 }
 ```
 
-### Step 3: Configure the Transform Function
+### 步骤 3：配置转换函数
 
-Configure your custom transform function:
+配置您的自定义转换函数：
 
 ```kotlin
 suspendTransformPlugin {
     transformers {
         addJvm {
             markAnnotation {
-                // ... annotation configuration
+                // ... 注解配置
             }
 
-            // Transform function information
+            // 转换函数信息
             transformFunctionInfo {
                 packageName = "com.example"
                 functionName = "inBlock"
             }
 
-            // Return type configuration
-            transformReturnType = null  // null means same type as original function
-            transformReturnTypeGeneric = false  // true if return type has generics
+            // 返回类型配置
+            transformReturnType = null  // null 表示与原函数相同的类型
+            transformReturnTypeGeneric = false  // 如果返回类型有泛型则为 true
         }
     }
 }
 ```
 
-## Advanced Configuration
+## 高级配置
 
-### Custom Property Names
+### 自定义属性名称
 
-You can use different property names in your annotation:
+您可以在注解中使用不同的属性名称：
 
 ```kotlin
 annotation class JBlock(
@@ -138,7 +137,7 @@ annotation class JBlock(
 )
 ```
 
-Configure the mapping:
+配置映射：
 
 ```kotlin
 suspendTransformPlugin {
@@ -150,111 +149,111 @@ suspendTransformPlugin {
                     className = "JBlock"
                 }
 
-                // Map to your custom property names
+                // 映射到您的自定义属性名称
                 baseNameProperty = "myBaseName"
                 suffixProperty = "mySuffix"
                 asPropertyProperty = "myAsProperty"
                 
-                defaultSuffix = "Blocking" 
-                defaultAsProperty = false 
+                defaultSuffix = "Blocking"
+                defaultAsProperty = false
             }
         }
     }
 }
 ```
 
-### Return Type Configuration
+### 返回类型配置
 
-#### Same Return Type
+#### 相同返回类型
 
-For functions that return the same type as the original:
+对于返回与原函数相同类型的函数：
 
 ```kotlin
 transformReturnType = null
 transformReturnTypeGeneric = false
 ```
 
-#### Generic Return Type
+#### 泛型返回类型
 
-For functions that return a generic type containing the original type (e.g., `CompletableFuture<T>`):
+对于返回包含原类型的泛型类型的函数（例如，`CompletableFuture<T>`）：
 
 ```kotlin
 transformReturnType = "java.util.concurrent.CompletableFuture"
 transformReturnTypeGeneric = true
 ```
 
-#### Specific Return Type
+#### 特定返回类型
 
-For functions that return a specific type without generics (e.g., `Job`):
+对于返回没有泛型的特定类型的函数（例如，`Job`）：
 
 ```kotlin
 transformReturnType = "kotlinx.coroutines.Job"
 transformReturnTypeGeneric = false
 ```
 
-## Annotation Management
+## 注解管理
 
-### Adding Annotations to Original Function
+### 向原函数添加注解
 
-Add annotations to the original suspend function:
+向原挂起函数添加注解：
 
 ```kotlin
 suspendTransformPlugin {
     transformers {
         addJvm {
-            // ... other configuration
+            // ... 其他配置
 
-            // Add @JvmSynthetic to original function
+            // 向原函数添加 @JvmSynthetic
             addOriginFunctionIncludeAnnotation {
                 classInfo {
                     packageName = "kotlin.jvm"
                     className = "JvmSynthetic"
                 }
-                repeatable = false  // Default is false
+                repeatable = false  // 默认是 false
             }
         }
     }
 }
 ```
 
-### Adding Annotations to Generated Function
+### 向生成的函数添加注解
 
-Add annotations to the generated synthetic function:
+向生成的合成函数添加注解：
 
 ```kotlin
 suspendTransformPlugin {
     transformers {
         addJvm {
-            // ... other configuration
+            // ... 其他配置
 
-            // Add custom @JApi annotation to generated function
+            // 向生成的函数添加自定义 @JApi 注解
             addSyntheticFunctionIncludeAnnotation {
                 classInfo {
                     packageName = "com.example"
                     className = "JApi"
                 }
-                includeProperty = true  // Can be added to properties
+                includeProperty = true  // 可以添加到属性
             }
         }
     }
 }
 ```
 
-### Copying Annotations
+### 复制注解
 
-Enable copying annotations from original to synthetic function:
+启用从原函数到合成函数的注解复制：
 
 ```kotlin
 suspendTransformPlugin {
     transformers {
         addJvm {
-            // ... other configuration
+            // ... 其他配置
 
-            // Enable annotation copying
+            // 启用注解复制
             copyAnnotationsToSyntheticFunction = true
-            copyAnnotationsToSyntheticProperty = true  // For properties
+            copyAnnotationsToSyntheticProperty = true  // 对于属性
 
-            // Exclude specific annotations from copying
+            // 从复制中排除特定注解
             addCopyAnnotationExclude {
                 classInfo {
                     packageName = "kotlin.jvm"
@@ -266,33 +265,33 @@ suspendTransformPlugin {
 }
 ```
 
-## Complete Example
+## 完整示例
 
-Here's a complete example of a custom transformer:
+这是一个自定义转换器的完整示例：
 
-### Custom Components
+### 自定义组件
 
 ```kotlin
-// Custom annotation
+// 自定义注解
 annotation class JBlock(
     val myBaseName: String = "",
     val mySuffix: String = "Blocking",
     val myAsProperty: Boolean = false
 )
 
-// Custom warning annotation
+// 自定义警告注解
 @RequiresOptIn(message = "Api for Java", level = RequiresOptIn.Level.WARNING)
 @Retention(AnnotationRetention.BINARY)
 annotation class JApi
 
-// Custom transform function
+// 自定义转换函数
 fun <T> inBlock(block: suspend () -> T): T {
-    // Your custom blocking implementation
+    // 您的自定义阻塞实现
     TODO("Your impl")
 }
 ```
 
-### Configuration {#complete-example-configuration}
+### 配置 {#complete-example-configuration}
 
 ```kotlin
 suspendTransformPlugin {
@@ -300,7 +299,7 @@ suspendTransformPlugin {
     includeRuntime = false
     transformers {
         addJvm {
-            // Annotation configuration
+            // 注解配置
             markAnnotation {
                 classInfo {
                     packageName = "com.example"
@@ -315,17 +314,17 @@ suspendTransformPlugin {
                 defaultAsProperty = false
             }
           
-            // Transform function configuration
+            // 转换函数配置
             transformFunctionInfo {
                 packageName = "com.example"
                 functionName = "inBlock"
             }
           
-            // Annotation management
+            // 注解管理
             copyAnnotationsToSyntheticFunction = true
             copyAnnotationsToSyntheticProperty = true
 
-            // Add @JvmSynthetic to original function
+            // 向原函数添加 @JvmSynthetic
             addOriginFunctionIncludeAnnotation {
                 classInfo {
                     from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
@@ -333,7 +332,7 @@ suspendTransformPlugin {
                 repeatable = false
             }
 
-            // Add @JApi to generated function
+            // 向生成的函数添加 @JApi
             addSyntheticFunctionIncludeAnnotation {
                 classInfo {
                     packageName = "com.example"
@@ -342,7 +341,7 @@ suspendTransformPlugin {
                 includeProperty = true
             }
 
-            // Exclude @JvmSynthetic from copying
+            // 从复制中排除 @JvmSynthetic
             addCopyAnnotationExclude {
                 from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
             }
@@ -351,11 +350,11 @@ suspendTransformPlugin {
 }
 ```
 
-## Multi-Purpose Annotations
+## 多用途注解
 
-You can create annotations that work with multiple transformers by using different property names:
+您可以通过使用不同的属性名称创建与多个转换器一起工作的注解：
 
-### Annotation Definition
+### 注解定义
 
 ```kotlin
 annotation class JTrans(
@@ -369,14 +368,14 @@ annotation class JTrans(
 )
 ```
 
-### Configuration {#multi-purpose-configuration}
+### 配置 {#multi-purpose-configuration}
 
 ```kotlin
 suspendTransformPlugin {
     includeAnnotation = false
     includeRuntime = false
     transformers {
-        // Blocking transformer
+        // 阻塞转换器
         addJvm {
             markAnnotation {
                 classInfo {
@@ -394,10 +393,10 @@ suspendTransformPlugin {
                 packageName = "com.example"
                 functionName = "inBlock"
             }
-            // ... other config
+            // ... 其他配置
         }
 
-        // Async transformer
+        // 异步转换器
         addJvm {
             markAnnotation {
                 classInfo {
@@ -415,31 +414,31 @@ suspendTransformPlugin {
                 packageName = "com.example"
                 functionName = "inAsync"
             }
-            // ... other config
+            // ... 其他配置
         }
     }
 }
 ```
 
-## Built-in Configurations
+## 内置配置
 
-The plugin provides some common configurations in 
-`love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations`:
+插件在
+`love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations` 中提供了一些常见配置：
 
 ```kotlin
-// Common annotation class infos
+// 常见注解类信息
 SuspendTransformConfigurations.jvmSyntheticClassInfo
 SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo
 
-// Use them in your configuration
+// 在您的配置中使用它们
 addCopyAnnotationExclude {
     from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
 }
 ```
 
-## Others
+## 其他
 ### MarkName
-<Badge type="secondary">Version 0.13.0</Badge>
+<Badge type="secondary">版本 0.13.0</Badge>
 
-For configuration of `markName` in custom annotations, 
-refer to [Mark Name](../features/mark-name#customize).
+有关自定义注解中 `markName` 的配置，
+请参考 [MarkName](../features/mark-name#customize)。

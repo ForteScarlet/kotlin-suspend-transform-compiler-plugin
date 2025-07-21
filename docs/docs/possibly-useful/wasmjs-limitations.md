@@ -1,10 +1,13 @@
 ---
 id: wasmjs-limitations
 title: WasmJS Limitations
+sidebar_position: 2
 ---
 
-<span className="badge badge--primary">Experimental</span>
-<span className="badge badge--secondary">Version 0.6.0</span>
+import { Badge } from '@site/src/components/Snippets';
+
+<Badge type="primary">Experimental</Badge>
+<Badge type="secondary">Version 0.6.0</Badge>
 
 WasmJS support is experimental and has several limitations:
 
