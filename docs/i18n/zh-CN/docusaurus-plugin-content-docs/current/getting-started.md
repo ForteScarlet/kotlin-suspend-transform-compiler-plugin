@@ -16,7 +16,7 @@ import { Badge } from '@site/src/components/Snippets';
 
 ::::note
 
-有关更多配置的信息，可前往参考 [配置](./configuration)。
+有关更多配置的信息，可前往参考 [配置](./configuration/configuration.md)。
 
 ::::
 

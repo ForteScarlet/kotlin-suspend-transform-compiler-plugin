@@ -117,7 +117,7 @@ val fooBlocking: T
 
 ##### markName {#jvmblocking-markname}
 
-参考 [MarkName](../features/mark-name)。
+参考 [MarkName](../features/mark-name.md)。
 
 
 ### JVM 异步转换器
@@ -223,7 +223,7 @@ val fooAsync: CompletableFuture<out T>
 
 ##### markName {#jvmasync-markname}
 
-参考 [MarkName](../features/mark-name)。
+参考 [MarkName](../features/mark-name.md)。
 
 ## JavaScript 转换器
 
@@ -329,7 +329,7 @@ val fooAsync: Promise<T>
 
 ##### markName {#jspromise-markname}
 
-参考 [MarkName](../features/mark-name)。
+参考 [MarkName](../features/mark-name.md)。
 
 ## 便利函数
 

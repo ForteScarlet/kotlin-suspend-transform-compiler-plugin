@@ -113,7 +113,7 @@ suspendTransformPlugin {
 您可以通过配置简单快速地使用它们。
 
 有关使用默认转换器的信息，
-请参考 [默认转换器](./default-transformers)。
+请参考 [默认转换器](./default-transformers.md)。
 
 > **注意**：默认的 `Transformer` 依赖于我们提供的 `annotation` 和 `runtime`。
 > 在使用之前请确保您包含了它们。

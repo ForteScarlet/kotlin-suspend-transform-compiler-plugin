@@ -95,7 +95,7 @@ class Foo {
 在自定义注解中，您可以配置 `markName`。
 
 > 有关自定义注解（和转换器）的基本信息，
-> 请参考 [自定义转换器](../configuration/custom-transformers)。
+> 请参考 [自定义转换器](../configuration/custom-transformers.md)。
 
 :::warning
 TODO

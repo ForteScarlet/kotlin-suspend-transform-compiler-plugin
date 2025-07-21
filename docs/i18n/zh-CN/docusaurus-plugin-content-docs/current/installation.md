@@ -47,14 +47,14 @@ import { GradlePluginDSL, GradlePluginLegacy } from '@site/src/components/Snippe
 
 **build.gradle.kts**
 
-<GradlePluginDSL />
+<GradlePluginDSL></GradlePluginDSL>
 
   </TabItem>
   <TabItem value="legacy-plugin-application" label="传统插件应用">
 
 **build.gradle.kts**
 
-<GradlePluginLegacy />
+<GradlePluginLegacy></GradlePluginLegacy>
 
   </TabItem>
 </Tabs>
@@ -69,7 +69,7 @@ suspendTransformPlugin {
 ## 依赖项
 
 插件可能会自动引入一些依赖项。
-有关此主题的更多信息，请参考 [配置 - 包含依赖项](./configuration#include-dependencies)。
+有关此主题的更多信息，请参考 [配置 - 包含依赖项](./configuration/configuration.md#包含依赖项)。
 
 ## 注意事项
 ### Gradle JVM

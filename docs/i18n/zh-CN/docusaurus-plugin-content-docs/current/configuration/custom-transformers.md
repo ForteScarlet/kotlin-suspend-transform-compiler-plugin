@@ -441,4 +441,4 @@ addCopyAnnotationExclude {
 <Badge type="secondary">版本 0.13.0</Badge>
 
 有关自定义注解中 `markName` 的配置，
-请参考 [MarkName](../features/mark-name#customize)。
+请参考 [MarkName](../features/mark-name.md#customize)。

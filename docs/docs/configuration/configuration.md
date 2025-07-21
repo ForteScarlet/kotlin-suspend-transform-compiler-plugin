@@ -114,14 +114,14 @@ First, we provide some simple and commonly used implementations.
 You can use them simply and quickly through configuration.
 
 For information on using the default transformers, 
-refer to [Default Transformers](./default-transformers).
+refer to [Default Transformers](default-transformers.md).
 
 > **Note**: The default `Transformer`s depend on the `annotation` and `runtime` we provide.
 > Make sure you include them before using it.
 
 ## Complete Configuration Example
 
-Here's a complete example showing various configuration options:
+Here’s a complete example showing various configuration options:
 
 ```kotlin
 suspendTransformPlugin {

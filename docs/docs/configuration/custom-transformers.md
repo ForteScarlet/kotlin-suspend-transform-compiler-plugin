@@ -442,4 +442,4 @@ addCopyAnnotationExclude {
 <Badge type="secondary">Version 0.13.0</Badge>
 
 For configuration of `markName` in custom annotations, 
-refer to [Mark Name](../features/mark-name#customize).
+refer to [Mark Name](../features/mark-name.md#customize).

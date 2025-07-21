@@ -118,7 +118,7 @@ val fooBlocking: T
 
 ##### markName {#jvmblocking-markname}
 
-Refer to [Mark Name](../features/mark-name).
+Refer to [Mark Name](../features/mark-name.md).
 
 
 ### JVM Async Transformer
@@ -224,7 +224,7 @@ val fooAsync: CompletableFuture<out T>
 
 ##### markName {#jvmasync-markname}
 
-Refer to [Mark Name](../features/mark-name).
+Refer to [Mark Name](../features/mark-name.md).
 
 ## JavaScript Transformers
 
@@ -330,7 +330,7 @@ val fooAsync: Promise<T>
 
 ##### markName {#jspromise-markname}
 
-Refer to [Mark Name](../features/mark-name).
+Refer to [Mark Name](../features/mark-name.md).
 
 ## Convenience Functions
 

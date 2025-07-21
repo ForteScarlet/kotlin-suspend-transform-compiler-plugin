@@ -16,7 +16,7 @@ First, enable the default configuration by configuring the Gradle plugin.
 
 :::note
 
-For more information on configuration, refer to [Configuration](./configuration).
+For more information on configuration, refer to [Configuration](./configuration/configuration.md).
 
 :::
 

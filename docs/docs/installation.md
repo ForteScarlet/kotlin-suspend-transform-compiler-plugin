@@ -47,14 +47,14 @@ If the version is less than or equal to `0.9.0`, you can refer to this compariso
 
 **build.gradle.kts**
 
-<GradlePluginDSL />
+<GradlePluginDSL></GradlePluginDSL>
 
   </TabItem>
   <TabItem value="legacy-plugin-application" label="Legacy Plugin Application">
 
 **build.gradle.kts**
 
-<GradlePluginLegacy />
+<GradlePluginLegacy></GradlePluginLegacy>
 
   </TabItem>
 </Tabs>
@@ -69,7 +69,7 @@ suspendTransformPlugin {
 ## Dependencies
 
 Plugins may automatically introduce some dependencies. 
-For more information on this topic, please refer to [Configuration - Include Dependencies](./configuration#include-dependencies).
+For more information on this topic, please refer to [Configuration - Include Dependencies](./configuration/configuration.md#include-dependencies).
 
 ## Cautions
 ### Gradle JVM
