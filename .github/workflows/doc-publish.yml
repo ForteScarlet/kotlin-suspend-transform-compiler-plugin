@@ -92,6 +92,7 @@ jobs:
         uses: JetBrains/writerside-checker-action@v1
         with:
           instance: ${{ env.INSTANCE }}
+          is-group: ${{ env.IS_GROUP }}
 
   deploy:
     environment:
