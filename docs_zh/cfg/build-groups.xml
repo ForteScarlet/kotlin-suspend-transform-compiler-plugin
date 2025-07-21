@@ -3,7 +3,7 @@
 <build-groups xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-groups.xsd"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <build-group name="docs">
-        <instance instance-id="den" alias="Kotlin Suspend Transform | Documentation" path="/en"/>
-        <instance instance-id="dzh" alias="Kotlin Suspend Transform | 文档" path="/zh"/>
+        <instance instance-id="den" alias="Documentation" path="/en"/>
+        <instance instance-id="dzh" alias="文档" path="/zh"/>
     </build-group>
 </build-groups>
