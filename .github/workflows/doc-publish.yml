@@ -1,0 +1,122 @@
+name: Deploy documentation
+
+on:
+  # If specified, the workflow will be triggered automatically once you push to the `main` branch.
+  # Replace `main` with your branch’s name
+  push:
+    branches:
+      - dev
+    paths:
+      - 'docs/**'
+      - 'docs_zh/**'
+      - 'docs_en/**'
+      - '.github/workflows/doc-publish.yml'
+
+  # Specify to run a workflow manually from the Actions tab on GitHub
+  workflow_dispatch:
+
+# Gives the workflow permissions to clone the repo and create a page deployment
+permissions:
+  id-token: write
+  pages: write
+
+env:
+  # Name of module and id separated by a slash
+  INSTANCE: docs/docs
+  INSTANCE_NAME: docs
+  IS_GROUP: true
+  # Replace HI with the ID of the instance in capital letters
+  ARTIFACT: webHelpDOCS2-all.zip
+  # Writerside docker image version
+  # see https://www.jetbrains.com/help/writerside/deploy-docs-to-github-pages.html
+  DOCKER_VERSION: '2025.04.8412'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      config_json: ${{ steps.output-config-json.outputs.config_json }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Writerside docs using Docker
+        uses: JetBrains/writerside-github-action@v4
+        with:
+          instance: ${{ env.INSTANCE }}
+          artifact: ${{ env.ARTIFACT }}
+          docker-version: ${{ env.DOCKER_VERSION }}
+          is-group: ${{ env.IS_GROUP }}
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: |
+            artifacts/${{ env.ARTIFACT }}
+            artifacts/report.json
+          retention-days: 7
+
+      - name: Upload documentation test reports
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: 'report.json'
+          path: |
+            artifacts/report.json
+          retention-days: 7
+
+      - name: Unzip artifact
+        run: unzip -O UTF-8 -qq artifacts/${{ env.ARTIFACT }} -d dir
+
+      - name: Output documentation config.json
+        id: output-config-json
+        run: |
+          echo "config_json=$(cat dir/config.json)" >> $GITHUB_OUTPUT
+
+  # Add the job below and artifacts/report.json on Upload documentation step above if you want to fail the build when documentation contains errors
+  test:
+    # Requires build job results
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+      #          path: artifacts
+
+      - name: Test documentation
+        uses: JetBrains/writerside-checker-action@v1
+        with:
+          instance: ${{ env.INSTANCE }}
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Requires the build job results
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+
+      - name: Unzip artifact
+        run: unzip -O UTF-8 -qq artifacts/${{ env.ARTIFACT }} -d dir
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dir
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
