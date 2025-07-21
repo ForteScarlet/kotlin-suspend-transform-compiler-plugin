@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE labels SYSTEM "https://resources.jetbrains.com/writerside/1.0/labels-list.dtd">
+<labels xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/labels.xsd">
+    <primary-label id="experimental" name="Experimental" short-name="exp" color="red">
+        This is an experimental feature
+    </primary-label>
+
+    <secondary-label id="s-experimental" name="Experimental" color="red">
+        This is an experimental feature
+    </secondary-label>
+
+    <!-- version since -->
+    <secondary-label id="version-0.6.0" name="v0.6.0" color="blue">
+        Since version 0.6.0
+    </secondary-label>
+    <secondary-label id="version-0.13.0" name="v0.13.0" color="blue">
+        Since version 0.13.0
+    </secondary-label>
+</labels>

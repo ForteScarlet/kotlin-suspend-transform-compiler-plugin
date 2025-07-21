@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="docs_zh_libraries"
+                  name="docs_zh_libraries" is-library="true">
+
+    <toc-element topic="snippets.topic" origin="docs"/>
+</instance-profile>

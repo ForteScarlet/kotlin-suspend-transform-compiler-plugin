@@ -51,3 +51,5 @@ tasks.create("createChangelog") {
         }
     }
 }
+
+tasks.register<UpdateWritersideVersionTask>("updateWritersideVersion")

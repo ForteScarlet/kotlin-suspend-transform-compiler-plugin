@@ -1,0 +1,87 @@
+# MarkName
+
+<primary-label ref="experimental" xmlns=""/>
+<secondary-label ref="version-0.13.0" />
+
+You can use `markName` to add a name mark annotation (e.g. `@JvmName`, `@JsName`) to the generated synthetic function.
+
+## Using in the standard runtime
+
+### JVM Example
+
+<compare type="top-bottom" first-title="Source" second-title="Compiled">
+
+```kotlin
+class Foo {
+    @JvmBlocking(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+}
+```
+
+```kotlin
+class Foo {
+    @JvmSynthetic
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+
+    @Api4J // RequiresOptIn annotation, provide warnings to Kotlin
+    @JvmName("namedWaitAndGet") // From the `markName`'s value
+    fun waitAndGetBlocking(): String =
+        runInBlocking { waitAndGet() } // 'runInBlocking' from the runtime provided by the plugin
+}
+```
+
+</compare>
+
+<warning>
+
+`@JvmName` has limitations on non-final functions, and even the compiler may prevent compilation.
+
+</warning>
+
+### JavaScript Example
+
+<compare type="top-bottom" first-title="Source" second-title="Compiled">
+
+```kotlin
+class Foo {
+    @JsPromise(markName = "namedWaitAndGet")
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+}
+```
+
+```kotlin
+class Foo {
+    suspend fun waitAndGet(): String {
+        delay(5)
+        return "Hello"
+    }
+
+    @Api4Js // RequiresOptIn annotation, provide warnings to Kotlin
+    @JsName("namedWaitAndGet") // From the `markName`'s value
+    fun waitAndGetAsync(): Promise<String> =
+        runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
+}
+```
+
+</compare>
+
+
+## Customize
+
+In custom annotations, you can configure `markName`.
+
+> For basic information about custom annotations (and transformers), 
+> refer to [](Custom-Transformers.md).
+
+<warning>
+TODO
+</warning>

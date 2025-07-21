@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE topic SYSTEM "https://resources.jetbrains.com/writerside/1.0/html-entities.dtd">
+<topic xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" is-library="true" id="snippets" title="snippets"
+       help-id="snippets">
+    <!-- Put your snippets here -->
+    <snippet id="cover-image">
+        <img src="cover.png" alt="cover"/>
+    </snippet>
+
+    <snippet id="gradle-plugin-dsl">
+        <code-block lang="Kotlin">
+            plugins {
+                kotlin("jvm") version "$KOTLIN_VERSION" // or multiplatform
+                id("love.forte.plugin.suspend-transform") version "%version%"
+                // Others ...
+            }
+        </code-block>
+    </snippet>
+
+    <snippet id="gradle-plugin-legacy">
+        <code-block lang="Kotlin">
+            buildscript {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+                dependencies {
+                    classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:%version%")
+                }
+            }
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") // or multiplatform?
+                id("love.forte.plugin.suspend-transform")
+                // Others ...
+            }
+        </code-block>
+    </snippet>
+</topic>
