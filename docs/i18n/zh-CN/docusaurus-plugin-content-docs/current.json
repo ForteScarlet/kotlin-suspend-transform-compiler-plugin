@@ -1,0 +1,26 @@
+{
+  "sidebar.documentationSidebar.category.Configuration": {
+    "message": "配置",
+    "description": "The label for category Configuration in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Configuration.link.generated-index.description": {
+    "message": "Kotlin 挂起转换编译器插件的配置选项",
+    "description": "The generated-index page description for category Configuration in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Features": {
+    "message": "功能特性",
+    "description": "The label for category Features in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Features.link.generated-index.description": {
+    "message": "Kotlin 挂起转换编译器插件的功能特性",
+    "description": "The generated-index page description for category Features in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Possibly Useful": {
+    "message": "可能有用的信息",
+    "description": "The label for category Possibly Useful in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Possibly Useful.link.generated-index.description": {
+    "message": "关于 Kotlin 挂起转换编译器插件的其他有用信息",
+    "description": "The generated-index page description for category Possibly Useful in sidebar documentationSidebar"
+  }
+}

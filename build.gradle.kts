@@ -52,4 +52,4 @@ tasks.create("createChangelog") {
     }
 }
 
-tasks.register<UpdateWritersideVersionTask>("updateWritersideVersion")
+tasks.register<UpdateDocsVersionTask>("updateDocsVersion")

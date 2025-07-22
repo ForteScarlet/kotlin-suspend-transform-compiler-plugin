@@ -14,5 +14,9 @@
   "link.item.label.GitHub": {
     "message": "GitHub",
     "description": "The label of footer link with label=GitHub linking to https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
+  },
+  "copyright": {
+    "message": "版权所有 © 2022-2025 ForteScarlet, Inc. 使用 Docusaurus 构建。",
+    "description": "The footer copyright"
   }
 }

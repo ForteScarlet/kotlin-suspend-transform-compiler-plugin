@@ -1,12 +1,22 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import versionInfo from './src/version.json';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+/**
+ * @see https://github.com/facebook/docusaurus/issues/4542#issuecomment-1434839071
+ */
+function getSiteTagline() {
+  switch(process.env.DOCUSAURUS_CURRENT_LOCALE) {
+    case "zh-CN": return '让 suspend 不再害羞';
+    default: return 'Make suspend no longer shy';
+  }
+}
 
 const config: Config = {
   title: 'Kotlin Suspend Transform Compiler Plugin',
-  tagline: 'Make suspend less shy',
+  tagline: getSiteTagline(), // 'Make suspend less shy',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -53,32 +63,21 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/',
+          editUrl: ({locale, docPath}) => {
+            if (locale === 'zh-CN') {
+              return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/i18n/zh-CN/docusaurus-plugin-content-docs/current/${docPath}`;
+            }
+            return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/${docPath}`;
+          },
           showLastUpdateTime: true,
           lastVersion: 'current',
           versions: {
             current: {
               badge: true,
-              label: 'Latest',
+              label: 'v' + versionInfo.version,
             },
           }
         },
-        // blog: {
-        //   showReadingTime: true,
-        //   feedOptions: {
-        //     type: ['rss', 'atom'],
-        //     xslt: true,
-        //   },
-        //   // Please change this to your repo.
-        //   // Remove this to remove the "edit this page" links.
-        //   editUrl:
-        //     'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        //   // Useful options to enforce blogging best practices
-        //   onInlineTags: 'warn',
-        //   onInlineAuthors: 'warn',
-        //   onUntruncatedBlogPosts: 'warn',
-        // },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -88,7 +87,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    // image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'Kotlin Suspend Transform Compiler Plugin',
       // logo: {
@@ -103,9 +102,14 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin',
-          label: 'GitHub',
+          type: 'docsVersionDropdown',
           position: 'right',
+          versions: ['current'],
+        },
+        {
+          href: 'https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin',
+          position: 'right',
+          className: 'header-github-link',
           'aria-label': 'GitHub repository',
         },
         {

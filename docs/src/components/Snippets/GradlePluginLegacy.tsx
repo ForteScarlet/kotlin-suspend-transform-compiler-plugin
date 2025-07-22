@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {JSX} from 'react';
 import CodeBlock from '@theme/CodeBlock';
+import versionInfo from '../../version.json';
 
 export default function GradlePluginLegacy(): JSX.Element {
   const code = `buildscript {
@@ -8,7 +9,7 @@ export default function GradlePluginLegacy(): JSX.Element {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:%version%")
+        classpath("love.forte.plugin.suspend-transform:suspend-transform-plugin-gradle:${versionInfo.version}")
     }
 }
 
