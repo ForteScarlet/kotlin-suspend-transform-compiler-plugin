@@ -7,10 +7,21 @@ sidebar_position: 2
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { GradlePluginDSL, GradlePluginLegacy } from '@site/src/components/Snippets';
+import versionInfo from '@site/src/version.json';
 
 This guide covers how to install and set up the Kotlin Suspend Transform Compiler Plugin in your project.
 
 ## Version Information
+
+- The latest version on which the current document is based
+  <small>(usually a version that does not include `Beta` or `RC`, etc.)</small>:  <br/>
+  **v{versionInfo.version}**
+
+- The latest version in the Maven repository and Gradle plugin portal: <br/>
+  [![Maven Central](https://img.shields.io/maven-central/v/love.forte.plugin.suspend-transform/suspend-transform-plugin)](https://repo1.maven.org/maven2/love/forte/plugin/suspend-transform/suspend-transform-plugin/)
+  [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/love.forte.plugin.suspend-transform)](https://plugins.gradle.org/plugin/love.forte.plugin.suspend-transform)
+
+- The all releases: [Go to GitHub Releases](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/releases)
 
 ### Version Naming Convention
 
@@ -42,7 +53,6 @@ From my memory and guess, Kotlin versions have a higher probability of incompati
 and a smaller probability of incompatibility when patch is added (e.g. `1.9.21` -> `1.9.22`).
 :::
 
-
 ## Gradle Setup
 
 <Tabs>
@@ -69,6 +79,10 @@ suspendTransformPlugin {
 }
 ```
 
+## Configuration
+
+For more information on this topic, please refer to [Configuration](./configuration/configuration.md).
+
 ## Dependencies
 
 Plugins may automatically introduce some dependencies. 
@@ -85,11 +99,11 @@ K2 is supported since `v0.7.0`.
 
 ### IDE support in current development projects
 
-The IDE does not support highlighting for projects that currently use compiler plugins.
+The IDE does **NOT** support highlighting for projects that currently use compiler plugins.
 If you want to verify that the compiler plugin is working, you can:
   
 - JVM platform:
-  - Check the compiled class file or its decompiled result.
+  - Check the compiled `.class` file or its decompiled result.
   - Use reflection to access the expected function in unit testing.
 - JS platform:
   - Check whether the function is generated correctly by generating a `.d.ts` file.

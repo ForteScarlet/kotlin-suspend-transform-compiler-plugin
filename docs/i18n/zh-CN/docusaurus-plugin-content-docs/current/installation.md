@@ -7,10 +7,21 @@ sidebar_position: 2
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { GradlePluginDSL, GradlePluginLegacy } from '@site/src/components/Snippets';
+import versionInfo from '@site/src/version.json';
 
 本指南介绍如何在您的项目中安装和设置 Kotlin 挂起函数转换编译器插件。
 
 ## 版本信息
+
+- 当前文档构建于的最新版本
+  <small>(通常是不包含 `Beta`, `RC` 等的版本)</small>: <br/>
+  **v{versionInfo.version}**
+
+- Maven 仓库和 Gradle 插件中的最新版本: <br />
+  [![Maven Central](https://img.shields.io/maven-central/v/love.forte.plugin.suspend-transform/suspend-transform-plugin)](https://repo1.maven.org/maven2/love/forte/plugin/suspend-transform/suspend-transform-plugin/)
+  [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/love.forte.plugin.suspend-transform)](https://plugins.gradle.org/plugin/love.forte.plugin.suspend-transform)
+
+- 所有发行版: [前往 GitHub Releases](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/releases)
 
 ### 版本命名约定
 
@@ -69,6 +80,10 @@ suspendTransformPlugin {
 }
 ```
 
+## 配置
+
+详细的配置说明请参考 [配置](./configuration/configuration.md)。
+
 ## 依赖项
 
 插件可能会自动引入一些依赖项。
@@ -85,11 +100,11 @@ suspendTransformPlugin {
 
 ### 当前开发项目中的 IDE 支持
 
-IDE 不支持对当前使用编译器插件的项目进行高亮显示。
+IDE **不支持**对当前使用编译器插件的项目进行高亮显示。
 如果您想验证编译器插件是否正常工作，您可以：
   
 - JVM 平台：
-  - 检查编译后的类文件或其反编译结果。
+  - 检查编译后的 `.class` 文件或其反编译结果。
   - 在单元测试中使用反射访问预期的函数。
 - JS 平台：
   - 通过生成 `.d.ts` 文件检查函数是否正确生成。
