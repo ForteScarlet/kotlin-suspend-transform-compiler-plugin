@@ -1,0 +1,8 @@
+{
+  "label": "功能特性",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Kotlin 挂起函数转换编译器插件的功能特性"
+  }
+}

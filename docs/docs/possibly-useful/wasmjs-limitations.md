@@ -6,8 +6,8 @@ sidebar_position: 2
 
 import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<ExperimentalBadge />
-<VersionBadge version="0.6.0" />
+<ExperimentalBadge></ExperimentalBadge>
+<VersionBadge version="0.6.0"></VersionBadge>
 
 WasmJS support is experimental and has several limitations:
 

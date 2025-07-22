@@ -1,12 +1,13 @@
 ---
 id: wasmjs-limitations
 title: WasmJS 限制
+sidebar_position: 2
 ---
 
 import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<ExperimentalBadge />
-<VersionBadge version="0.6.0" />
+<ExperimentalBadge></ExperimentalBadge>
+<VersionBadge version="0.6.0"></VersionBadge>
 
 WasmJS 支持是实验性的，有几个限制：
 

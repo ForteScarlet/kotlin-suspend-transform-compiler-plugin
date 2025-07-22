@@ -1,5 +1,6 @@
 ---
 title: 配置
+sidebar_position: 1
 ---
 
 本指南介绍如何配置 Kotlin 挂起函数转换编译器插件扩展。

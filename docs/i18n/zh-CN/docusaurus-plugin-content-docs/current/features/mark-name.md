@@ -1,14 +1,15 @@
 ---
 id: mark-name
 title: MarkName
+sidebar_position: 1
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<ExperimentalBadge />
-<VersionBadge version="0.13.0" />
+<ExperimentalBadge></ExperimentalBadge>
+<VersionBadge version="0.13.0"></VersionBadge>
 
 您可以使用 `markName` 向生成的合成函数添加名称标记注解（例如 `@JvmName`、`@JsName`）。
 

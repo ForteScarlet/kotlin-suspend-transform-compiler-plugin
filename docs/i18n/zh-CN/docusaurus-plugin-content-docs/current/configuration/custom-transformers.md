@@ -1,6 +1,7 @@
 ---
 id: custom-transformers
 title: 自定义转换器
+sidebar_position: 3
 ---
 
 import { VersionBadge } from '@site/src/components/Snippets';

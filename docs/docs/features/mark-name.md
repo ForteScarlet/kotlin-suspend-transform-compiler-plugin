@@ -8,8 +8,8 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<ExperimentalBadge />
-<VersionBadge version="0.13.0" />
+<ExperimentalBadge></ExperimentalBadge>
+<VersionBadge version="0.13.0"></VersionBadge>
 
 You can use `markName` to add a name mark annotation (e.g. `@JvmName`, `@JsName`) to the generated synthetic function.
 

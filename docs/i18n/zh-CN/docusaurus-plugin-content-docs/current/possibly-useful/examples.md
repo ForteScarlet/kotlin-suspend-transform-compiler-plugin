@@ -1,6 +1,7 @@
 ---
 id: examples
 title: 示例
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';

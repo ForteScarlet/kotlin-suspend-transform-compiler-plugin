@@ -1,6 +1,7 @@
 ---
 id: jsexport-integration
 title: JsExport 集成
+sidebar_position: 1
 ---
 
 如果您想将 `@JsExport` 与默认 JS 配置一起使用，
