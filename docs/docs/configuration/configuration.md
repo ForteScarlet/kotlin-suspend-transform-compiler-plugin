@@ -105,8 +105,11 @@ suspendTransformPlugin {
 }
 ```
 
-> `love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations`
-> contains some information about the standard implementations we provide.
+:::info
+`love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations`
+contains some information about the standard implementations we provide.
+:::
+
 
 ### Using Default Transformers
 
@@ -116,8 +119,11 @@ You can use them simply and quickly through configuration.
 For information on using the default transformers, 
 refer to [Default Transformers](default-transformers.md).
 
-> **Note**: The default `Transformer`s depend on the `annotation` and `runtime` we provide.
-> Make sure you include them before using it.
+:::note
+The default `Transformer`s depend on the `annotation` and `runtime` we provide.
+Make sure you include them before using it.
+:::
+
 
 ## Complete Configuration Example
 

@@ -83,6 +83,9 @@ class Foo {
 | JavaScript            | 0.6.0         |
 | WasmJS (Experimental) | 0.6.0         |
 
-> **Note**: JS platform support was added in version 0.6.0. See the implementation details
-> at [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
-> and [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39).
+:::note
+JS platform support was added in version 0.6.0. See the implementation details
+at [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+and [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39).
+:::
+

@@ -12,8 +12,11 @@ import { Badge } from '@site/src/components/Snippets';
 如果默认转换器不能满足您的需求，您可以创建完全自定义的转换器。
 例如，如果您想在不使用 `kotlinx.coroutines.runBlocking` 的情况下实现阻塞逻辑，或者如果您需要平台特定的行为。
 
-> 参考实现：JVM 阻塞/异步转换器的完全自定义实现可以在以下位置找到：
-> [simbot's BlockingRunner](https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt)
+:::info
+JVM 阻塞/异步转换器的完全自定义实现可以在以下位置找到：
+[simbot's BlockingRunner](https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt)
+:::
+
 
 :::warning 已知问题
 自定义转换器函数不能放在使用编译器插件的同一模块中。它们需要

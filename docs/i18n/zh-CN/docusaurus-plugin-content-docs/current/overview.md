@@ -83,6 +83,9 @@ class Foo {
 | JavaScript            | 0.6.0         |
 | WasmJS (实验性)       | 0.6.0         |
 
-> **注意**：JS 平台支持在版本 0.6.0 中添加。查看实现详情请参考
-> [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
-> 和 [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)。
+:::note
+JS 平台支持在版本 0.6.0 中添加。查看实现详情请参考
+[KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
+和 [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)。
+:::
+

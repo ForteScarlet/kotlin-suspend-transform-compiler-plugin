@@ -36,9 +36,12 @@ If the version is less than or equal to `0.9.0`, you can refer to this compariso
 | `1.9.0`        | `0.5.0`                 |
 | `1.8.21`       | `0.3.1` ~ `0.4.0`       |
 
-> **Note**: I haven't documented in detail the compiler plugin compatibility between each Kotlin version.
-> From my memory and guess, Kotlin versions have a higher probability of incompatibility when minor is added (e.g. `1.8.0` -> `1.9.0`), 
-> and a smaller probability of incompatibility when patch is added (e.g. `1.9.21` -> `1.9.22`).
+:::note
+I haven't documented in detail the compiler plugin compatibility between each Kotlin version.
+From my memory and guess, Kotlin versions have a higher probability of incompatibility when minor is added (e.g. `1.8.0` -> `1.9.0`), 
+and a smaller probability of incompatibility when patch is added (e.g. `1.9.21` -> `1.9.22`).
+:::
+
 
 ## Gradle Setup
 

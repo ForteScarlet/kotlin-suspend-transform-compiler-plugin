@@ -118,7 +118,10 @@ class Foo {
   </TabItem>
 </Tabs>
 
-> **注意**：JS 平台支持在版本 0.6.0 中添加！查看开发过程请参考 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)，最终实现请参考 [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)！
+:::note
+JS 平台支持在版本 0.6.0 中添加！查看开发过程请参考 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)，最终实现请参考 [#39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)！
+:::
+
 
 ## WasmJS 平台
 

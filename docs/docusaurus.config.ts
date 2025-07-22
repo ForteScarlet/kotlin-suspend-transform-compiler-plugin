@@ -63,12 +63,14 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: ({locale, docPath}) => {
-            if (locale === 'zh-CN') {
-              return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/i18n/zh-CN/docusaurus-plugin-content-docs/current/${docPath}`;
-            }
-            return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/${docPath}`;
-          },
+          // editUrl: ({locale, docPath}) => {
+          //   if (locale === 'zh-CN') {
+          //     return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/i18n/zh-CN/docusaurus-plugin-content-docs/current/${docPath}`;
+          //   }
+          //   return `https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/${docPath}`;
+          // },
+          editUrl: 'https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/tree/dev/docs/',
+          editLocalizedFiles: true,
           showLastUpdateTime: true,
           lastVersion: 'current',
           versions: {

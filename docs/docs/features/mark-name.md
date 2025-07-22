@@ -95,8 +95,11 @@ class Foo {
 
 In custom annotations, you can configure `markName`.
 
-> For basic information about custom annotations (and transformers), 
-> refer to [Custom Transformers](../configuration/custom-transformers.md).
+:::info
+For basic information about custom annotations (and transformers), 
+refer to [Custom Transformers](../configuration/custom-transformers.md).
+:::
+
 
 :::warning
 TODO

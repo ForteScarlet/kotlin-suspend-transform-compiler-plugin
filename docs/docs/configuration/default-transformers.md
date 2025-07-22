@@ -14,8 +14,11 @@ This guide covers the default transformers provided by the plugin and how to use
 Transformers are the core components that define how suspend functions are transformed for different platforms. 
 The plugin provides several built-in transformers that cover the most common use cases.
 
-> **Note**: The default transformers depend on the `annotation` and `runtime` dependencies provided by the plugin. 
-> Make sure you include them in your configuration before using default transformers.
+:::note
+The default transformers depend on the `annotation` and `runtime` dependencies provided by the plugin.
+Make sure you include them in your configuration before using default transformers.
+:::
+
 
 ## JVM Transformers
 
@@ -114,7 +117,10 @@ val fooBlocking: T
     get() = runInBlocking { foo() }
 ```
 
-> **Note**: If `asProperty` is `true`, the function cannot have parameters.
+:::note
+If `asProperty` is `true`, the function cannot have parameters.
+:::
+
 
 ##### markName {#jvmblocking-markname}
 
@@ -220,7 +226,10 @@ val fooAsync: CompletableFuture<out T>
     get() = runInAsync { foo() }
 ```
 
-> **Note**: If `asProperty` is `true`, the function cannot have parameters.
+:::note
+If `asProperty` is `true`, the function cannot have parameters.
+:::
+
 
 ##### markName {#jvmasync-markname}
 
@@ -326,7 +335,10 @@ val fooAsync: Promise<T>
     get() = runInAsync { foo() }
 ```
 
-> **Note**: If `asProperty` is `true`, the function cannot have parameters.
+:::note
+If `asProperty` is `true`, the function cannot have parameters.
+:::
+
 
 ##### markName {#jspromise-markname}
 

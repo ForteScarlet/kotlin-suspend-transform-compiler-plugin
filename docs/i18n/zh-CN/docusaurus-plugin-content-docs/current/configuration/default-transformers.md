@@ -13,8 +13,11 @@ import TabItem from '@theme/TabItem';
 转换器是定义挂起函数如何为不同平台转换的核心组件。
 插件提供了几个内置转换器，涵盖了最常见的用例。
 
-> **注意**：默认转换器依赖于插件提供的 `annotation` 和 `runtime` 依赖项。
-> 在使用默认转换器之前，请确保在配置中包含它们。
+:::note
+默认转换器依赖于插件提供的 `annotation` 和 `runtime` 依赖项。
+在使用默认转换器之前，请确保在配置中包含它们。
+:::
+
 
 ## JVM 转换器
 
@@ -113,7 +116,10 @@ val fooBlocking: T
     get() = runInBlocking { foo() }
 ```
 
-> **注意**：如果 `asProperty` 为 `true`，函数不能有参数。
+:::note
+如果 `asProperty` 为 `true`，函数不能有参数。
+:::
+
 
 ##### markName {#jvmblocking-markname}
 
@@ -219,7 +225,10 @@ val fooAsync: CompletableFuture<out T>
     get() = runInAsync { foo() }
 ```
 
-> **注意**：如果 `asProperty` 为 `true`，函数不能有参数。
+:::note
+如果 `asProperty` 为 `true`，函数不能有参数。
+:::
+
 
 ##### markName {#jvmasync-markname}
 
@@ -325,7 +334,10 @@ val fooAsync: Promise<T>
     get() = runInAsync { foo() }
 ```
 
-> **注意**：如果 `asProperty` 为 `true`，函数不能有参数。
+:::note
+如果 `asProperty` 为 `true`，函数不能有参数。
+:::
+
 
 ##### markName {#jspromise-markname}
 

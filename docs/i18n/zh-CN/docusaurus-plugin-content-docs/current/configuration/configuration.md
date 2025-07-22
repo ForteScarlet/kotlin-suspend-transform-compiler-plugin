@@ -104,8 +104,11 @@ suspendTransformPlugin {
 }
 ```
 
-> `love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations`
-> 包含一些我们提供的标准实现的信息。
+:::info
+`love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations`
+包含一些我们提供的标准实现的信息。
+:::
+
 
 ### 使用默认转换器
 
@@ -115,8 +118,11 @@ suspendTransformPlugin {
 有关使用默认转换器的信息，
 请参考 [默认转换器](./default-transformers.md)。
 
-> **注意**：默认的 `Transformer` 依赖于我们提供的 `annotation` 和 `runtime`。
-> 在使用之前请确保您包含了它们。
+:::note
+默认的 `Transformer` 依赖于我们提供的 `annotation` 和 `runtime`。
+在使用之前请确保您包含了它们。
+:::
+
 
 ## 完整配置示例
 

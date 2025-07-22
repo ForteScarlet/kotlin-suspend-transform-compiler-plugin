@@ -464,7 +464,10 @@ class OrderService : CoroutineScope {
 
 **Compiled Result:**
 
-> _Simplified from decompiled results._
+:::tip
+_Simplified from decompiled results._
+:::
+
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.*

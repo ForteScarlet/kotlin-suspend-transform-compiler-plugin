@@ -462,7 +462,10 @@ class OrderService : CoroutineScope {
 
 **编译结果：**
 
-> _从反编译结果简化而来。_
+:::tip
+_从反编译结果简化而来。_
+:::
+
 
 ```kotlin
 import love.forte.plugin.suspendtrans.annotation.*

@@ -13,8 +13,11 @@ This guide covers how to create custom transformers when the default transformer
 You can create fully customized transformers if the default ones don't meet your requirements. 
 For example, if you want to implement blocking logic without using `kotlinx.coroutines.runBlocking`, or if you need platform-specific behavior.
 
-> Reference Implementation: A fully customized implementation of JVM Blocking/Async Transformers can be found at: 
-> [simbot's BlockingRunner](https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt)
+:::info
+A fully customized implementation of JVM Blocking/Async Transformers can be found at:
+[simbot's BlockingRunner](https://github.com/simple-robot/simpler-robot/blob/v4-main/simbot-commons/simbot-common-suspend-runner/src/jvmMain/kotlin/love/forte/simbot/suspendrunner/BlockingRunner.kt)
+:::
+
 
 :::warning Known Issue
 Custom transformer functions cannot be placed in the same module as the one using the compiler plugin. They need to
