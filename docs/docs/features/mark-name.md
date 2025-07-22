@@ -6,10 +6,10 @@ sidebar_position: 1
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import { Badge } from '@site/src/components/Snippets';
+import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<Badge type="primary">Experimental</Badge>
-<Badge type="secondary">Version 0.13.0</Badge>
+<ExperimentalBadge />
+<VersionBadge version="0.13.0" />
 
 You can use `markName` to add a name mark annotation (e.g. `@JvmName`, `@JsName`) to the generated synthetic function.
 

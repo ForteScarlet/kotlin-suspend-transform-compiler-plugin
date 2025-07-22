@@ -4,7 +4,7 @@ title: Custom Transformers
 sidebar_position: 3
 ---
 
-import { Badge } from '@site/src/components/Snippets';
+import { VersionBadge } from '@site/src/components/Snippets';
 
 This guide covers how to create custom transformers when the default transformers don't meet your specific needs.
 
@@ -442,7 +442,7 @@ addCopyAnnotationExclude {
 
 ## Others
 ### MarkName
-<Badge type="secondary">Version 0.13.0</Badge>
+<VersionBadge version="0.13.0" />
 
 For configuration of `markName` in custom annotations, 
 refer to [Mark Name](../features/mark-name.md#customize).

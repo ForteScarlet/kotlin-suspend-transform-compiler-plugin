@@ -5,10 +5,10 @@ title: MarkName
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import { Badge } from '@site/src/components/Snippets';
+import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<Badge type="primary">实验性</Badge>
-<Badge type="secondary">版本 0.13.0</Badge>
+<ExperimentalBadge />
+<VersionBadge version="0.13.0" />
 
 您可以使用 `markName` 向生成的合成函数添加名称标记注解（例如 `@JvmName`、`@JsName`）。
 

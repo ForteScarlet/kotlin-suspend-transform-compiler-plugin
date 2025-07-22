@@ -3,10 +3,10 @@ id: wasmjs-limitations
 title: WasmJS 限制
 ---
 
-import { Badge } from '@site/src/components/Snippets';
+import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
-<Badge type="primary">实验性</Badge>
-<Badge type="secondary">版本 0.6.0</Badge>
+<ExperimentalBadge />
+<VersionBadge version="0.6.0" />
 
 WasmJS 支持是实验性的，有几个限制：
 

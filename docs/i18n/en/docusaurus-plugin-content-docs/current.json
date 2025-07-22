@@ -1,26 +1,30 @@
 {
+  "version.label": {
+    "message": "v2.2.0-0.13.1",
+    "description": "The label for version current"
+  },
   "sidebar.documentationSidebar.category.Configuration": {
-    "message": "配置",
+    "message": "Configuration",
     "description": "The label for category Configuration in sidebar documentationSidebar"
   },
   "sidebar.documentationSidebar.category.Configuration.link.generated-index.description": {
-    "message": "Kotlin 挂起转换编译器插件的配置选项",
+    "message": "Configuration options for the Kotlin Suspend Transform Compiler Plugin",
     "description": "The generated-index page description for category Configuration in sidebar documentationSidebar"
   },
   "sidebar.documentationSidebar.category.Features": {
-    "message": "功能特性",
+    "message": "Features",
     "description": "The label for category Features in sidebar documentationSidebar"
   },
   "sidebar.documentationSidebar.category.Features.link.generated-index.description": {
-    "message": "Kotlin 挂起转换编译器插件的功能特性",
+    "message": "Features of the Kotlin Suspend Transform Compiler Plugin",
     "description": "The generated-index page description for category Features in sidebar documentationSidebar"
   },
   "sidebar.documentationSidebar.category.Possibly Useful": {
-    "message": "猜你喜欢",
+    "message": "Possibly Useful",
     "description": "The label for category Possibly Useful in sidebar documentationSidebar"
   },
   "sidebar.documentationSidebar.category.Possibly Useful.link.generated-index.description": {
-    "message": "关于 Kotlin 挂起转换编译器插件的其他有用信息",
+    "message": "Additional useful information about the Kotlin Suspend Transform Compiler Plugin",
     "description": "The generated-index page description for category Possibly Useful in sidebar documentationSidebar"
   }
 }

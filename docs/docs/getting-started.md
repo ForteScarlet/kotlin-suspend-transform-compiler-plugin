@@ -6,7 +6,7 @@ sidebar_position: 3
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import { Badge } from '@site/src/components/Snippets';
+import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
 This guide will walk you through the basic usage of the Kotlin Suspend Transform Compiler Plugin across different platforms.
 
@@ -125,8 +125,8 @@ JS platform support was added in version 0.6.0! See the development process at [
 
 ## WasmJS Platform
 
-<Badge type="primary">Experimental</Badge>
-<Badge type="secondary">Version 0.6.0</Badge>
+<ExperimentalBadge />
+<VersionBadge version="0.6.0" />
 
 :::warning
 The transformer functions mentioned in the WasmJS example below 

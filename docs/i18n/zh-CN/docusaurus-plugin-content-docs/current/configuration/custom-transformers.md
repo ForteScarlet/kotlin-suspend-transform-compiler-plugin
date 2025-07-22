@@ -3,7 +3,7 @@ id: custom-transformers
 title: 自定义转换器
 ---
 
-import { Badge } from '@site/src/components/Snippets';
+import { VersionBadge } from '@site/src/components/Snippets';
 
 本指南介绍当默认转换器不能满足您的特定需求时，如何创建自定义转换器。
 
@@ -441,7 +441,7 @@ addCopyAnnotationExclude {
 
 ## 其他
 ### MarkName
-<Badge type="secondary">版本 0.13.0</Badge>
+<VersionBadge version="0.13.0" />
 
 有关自定义注解中 `markName` 的配置，
 请参考 [MarkName](../features/mark-name.md#customize)。

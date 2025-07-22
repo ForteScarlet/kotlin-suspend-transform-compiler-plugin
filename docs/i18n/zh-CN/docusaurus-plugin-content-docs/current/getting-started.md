@@ -6,7 +6,7 @@ sidebar_position: 3
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import { Badge } from '@site/src/components/Snippets';
+import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 
 本指南将引导您了解 Kotlin 挂起函数转换编译器插件在不同平台上的基本用法。
 
@@ -125,8 +125,8 @@ JS 平台支持在版本 0.6.0 中添加！查看开发过程请参考 [KT-53993
 
 ## WasmJS 平台
 
-<Badge type="primary">实验性</Badge>
-<Badge type="secondary">版本 0.6.0</Badge>
+<ExperimentalBadge />
+<VersionBadge version="0.6.0" />
 
 ::::warning
 下面 WasmJS 示例中提到的转换器函数
