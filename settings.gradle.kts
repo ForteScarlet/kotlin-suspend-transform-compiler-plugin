@@ -25,6 +25,7 @@ include(":compiler:suspend-transform-plugin")
 include(":compiler:suspend-transform-plugin-cli")
 include(":compiler:suspend-transform-plugin-deprecated-configuration")
 include(":compiler:suspend-transform-plugin-configuration")
+include(":compiler:suspend-transform-plugin-annotation")
 include(":compiler:suspend-transform-plugin-embeddable")
 
 include(":runtime:suspend-transform-annotation")
@@ -35,7 +36,8 @@ include(":plugins:suspend-transform-plugin-gradle")
 // include(":local-helper")
 
 //Samples
-//include(":tests:test-jvm")
-//include(":tests:test-js")
+// include(":tests:test-jvm")
+// include(":tests:test-js")
+// include(":tests:test-runner")
 //include(":tests:test-kmp")
 // include(":tests:test-android")

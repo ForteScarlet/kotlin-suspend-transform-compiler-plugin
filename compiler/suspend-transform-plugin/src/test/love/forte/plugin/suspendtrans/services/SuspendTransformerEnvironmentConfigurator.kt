@@ -2,6 +2,7 @@ package love.forte.plugin.suspendtrans.services
 
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
 import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
@@ -28,12 +29,55 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
-        val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
+        val testConfiguration = SuspendTransformConfiguration(
             transformers = mapOf(
                 TargetPlatform.JS to listOf(jsPromiseTransformer),
-                TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer)
+                TargetPlatform.JVM to listOf(
+                    jvmBlockingTransformer,
+                    jvmAsyncTransformer,
+
+                    //Test for JvmBlockingWithType
+                    // Transformer(
+                    //     markAnnotation = MarkAnnotation(
+                    //         classInfo = ClassInfo(
+                    //             packageName = "love.forte.plugin.suspendtrans.annotation",
+                    //             className = "JvmBlockingWithType"
+                    //         ),
+                    //         defaultSuffix = "Blocking",
+                    //         markNameProperty = MarkNameProperty(
+                    //             propertyName = "markName",
+                    //             annotation = jvmNameAnnotationClassInfo,
+                    //             annotationMarkNamePropertyName = "name"
+                    //         ),
+                    //         hasReturnTypeOverrideGeneric = true
+                    //     ),
+                    //     // jvmResultToBlock
+                    //     transformFunctionInfo = FunctionInfo(
+                    //         packageName = "love.forte.plugin.suspendtrans.runtime",
+                    //         functionName = "jvmResultToBlock",
+                    //     ),
+                    //     transformReturnType = null,
+                    //     transformReturnTypeGeneric = false,
+                    //     originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+                    //     syntheticFunctionIncludeAnnotations = listOf(
+                    //         IncludeAnnotation(
+                    //             classInfo = jvmApi4JAnnotationClassInfo,
+                    //             includeProperty = true
+                    //         )
+                    //     ),
+                    //     copyAnnotationsToSyntheticFunction = true,
+                    //     copyAnnotationExcludes = listOf(
+                    //         jvmSyntheticClassInfo,
+                    //         jvmBlockingMarkAnnotationClassInfo,
+                    //         jvmAsyncMarkAnnotationClassInfo,
+                    //         kotlinOptInClassInfo,
+                    //         jvmNameAnnotationClassInfo,
+                    //     ),
+                    // )
+                )
             )
         )
+
         // register plugin
         SuspendTransformComponentRegistrar.register(this, testConfiguration)
     }
@@ -58,6 +102,16 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                 it
             )
         }
+        // getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmBlockingWithType")?.let {
+        //     configuration.addJvmClasspathRoot(
+        //         it
+        //     )
+        // }
+        // getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmBlockingWithType0")?.let {
+        //     configuration.addJvmClasspathRoot(
+        //         it
+        //     )
+        // }
 
         // register coroutines
         getRuntimeJarFile("kotlinx.coroutines.CoroutineScope")?.let {

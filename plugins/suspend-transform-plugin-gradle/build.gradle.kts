@@ -3,7 +3,6 @@ import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.isMainPublishable
 
@@ -32,6 +31,7 @@ dependencies {
     compileOnly(kotlin("gradle-plugin-api"))
     // compileOnly(project(":compiler:suspend-transform-plugin"))
     api(project(":compiler:suspend-transform-plugin-cli"))
+    api(project(":compiler:suspend-transform-plugin-annotation"))
     api(project(":compiler:suspend-transform-plugin-configuration"))
     api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
 }

@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     api(libs.kotlinx.serialization.core)
-    // api(libs.kotlinx.serialization.protobuf)
+    api(project(":compiler:suspend-transform-plugin-annotation"))
 
     testImplementation(kotlin("test"))
 }
