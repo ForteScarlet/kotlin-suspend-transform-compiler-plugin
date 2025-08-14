@@ -1,0 +1,68 @@
+name: Deploy documentation
+
+on:
+  # If specified, the workflow will be triggered automatically once you push to the `main` branch.
+  # Replace `main` with your branch’s name
+  push:
+    branches:
+      - dev
+    paths:
+      - 'docs/**'
+      - 'docs_zh/**'
+      - 'docs_en/**'
+      - '.github/workflows/doc-publish.yml'
+
+  # Specify to run a workflow manually from the Actions tab on GitHub
+  workflow_dispatch:
+
+# Gives the workflow permissions to clone the repo and create a page deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./docs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './docs/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docusaurus site
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

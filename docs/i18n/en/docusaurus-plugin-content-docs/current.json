@@ -1,0 +1,30 @@
+{
+  "version.label": {
+    "message": "v2.2.0-0.13.1",
+    "description": "The label for version current"
+  },
+  "sidebar.documentationSidebar.category.Configuration": {
+    "message": "Configuration",
+    "description": "The label for category Configuration in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Configuration.link.generated-index.description": {
+    "message": "Configuration options for the Kotlin Suspend Transform Compiler Plugin",
+    "description": "The generated-index page description for category Configuration in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Features": {
+    "message": "Features",
+    "description": "The label for category Features in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Features.link.generated-index.description": {
+    "message": "Features of the Kotlin Suspend Transform Compiler Plugin",
+    "description": "The generated-index page description for category Features in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Possibly Useful": {
+    "message": "Possibly Useful",
+    "description": "The label for category Possibly Useful in sidebar documentationSidebar"
+  },
+  "sidebar.documentationSidebar.category.Possibly Useful.link.generated-index.description": {
+    "message": "Additional useful information about the Kotlin Suspend Transform Compiler Plugin",
+    "description": "The generated-index page description for category Possibly Useful in sidebar documentationSidebar"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Configuration",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Configuration options for the Kotlin Suspend Transform Compiler Plugin"
+  }
+}
