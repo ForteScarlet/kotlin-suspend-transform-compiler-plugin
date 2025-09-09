@@ -14,6 +14,21 @@ function getSiteTagline() {
   }
 }
 
+function getAnnouncementBarContent() {
+    switch(process.env.DOCUSAURUS_CURRENT_LOCALE) {
+        case "zh-CN": return '🚧 抱歉！本文档仍在建设中 - 如果你发现任何问题，请告诉我们！我们很乐意听取你的意见！ 🌟';
+        default: return '🚧 Oops! This doc is still under construction - If you spot any quirks, give us a shout! We\'d love to hear from you! 🌟';
+    }
+}
+
+function getAnnouncementBar() {
+    return {
+        id: 'IN_WIP',
+        content: getAnnouncementBarContent(),
+        isCloseable: true
+    };
+}
+
 const config: Config = {
   title: 'Kotlin Suspend Transform Compiler Plugin',
   tagline: getSiteTagline(), // 'Make suspend less shy',
@@ -88,6 +103,7 @@ const config: Config = {
   ],
 
   themeConfig: {
+      announcementBar: getAnnouncementBar(),
     // Replace with your project's social card
     // image: 'img/docusaurus-social-card.jpg',
     navbar: {
