@@ -3,7 +3,7 @@ kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.7.1"
 google-auto-service = "1.0.1"
 # Remember the `IProject.ktVersion`!
-kotlin = "2.2.20-Beta1"
+kotlin = "2.2.20"
 
 # https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-publish-libraries.html#configure-the-project
 # https://github.com/vanniktech/gradle-maven-publish-plugin
