@@ -348,11 +348,11 @@ class SuspendTransformFirTransformer(
         newFunTarget: FirFunctionTarget,
         transformer: Transformer
     ): FirBlock = buildBlock {
-        this.source = originFunc.body?.source
-
+        this.source = originFunSymbol.bodySource ?: originFunSymbol.source
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
         val lambda = buildAnonymousFunction {
+            this.source = originFunSymbol.bodySource ?: originFunSymbol.source
             this.resolvePhase = FirResolvePhase.BODY_RESOLVE
             // this.resolvePhase = FirResolvePhase.RAW_FIR
             this.isLambda = true
@@ -837,51 +837,50 @@ class SuspendTransformFirTransformer(
         val markAnnotation = syntheticFunData.transformer.markAnnotation
 
         if (func.isOverride && !isOverride) {
-            // func.processOverriddenFunctionsSafe()
-            func.processOverriddenFunctionsSafe(
-                checkContext
-            ) processOverridden@{ overriddenFunction ->
-                if (!isOverride) {
-                    // check parameters and receivers
-                    val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
-                    val originReceiverTypeRef = func.resolvedReceiverTypeRef
+            with(checkContext) {
+                func.processOverriddenFunctionsSafe processOverridden@{ overriddenFunction ->
+                    if (!isOverride) {
+                        // check parameters and receivers
+                        val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
+                        val originReceiverTypeRef = func.resolvedReceiverTypeRef
 
-                    // origin receiver should be the same as symbol receiver
-                    if (originReceiverTypeRef != resolvedReceiverTypeRef) {
-                        return@processOverridden
-                    }
-
-                    // all value parameters should be a subtype of symbol's value parameters
-                    val symbolParameterSymbols = overriddenFunction.valueParameterSymbols
-                    val originParameterSymbols = func.valueParameterSymbols
-
-                    if (symbolParameterSymbols.size != originParameterSymbols.size) {
-                        return@processOverridden
-                    }
-
-                    for ((index, symbolParameter) in symbolParameterSymbols.withIndex()) {
-                        val originParameter = originParameterSymbols[index]
-                        if (
-                            originParameter.resolvedReturnType != symbolParameter.resolvedReturnType
-                        ) {
+                        // origin receiver should be the same as symbol receiver
+                        if (originReceiverTypeRef != resolvedReceiverTypeRef) {
                             return@processOverridden
                         }
-                    }
 
-                    val overriddenAnnotation = firAnnotation(
-                        overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
-                    ) ?: return@processOverridden
+                        // all value parameters should be a subtype of symbol's value parameters
+                        val symbolParameterSymbols = overriddenFunction.valueParameterSymbols
+                        val originParameterSymbols = func.valueParameterSymbols
 
-                    val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
-                        markAnnotation, overriddenFunction.name.asString()
-                    )
+                        if (symbolParameterSymbols.size != originParameterSymbols.size) {
+                            return@processOverridden
+                        }
 
-                    // Same functionName, same asProperty, the generated synthetic function will be same too.
-                    if (
-                        overriddenAnnoData.functionName == annoData.functionName
-                        && overriddenAnnoData.asProperty == annoData.asProperty
-                    ) {
-                        isOverride = true
+                        for ((index, symbolParameter) in symbolParameterSymbols.withIndex()) {
+                            val originParameter = originParameterSymbols[index]
+                            if (
+                                originParameter.resolvedReturnType != symbolParameter.resolvedReturnType
+                            ) {
+                                return@processOverridden
+                            }
+                        }
+
+                        val overriddenAnnotation = firAnnotation(
+                            overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
+                        ) ?: return@processOverridden
+
+                        val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
+                            markAnnotation, overriddenFunction.name.asString()
+                        )
+
+                        // Same functionName, same asProperty, the generated synthetic function will be same too.
+                        if (
+                            overriddenAnnoData.functionName == annoData.functionName
+                            && overriddenAnnoData.asProperty == annoData.asProperty
+                        ) {
+                            isOverride = true
+                        }
                     }
                 }
             }
