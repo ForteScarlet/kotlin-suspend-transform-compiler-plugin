@@ -56,8 +56,7 @@ kotlin {
         )
         freeCompilerArgs.addAll(
             "-Xjvm-default=all",
-//            "-opt-in=kotlin.RequiresOptIn",
-//            "-opt-in=org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
+            "-Xcontext-parameters"
         )
     }
 }

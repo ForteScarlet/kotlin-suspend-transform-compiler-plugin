@@ -165,7 +165,7 @@ class SuspendTransformFirTransformer(
     }
 
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>?, Nothing?> =
-        session.firCachesFactory.createCache { cacheKey, c ->
+        session.firCachesFactory.createCache { cacheKey, _ ->
             val (symbol, scope) = cacheKey
             initScopeSymbol()
             val transformerFunctionMap = initTransformerFunctionSymbolMap(symbol, scope)
@@ -212,7 +212,7 @@ class SuspendTransformFirTransformer(
     ): List<FirValueParameter> {
         return map { vp ->
             buildValueParameterCopy(vp) {
-                symbol = FirValueParameterSymbol(vp.symbol.name)
+                symbol = FirValueParameterSymbol()
                 containingDeclarationSymbol = newContainingDeclarationSymbol
 
                 val copiedConeType = vp.returnTypeRef.coneTypeOrNull
@@ -348,11 +348,11 @@ class SuspendTransformFirTransformer(
         newFunTarget: FirFunctionTarget,
         transformer: Transformer
     ): FirBlock = buildBlock {
-        this.source = originFunc.body?.source
-
+        this.source = originFunSymbol.bodySource ?: originFunSymbol.source
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
         val lambda = buildAnonymousFunction {
+            this.source = originFunSymbol.bodySource ?: originFunSymbol.source
             this.resolvePhase = FirResolvePhase.BODY_RESOLVE
             // this.resolvePhase = FirResolvePhase.RAW_FIR
             this.isLambda = true
@@ -701,7 +701,7 @@ class SuspendTransformFirTransformer(
             val (functionAnnotations, propertyAnnotations, includeToOriginal) =
                 copyAnnotations(original, funData)
 
-            val pSymbol = FirPropertySymbol(callableId)
+            val pSymbol = FirRegularPropertySymbol(callableId)
 
 //                val pKey = SuspendTransformPluginKey(
 //                    data = SuspendTransformUserDataFir(
@@ -754,7 +754,6 @@ class SuspendTransformFirTransformer(
                 )
 
                 isVar = false
-                isLocal = false
                 // Copy return type
                 returnTypeRef = resolvedReturnType
                 deprecationsProvider = UnresolvedDeprecationProvider //original.deprecationsProvider
@@ -837,51 +836,50 @@ class SuspendTransformFirTransformer(
         val markAnnotation = syntheticFunData.transformer.markAnnotation
 
         if (func.isOverride && !isOverride) {
-            // func.processOverriddenFunctionsSafe()
-            func.processOverriddenFunctionsSafe(
-                checkContext
-            ) processOverridden@{ overriddenFunction ->
-                if (!isOverride) {
-                    // check parameters and receivers
-                    val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
-                    val originReceiverTypeRef = func.resolvedReceiverTypeRef
+            with(checkContext) {
+                func.processOverriddenFunctionsSafe processOverridden@{ overriddenFunction ->
+                    if (!isOverride) {
+                        // check parameters and receivers
+                        val resolvedReceiverTypeRef = overriddenFunction.resolvedReceiverTypeRef
+                        val originReceiverTypeRef = func.resolvedReceiverTypeRef
 
-                    // origin receiver should be the same as symbol receiver
-                    if (originReceiverTypeRef != resolvedReceiverTypeRef) {
-                        return@processOverridden
-                    }
-
-                    // all value parameters should be a subtype of symbol's value parameters
-                    val symbolParameterSymbols = overriddenFunction.valueParameterSymbols
-                    val originParameterSymbols = func.valueParameterSymbols
-
-                    if (symbolParameterSymbols.size != originParameterSymbols.size) {
-                        return@processOverridden
-                    }
-
-                    for ((index, symbolParameter) in symbolParameterSymbols.withIndex()) {
-                        val originParameter = originParameterSymbols[index]
-                        if (
-                            originParameter.resolvedReturnType != symbolParameter.resolvedReturnType
-                        ) {
+                        // origin receiver should be the same as symbol receiver
+                        if (originReceiverTypeRef != resolvedReceiverTypeRef) {
                             return@processOverridden
                         }
-                    }
 
-                    val overriddenAnnotation = firAnnotation(
-                        overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
-                    ) ?: return@processOverridden
+                        // all value parameters should be a subtype of symbol's value parameters
+                        val symbolParameterSymbols = overriddenFunction.valueParameterSymbols
+                        val originParameterSymbols = func.valueParameterSymbols
 
-                    val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
-                        markAnnotation, overriddenFunction.name.asString()
-                    )
+                        if (symbolParameterSymbols.size != originParameterSymbols.size) {
+                            return@processOverridden
+                        }
 
-                    // Same functionName, same asProperty, the generated synthetic function will be same too.
-                    if (
-                        overriddenAnnoData.functionName == annoData.functionName
-                        && overriddenAnnoData.asProperty == annoData.asProperty
-                    ) {
-                        isOverride = true
+                        for ((index, symbolParameter) in symbolParameterSymbols.withIndex()) {
+                            val originParameter = originParameterSymbols[index]
+                            if (
+                                originParameter.resolvedReturnType != symbolParameter.resolvedReturnType
+                            ) {
+                                return@processOverridden
+                            }
+                        }
+
+                        val overriddenAnnotation = firAnnotation(
+                            overriddenFunction, markAnnotation, overriddenFunction.getContainingClassSymbol()
+                        ) ?: return@processOverridden
+
+                        val overriddenAnnoData = overriddenAnnotation.toTransformAnnotationData(
+                            markAnnotation, overriddenFunction.name.asString()
+                        )
+
+                        // Same functionName, same asProperty, the generated synthetic function will be same too.
+                        if (
+                            overriddenAnnoData.functionName == annoData.functionName
+                            && overriddenAnnoData.asProperty == annoData.asProperty
+                        ) {
+                            isOverride = true
+                        }
                     }
                 }
             }
@@ -1220,7 +1218,7 @@ class SuspendTransformFirTransformer(
                     // it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
                 }
                 .filter { !it.isFinal }
-                .filter { it.callableId.callableName == functionName }
+                .filter { it.callableId?.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
                     thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
@@ -1349,16 +1347,20 @@ class SuspendTransformFirTransformer(
                             }
 
                             is ConeCapturedType -> {
-//                                val lowerType = projection.lowerType?.let { lowerType ->
-//                                    findCopied(lowerType)
-//                                }?.toConeType()
+                                val constructorLowerType = projection.constructor.lowerType?.copyWithTypeParameters(parameters)
 
-                                val lowerType = projection.lowerType?.copyWithTypeParameters(parameters)
-
-                                if (lowerType == null) {
-                                    projection.copy(lowerType = lowerType)
-                                } else {
+                                if (constructorLowerType == null) {
                                     null
+                                } else {
+                                    projection.copy(
+                                        constructor = ConeCapturedTypeConstructor(
+                                            projection = projection.constructor.projection,
+                                            lowerType = constructorLowerType,
+                                            captureStatus = projection.constructor.captureStatus,
+                                            supertypes = projection.constructor.supertypes,
+                                            typeParameterMarker = projection.constructor.typeParameterMarker,
+                                        )
+                                    )
                                 }
                             }
 

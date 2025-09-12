@@ -53,6 +53,20 @@ From my memory and guess, Kotlin versions have a higher probability of incompati
 and a smaller probability of incompatibility when patch is added (e.g. `1.9.21` -> `1.9.22`).
 :::
 
+### Version Follow-up
+
+We typically actively follow updates for regular Kotlin release versions (such as `2.1.0`, `2.2.20`, etc.).
+For non-regular versions (such as `2.1.0-RC1`, `2.2.20-Beta2`, etc.), we **do not guarantee** that we will update for
+every version.
+
+However, if:
+
+- You need a specific version that is incompatible with previous versions and we haven't updated for it
+- We haven't noticed/updated after a regular release update
+
+Feel free to let us know
+through [issues](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues)!
+
 ## Gradle Setup
 
 <Tabs>

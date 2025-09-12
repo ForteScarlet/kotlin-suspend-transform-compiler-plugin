@@ -3,7 +3,6 @@ import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.isMainPublishable
 
@@ -12,11 +11,9 @@ plugins {
     kotlin("jvm")
     id("suspend-transform.dokka-module")
     id("com.github.gmazzo.buildconfig")
-//    `java-gradle-plugin`
-    signing
-    `maven-publish`
+    id("suspend-transform.maven-publish")
     id("com.gradle.plugin-publish")
-//    id("suspend-transform.jvm-maven-publish")
+    signing
 }
 
 //setup(IProject)
