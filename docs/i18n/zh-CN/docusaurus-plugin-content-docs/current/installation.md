@@ -53,6 +53,19 @@ import versionInfo from '@site/src/version.json';
 而当补丁版本号增加时（例如 `1.9.21` -> `1.9.22`），不兼容的概率较小。
 :::
 
+### 版本跟进
+
+通常我们会主动跟进正常的 Kotlin release 版本的更新（例如 `2.1.0`, `2.2.20` 等）。
+而对于一些非常规的版本（例如 `2.1.0-RC1`, `2.2.20-Beta2` 等），我们**不保证**每个版本都会跟随着更新。
+
+不过如果：
+
+- 你需要某个版本、这个版本与之前的版本不兼容且我们没有更新
+- 某个正常的 release 更新后我们一直没发现/没更新
+
+欢迎随时通过 [issues](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues)
+让我们知道～
+
 
 ## Gradle 设置
 
