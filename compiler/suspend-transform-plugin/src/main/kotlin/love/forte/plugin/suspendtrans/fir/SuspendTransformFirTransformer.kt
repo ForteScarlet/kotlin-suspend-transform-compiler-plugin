@@ -165,7 +165,7 @@ class SuspendTransformFirTransformer(
     }
 
     private val cache: FirCache<FirCacheKey, Map<Name, Map<FirNamedFunctionSymbol, SyntheticFunData>>?, Nothing?> =
-        session.firCachesFactory.createCache { cacheKey, c ->
+        session.firCachesFactory.createCache { cacheKey, _ ->
             val (symbol, scope) = cacheKey
             initScopeSymbol()
             val transformerFunctionMap = initTransformerFunctionSymbolMap(symbol, scope)
@@ -212,7 +212,7 @@ class SuspendTransformFirTransformer(
     ): List<FirValueParameter> {
         return map { vp ->
             buildValueParameterCopy(vp) {
-                symbol = FirValueParameterSymbol(vp.symbol.name)
+                symbol = FirValueParameterSymbol()
                 containingDeclarationSymbol = newContainingDeclarationSymbol
 
                 val copiedConeType = vp.returnTypeRef.coneTypeOrNull
@@ -701,7 +701,7 @@ class SuspendTransformFirTransformer(
             val (functionAnnotations, propertyAnnotations, includeToOriginal) =
                 copyAnnotations(original, funData)
 
-            val pSymbol = FirPropertySymbol(callableId)
+            val pSymbol = FirRegularPropertySymbol(callableId)
 
 //                val pKey = SuspendTransformPluginKey(
 //                    data = SuspendTransformUserDataFir(
@@ -754,7 +754,6 @@ class SuspendTransformFirTransformer(
                 )
 
                 isVar = false
-                isLocal = false
                 // Copy return type
                 returnTypeRef = resolvedReturnType
                 deprecationsProvider = UnresolvedDeprecationProvider //original.deprecationsProvider
@@ -1219,7 +1218,7 @@ class SuspendTransformFirTransformer(
                     // it.declarationSymbols.filterIsInstance<FirPropertySymbol>()
                 }
                 .filter { !it.isFinal }
-                .filter { it.callableId.callableName == functionName }
+                .filter { it.callableId?.callableName == functionName }
                 // overridable receiver parameter.
                 .filter {
                     thisReceiverTypeRef sameAs it.resolvedReceiverTypeRef
@@ -1348,16 +1347,20 @@ class SuspendTransformFirTransformer(
                             }
 
                             is ConeCapturedType -> {
-//                                val lowerType = projection.lowerType?.let { lowerType ->
-//                                    findCopied(lowerType)
-//                                }?.toConeType()
+                                val constructorLowerType = projection.constructor.lowerType?.copyWithTypeParameters(parameters)
 
-                                val lowerType = projection.lowerType?.copyWithTypeParameters(parameters)
-
-                                if (lowerType == null) {
-                                    projection.copy(lowerType = lowerType)
-                                } else {
+                                if (constructorLowerType == null) {
                                     null
+                                } else {
+                                    projection.copy(
+                                        constructor = ConeCapturedTypeConstructor(
+                                            projection = projection.constructor.projection,
+                                            lowerType = constructorLowerType,
+                                            captureStatus = projection.constructor.captureStatus,
+                                            supertypes = projection.constructor.supertypes,
+                                            typeParameterMarker = projection.constructor.typeParameterMarker,
+                                        )
+                                    )
                                 }
                             }
 
