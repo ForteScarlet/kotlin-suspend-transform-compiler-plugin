@@ -99,8 +99,8 @@ const config: Config = {
                         },
                     }
                 },
-                googleTagManager: {
-                    containerId: 'G-BQ000Q8R34',
+                gtag: {
+                    trackingID: 'G-BQ000Q8R34',
                 },
                 theme: {
                     customCss: './src/css/custom.css',
