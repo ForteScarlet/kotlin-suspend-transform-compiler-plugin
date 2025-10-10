@@ -403,7 +403,7 @@ private fun generateTransformBodyForFunction(
         val suspendLambda = context.createSuspendLambdaWithCoroutineScope(
             parent = originFunction.parent,
             // suspend () -> ?
-            lambdaType = context.symbols.suspendFunctionN(0).typeWith(originFunction.returnType),
+            lambdaType = context.irBuiltIns.suspendFunctionN(0).typeWith(originFunction.returnType),
             originFunction = originFunction
         ).also { +it }
 
@@ -459,7 +459,7 @@ private fun generateTransformBodyForFunctionLambda(
                 function = function
             )
 
-            val lambdaType = context.symbols.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
+            val lambdaType = context.irBuiltIns.suspendFunctionN(0).typeWith(suspendLambdaFunc.returnType)
 
             IrFunctionExpressionImpl(
                 UNDEFINED_OFFSET,
