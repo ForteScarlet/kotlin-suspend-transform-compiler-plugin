@@ -24,9 +24,21 @@ function getDayOfYear(date?: Date): number {
     return dayjs(date).dayOfYear();
 }
 
+const theDarkIsNotSatisfactory = ['gradientDark0', 'gradientDark1', 'gradientDark7', 'gradientDark6', 'gradientDark5', 'gradientDark4', 'gradientDark2'];
+
+function isNotSatisfactoryDark(name: string) {
+    for (let d of theDarkIsNotSatisfactory) {
+        if (d === name) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Select gradient class based on theme and day of year
 function selectGradientClass(isDarkTheme: boolean): string {
-    const dayOfYear = getDayOfYear(); // Uses current date by default
+    const currentDate = new Date();
+    const dayOfYear = getDayOfYear(currentDate); // Uses current date by default
 
     if (isDarkTheme) {
         const index = dayOfYear % DARK_GRADIENTS_COUNT;
@@ -37,6 +49,7 @@ function selectGradientClass(isDarkTheme: boolean): string {
     }
 }
 
+
 function HomepageHeader() {
     const {siteConfig} = useDocusaurusContext();
     const {colorMode} = useColorMode();
@@ -46,13 +59,15 @@ function HomepageHeader() {
     const gradientClass = selectGradientClass(isDarkTheme);
     const selectedGradientClass = styles[gradientClass];
 
+    const headerTextClass = isNotSatisfactoryDark(gradientClass) ? 'header_hero_text' : null;
+
     return (
         <header className={clsx('hero hero--primary', styles.heroBanner, selectedGradientClass)}>
             <div className="container">
-                <Heading as="h1" className="hero__title">
+                <Heading as="h1" className={clsx('hero__title', headerTextClass)}>
                     {siteConfig.title}
                 </Heading>
-                <p className="hero__subtitle">{siteConfig.tagline}</p>
+                <p className={clsx('hero__subtitle', headerTextClass)}>{siteConfig.tagline}</p>
                 <div className={styles.buttons}>
                     <Link
                         className="button button--secondary button--lg"
