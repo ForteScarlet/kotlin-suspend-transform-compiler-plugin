@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="copyright-scope" pattern="file[*.*Main]:*.kt||file[*.*Main]:*.java||file[*.main]:*.kt||file[*.main]:*.java||file[*.main]:*.kts||file:*.gradle.kts" />
+</component>
