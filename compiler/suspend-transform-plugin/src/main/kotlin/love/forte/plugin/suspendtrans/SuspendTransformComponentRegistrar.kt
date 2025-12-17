@@ -22,6 +22,7 @@
 
 package love.forte.plugin.suspendtrans
 
+import BuildConfig
 import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fir.SuspendTransformFirExtensionRegistrar
@@ -36,6 +37,8 @@ import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 
 @OptIn(ExperimentalCompilerApi::class)
 class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
+
+    override val pluginId: String = BuildConfig.KOTLIN_PLUGIN_ID
 
     //internal var defaultConfiguration: SuspendTransformConfiguration? = null
 

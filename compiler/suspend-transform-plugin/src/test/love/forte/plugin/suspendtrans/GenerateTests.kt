@@ -1,6 +1,6 @@
 package love.forte.plugin.suspendtrans
 import love.forte.plugin.suspendtrans.runners.AbstractCodeGenTestRunner
-import org.jetbrains.kotlin.generators.generateTestGroupSuiteWithJUnit5
+import org.jetbrains.kotlin.generators.dsl.junit5.generateTestGroupSuiteWithJUnit5
 
 private const val PROJECT_ROOT = "compiler/suspend-transform-plugin"
 
