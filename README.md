@@ -8,6 +8,15 @@
 
 **English** | [简体中文](README_CN.md)
 
+## Documentation
+
+This is the [documentation](https://kstcp.forte.love/).
+
+> [!note]
+> If you notice any issues or omissions in the documentation,
+> feel free to [provide feedback](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues) anytime!
+
+
 ## What's this
 
 This is a Kotlin compiler plugin for generating platform-compatible functions for suspend functions.
@@ -179,14 +188,6 @@ class Foo {
     fun waitAndGetAsync(): Promise<String> = runInAsync { waitAndGet() } // 'runInAsync' from the runtime provided by the plugin
 }
 ```
-
-## Documentation
-
-This is the [documentation](https://kstcp.forte.love/).
-
-> [!note]
-> If you notice any issues or omissions in the documentation,
-> feel free to [provide feedback](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues) anytime!
 
 ## Use Cases
 
