@@ -21,6 +21,9 @@
  */
 
 import IProject.IS_SNAPSHOT
+import IProject.developers
+import IProject.licenses
+import IProject.scm
 import love.forte.gradle.common.core.project.ProjectDetail
 import org.gradle.api.Project
 
@@ -32,7 +35,7 @@ object IProject : ProjectDetail() {
     const val HOMEPAGE = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
 
     // Remember the libs.versions.toml!
-    val ktVersion = "2.3.0"
+    val ktVersion = "2.3.10"
     val pluginVersion = "0.13.2"
 
     override val version: String = "$ktVersion-$pluginVersion"
@@ -43,10 +46,10 @@ object IProject : ProjectDetail() {
 
     override val developers: List<Developer> = developers {
         developer {
-            id = "forte"
-            name = "ForteScarlet"
-            email = "ForteScarlet@163.com"
-            url = "https://github.com/ForteScarlet"
+            this.id = "forte"
+            this.name = "ForteScarlet"
+            this.email = "ForteScarlet@163.com"
+            this.url = "https://github.com/ForteScarlet"
         }
     }
     override val group: String get() = GROUP

@@ -8,6 +8,13 @@
 
 **English** | [简体中文](README_CN.md)
 
+## 文档
+
+请参见 [文档](https://kstcp.forte.love/)。
+
+> [!note]
+> 如果文档有任何问题或遗漏，欢迎随时[反馈](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues)！
+
 ## 这是什么？
 
 这是一个用于为挂起函数生成平台兼容函数的 Kotlin 编译器插件。
@@ -180,18 +187,9 @@ class Foo {
 }
 ```
 
-## 使用方式
-
-请参见 [文档](https://kstcp.forte.love/)。
-
-> [!note]
-> 如果文档有任何问题或遗漏，欢迎随时[反馈](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues)！
-
-
 ## 应用案例
 
 - [Simple Robot Frameworks](https://github.com/simple-robot/simpler-robot) (完全自定义实现)
-
 
 ## 许可证
 

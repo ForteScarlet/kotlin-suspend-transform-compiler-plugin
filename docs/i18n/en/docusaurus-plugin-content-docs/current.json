@@ -1,8 +1,4 @@
 {
-  "version.label": {
-    "message": "v2.2.0-0.13.1",
-    "description": "The label for version current"
-  },
   "sidebar.documentationSidebar.category.Configuration": {
     "message": "Configuration",
     "description": "The label for category Configuration in sidebar documentationSidebar"
