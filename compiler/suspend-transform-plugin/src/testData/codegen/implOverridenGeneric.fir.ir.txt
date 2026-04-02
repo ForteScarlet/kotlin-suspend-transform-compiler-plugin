@@ -1,0 +1,651 @@
+FILE fqName:<root> fileName:/Main.kt
+  CLASS CLASS name:FooInterface1Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface1<T of <root>.FooInterface1Impl>]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Bar] reified:false
+    CONSTRUCTOR visibility:public returnType:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl> [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooInterface1Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface1<T of <root>.FooInterface1Impl>]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.FooInterface1
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.FooInterface1
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.FooInterface1
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface1Impl.data2Blocking
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface1Impl.data2Blocking): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface1Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface1Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface1Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl.data2Blocking'
+                    CALL 'public open fun data2 <A> (value: A of <root>.FooInterface1Impl.data2): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl' type=T of <root>.FooInterface1Impl origin=null
+                      TYPE_ARG A: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface1Impl<T of <root>.FooInterface1Impl> declared in <root>.FooInterface1Impl.data2Blocking' type=<root>.FooInterface1Impl<T of <root>.FooInterface1Impl> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: A of <root>.FooInterface1Impl.data2Blocking declared in <root>.FooInterface1Impl.data2Blocking' type=A of <root>.FooInterface1Impl.data2Blocking origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface1Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface1Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface1Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl.data3Blocking'
+                    CALL 'public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl' type=T of <root>.FooInterface1Impl origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface1Impl<T of <root>.FooInterface1Impl> declared in <root>.FooInterface1Impl.data3Blocking' type=<root>.FooInterface1Impl<T of <root>.FooInterface1Impl> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface1Impl.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface1Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface1Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface1Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl.dataBlocking'
+                    CALL 'public open fun data (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl' type=T of <root>.FooInterface1Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface1Impl<T of <root>.FooInterface1Impl> declared in <root>.FooInterface1Impl.dataBlocking' type=<root>.FooInterface1Impl<T of <root>.FooInterface1Impl> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data (): T of <root>.FooInterface1 declared in <root>.FooInterface1
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data (): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data2 visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl [suspend]
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface1Impl.data2
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data2 <A> (value: A of <root>.FooInterface1.data2): T of <root>.FooInterface1 declared in <root>.FooInterface1
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2 <A> (value: A of <root>.FooInterface1Impl.data2): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data3 visibility:public modality:OPEN returnType:T of <root>.FooInterface1Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1Impl<T of <root>.FooInterface1Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface1 declared in <root>.FooInterface1
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface1Impl declared in <root>.FooInterface1Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+  CLASS CLASS name:FooInterface2Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface2<T of <root>.FooInterface2Impl>]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    CONSTRUCTOR visibility:public returnType:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl> [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooInterface2Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface2<T of <root>.FooInterface2Impl>]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.FooInterface2
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.FooInterface2
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.FooInterface2
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface2Impl
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking (value: T of <root>.FooInterface2Impl): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface2Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface2Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface2Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl.data2Blocking'
+                    CALL 'public open fun data2 (value: T of <root>.FooInterface2Impl): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl' type=T of <root>.FooInterface2Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface2Impl<T of <root>.FooInterface2Impl> declared in <root>.FooInterface2Impl.data2Blocking' type=<root>.FooInterface2Impl<T of <root>.FooInterface2Impl> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl.data2Blocking' type=T of <root>.FooInterface2Impl origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface2Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface2Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface2Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl.data3Blocking'
+                    CALL 'public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl' type=T of <root>.FooInterface2Impl origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface2Impl<T of <root>.FooInterface2Impl> declared in <root>.FooInterface2Impl.data3Blocking' type=<root>.FooInterface2Impl<T of <root>.FooInterface2Impl> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface2Impl.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface2Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface2Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface2Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl.dataBlocking'
+                    CALL 'public open fun data (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl' type=T of <root>.FooInterface2Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface2Impl<T of <root>.FooInterface2Impl> declared in <root>.FooInterface2Impl.dataBlocking' type=<root>.FooInterface2Impl<T of <root>.FooInterface2Impl> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data (): T of <root>.FooInterface2 declared in <root>.FooInterface2
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data (): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data2 visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface2Impl
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data2 (value: T of <root>.FooInterface2): T of <root>.FooInterface2 declared in <root>.FooInterface2
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2 (value: T of <root>.FooInterface2Impl): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data3 visibility:public modality:OPEN returnType:T of <root>.FooInterface2Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2Impl<T of <root>.FooInterface2Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface2 declared in <root>.FooInterface2
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface2Impl declared in <root>.FooInterface2Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+  CLASS CLASS name:FooInterface3Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface3<T of <root>.FooInterface3Impl>]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Bar] reified:false
+    CONSTRUCTOR visibility:public returnType:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl> [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooInterface3Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface3<T of <root>.FooInterface3Impl>]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.FooInterface3
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.FooInterface3
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.FooInterface3
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface3Impl.data2Blocking
+      annotations:
+        Api4J
+      overridden:
+        public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2Blocking): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3Impl.data2Blocking): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl.data2Blocking'
+                    CALL 'public open fun data2 <A> (value: A of <root>.FooInterface3Impl.data2): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl' type=T of <root>.FooInterface3Impl origin=null
+                      TYPE_ARG A: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface3Impl<T of <root>.FooInterface3Impl> declared in <root>.FooInterface3Impl.data2Blocking' type=<root>.FooInterface3Impl<T of <root>.FooInterface3Impl> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: A of <root>.FooInterface3Impl.data2Blocking declared in <root>.FooInterface3Impl.data2Blocking' type=A of <root>.FooInterface3Impl.data2Blocking origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      overridden:
+        public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl.data3Blocking'
+                    CALL 'public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl' type=T of <root>.FooInterface3Impl origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface3Impl<T of <root>.FooInterface3Impl> declared in <root>.FooInterface3Impl.data3Blocking' type=<root>.FooInterface3Impl<T of <root>.FooInterface3Impl> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface3Impl.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      annotations:
+        Api4J
+      overridden:
+        public open fun dataBlocking (): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl.dataBlocking'
+                    CALL 'public open fun data (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl' type=T of <root>.FooInterface3Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface3Impl<T of <root>.FooInterface3Impl> declared in <root>.FooInterface3Impl.dataBlocking' type=<root>.FooInterface3Impl<T of <root>.FooInterface3Impl> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data (): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data (): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data2 visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl [suspend]
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface3Impl.data2
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data2 <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2 <A> (value: A of <root>.FooInterface3Impl.data2): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data3 visibility:public modality:OPEN returnType:T of <root>.FooInterface3Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3Impl<T of <root>.FooInterface3Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface3 declared in <root>.FooInterface3
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface3Impl declared in <root>.FooInterface3Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+  CLASS CLASS name:FooInterface4Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface4<T of <root>.FooInterface4Impl>]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    CONSTRUCTOR visibility:public returnType:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl> [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooInterface4Impl modality:FINAL visibility:public superTypes:[<root>.FooInterface4<T of <root>.FooInterface4Impl>]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.FooInterface4
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.FooInterface4
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.FooInterface4
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface4Impl
+      annotations:
+        Api4J
+      overridden:
+        public open fun data2Blocking (value: T of <root>.FooInterface4): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking (value: T of <root>.FooInterface4Impl): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl.data2Blocking'
+                    CALL 'public open fun data2 (value: T of <root>.FooInterface4Impl): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl' type=T of <root>.FooInterface4Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface4Impl<T of <root>.FooInterface4Impl> declared in <root>.FooInterface4Impl.data2Blocking' type=<root>.FooInterface4Impl<T of <root>.FooInterface4Impl> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl.data2Blocking' type=T of <root>.FooInterface4Impl origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      overridden:
+        public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl.data3Blocking'
+                    CALL 'public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl' type=T of <root>.FooInterface4Impl origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface4Impl<T of <root>.FooInterface4Impl> declared in <root>.FooInterface4Impl.data3Blocking' type=<root>.FooInterface4Impl<T of <root>.FooInterface4Impl> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface4Impl.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      annotations:
+        Api4J
+      overridden:
+        public open fun dataBlocking (): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4Impl origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4Impl> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4Impl [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl.dataBlocking'
+                    CALL 'public open fun data (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl' type=T of <root>.FooInterface4Impl origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface4Impl<T of <root>.FooInterface4Impl> declared in <root>.FooInterface4Impl.dataBlocking' type=<root>.FooInterface4Impl<T of <root>.FooInterface4Impl> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data (): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data (): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data2 visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface4Impl
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data2 (value: T of <root>.FooInterface4): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2 (value: T of <root>.FooInterface4Impl): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+    FUN name:data3 visibility:public modality:OPEN returnType:T of <root>.FooInterface4Impl [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4Impl<T of <root>.FooInterface4Impl>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      overridden:
+        public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface4 declared in <root>.FooInterface4
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3 (<this>: kotlin.Int): T of <root>.FooInterface4Impl declared in <root>.FooInterface4Impl'
+          CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
+  CLASS INTERFACE name:Bar modality:ABSTRACT visibility:public superTypes:[<root>.Foo]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Bar
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.Foo
+  CLASS INTERFACE name:Foo modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+  CLASS INTERFACE name:FooInterface1 modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface1<T of <root>.FooInterface1>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN name:data visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface1 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1<T of <root>.FooInterface1>
+    FUN name:data2 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface1 [suspend]
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1<T of <root>.FooInterface1>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface1.data2
+    FUN name:data3 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface1 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface1<T of <root>.FooInterface1>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+  CLASS INTERFACE name:FooInterface2 modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface2<T of <root>.FooInterface2>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN name:data visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface2 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2<T of <root>.FooInterface2>
+    FUN name:data2 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface2 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2<T of <root>.FooInterface2>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface2
+    FUN name:data3 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface2 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface2<T of <root>.FooInterface2>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+  CLASS INTERFACE name:FooInterface3 modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface3<T of <root>.FooInterface3>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface3.data2Blocking
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking <A> (value: A of <root>.FooInterface3.data2Blocking): T of <root>.FooInterface3 declared in <root>.FooInterface3'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3 declared in <root>.FooInterface3.data2Blocking'
+                    CALL 'public abstract fun data2 <A> (value: A of <root>.FooInterface3.data2): T of <root>.FooInterface3 declared in <root>.FooInterface3' type=T of <root>.FooInterface3 origin=null
+                      TYPE_ARG A: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface3<T of <root>.FooInterface3> declared in <root>.FooInterface3.data2Blocking' type=<root>.FooInterface3<T of <root>.FooInterface3> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: A of <root>.FooInterface3.data2Blocking declared in <root>.FooInterface3.data2Blocking' type=A of <root>.FooInterface3.data2Blocking origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface3 declared in <root>.FooInterface3'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3 declared in <root>.FooInterface3.data3Blocking'
+                    CALL 'public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface3 declared in <root>.FooInterface3' type=T of <root>.FooInterface3 origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface3<T of <root>.FooInterface3> declared in <root>.FooInterface3.data3Blocking' type=<root>.FooInterface3<T of <root>.FooInterface3> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface3.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface3
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface3 declared in <root>.FooInterface3'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface3 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface3> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface3 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface3 declared in <root>.FooInterface3.dataBlocking'
+                    CALL 'public abstract fun data (): T of <root>.FooInterface3 declared in <root>.FooInterface3' type=T of <root>.FooInterface3 origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface3<T of <root>.FooInterface3> declared in <root>.FooInterface3.dataBlocking' type=<root>.FooInterface3<T of <root>.FooInterface3> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface3 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+    FUN name:data2 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface3 [suspend]
+      TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:A of <root>.FooInterface3.data2
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+    FUN name:data3 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface3 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface3<T of <root>.FooInterface3>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+  CLASS INTERFACE name:FooInterface4 modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooInterface4<T of <root>.FooInterface4>
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo] reified:false
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data2Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface4
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data2Blocking (value: T of <root>.FooInterface4): T of <root>.FooInterface4 declared in <root>.FooInterface4'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4 declared in <root>.FooInterface4.data2Blocking'
+                    CALL 'public abstract fun data2 (value: T of <root>.FooInterface4): T of <root>.FooInterface4 declared in <root>.FooInterface4' type=T of <root>.FooInterface4 origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface4<T of <root>.FooInterface4> declared in <root>.FooInterface4.data2Blocking' type=<root>.FooInterface4<T of <root>.FooInterface4> origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.FooInterface4 declared in <root>.FooInterface4.data2Blocking' type=T of <root>.FooInterface4 origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:data3Blocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun data3Blocking (<this>: kotlin.Int): T of <root>.FooInterface4 declared in <root>.FooInterface4'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4 declared in <root>.FooInterface4.data3Blocking'
+                    CALL 'public abstract fun data3 (<this>: kotlin.Int): T of <root>.FooInterface4 declared in <root>.FooInterface4' type=T of <root>.FooInterface4 origin=null
+                      ARG <this>(index:0): GET_VAR '<this>(index:0): <root>.FooInterface4<T of <root>.FooInterface4> declared in <root>.FooInterface4.data3Blocking' type=<root>.FooInterface4<T of <root>.FooInterface4> origin=IMPLICIT_ARGUMENT
+                      ARG <this>(index:1): GET_VAR '<this>(index:1): kotlin.Int declared in <root>.FooInterface4.data3Blocking' type=kotlin.Int origin=IMPLICIT_ARGUMENT
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:dataBlocking visibility:public modality:OPEN returnType:T of <root>.FooInterface4
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public open fun dataBlocking (): T of <root>.FooInterface4 declared in <root>.FooInterface4'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.FooInterface4 origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.FooInterface4> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.FooInterface4 [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.FooInterface4 declared in <root>.FooInterface4.dataBlocking'
+                    CALL 'public abstract fun data (): T of <root>.FooInterface4 declared in <root>.FooInterface4' type=T of <root>.FooInterface4 origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.FooInterface4<T of <root>.FooInterface4> declared in <root>.FooInterface4.dataBlocking' type=<root>.FooInterface4<T of <root>.FooInterface4> origin=IMPLICIT_ARGUMENT
+    FUN name:data visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface4 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+    FUN name:data2 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface4 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.FooInterface4
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+    FUN name:data3 visibility:public modality:ABSTRACT returnType:T of <root>.FooInterface4 [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooInterface4<T of <root>.FooInterface4>
+      VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:kotlin.Int
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic

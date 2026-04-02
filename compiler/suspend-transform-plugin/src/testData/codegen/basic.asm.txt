@@ -109,15 +109,19 @@ final class InterfaceBar$barAsync$1 : kotlin/coroutines/jvm/internal/SuspendLamb
 }
 
 public abstract interface InterfaceBar : java/lang/Object {
+    public static java.util.concurrent.CompletableFuture access$bar2Async$jd(InterfaceBar $this, int i)
+
+    public static java.util.concurrent.CompletableFuture access$barAsync$jd(InterfaceBar $this)
+
     public abstract ResultValue asyncBase(int p0)
 
     public abstract java.lang.Object bar(kotlin.coroutines.Continuation p0)
 
     public abstract java.lang.Object bar2(int p0, kotlin.coroutines.Continuation p1)
 
-    public abstract java.util.concurrent.CompletableFuture bar2Async(int p0)
+    public java.util.concurrent.CompletableFuture bar2Async(int i)
 
-    public abstract java.util.concurrent.CompletableFuture barAsync()
+    public java.util.concurrent.CompletableFuture barAsync()
 }
 
 public final class ResultValue : java/lang/Object {

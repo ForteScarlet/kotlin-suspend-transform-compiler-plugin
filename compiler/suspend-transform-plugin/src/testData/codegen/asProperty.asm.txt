@@ -41,9 +41,13 @@ final class IProp$propAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, ko
 }
 
 public abstract interface IProp : java/lang/Object {
-    public abstract java.lang.String getProp()
+    public static java.lang.String access$getProp$jd(IProp $this)
 
-    public abstract java.util.concurrent.CompletableFuture getPropAsync()
+    public static java.util.concurrent.CompletableFuture access$getPropAsync$jd(IProp $this)
+
+    public java.lang.String getProp()
+
+    public java.util.concurrent.CompletableFuture getPropAsync()
 
     public abstract java.lang.Object prop(kotlin.coroutines.Continuation p0)
 }

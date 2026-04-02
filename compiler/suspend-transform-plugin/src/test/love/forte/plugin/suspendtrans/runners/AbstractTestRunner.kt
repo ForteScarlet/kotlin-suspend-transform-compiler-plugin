@@ -18,7 +18,10 @@ import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
 import org.jetbrains.kotlin.test.frontend.fir.Fir2IrResultsConverter
 import org.jetbrains.kotlin.test.frontend.fir.FirFrontendFacade
 import org.jetbrains.kotlin.test.initIdeaConfiguration
-import org.jetbrains.kotlin.test.model.*
+import org.jetbrains.kotlin.test.model.ArtifactKinds
+import org.jetbrains.kotlin.test.model.DependencyKind
+import org.jetbrains.kotlin.test.model.FrontendKind
+import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerTest
 import org.jetbrains.kotlin.test.services.EnvironmentBasedStandardLibrariesPathProvider
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
@@ -43,18 +46,6 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = ArtifactKinds.Jvm
             dependencyKind = DependencyKind.Source
-            backendKind = BackendKinds.IrBackendForK1AndK2
-//            this.languageVersionSettings
-
-
-//            languageSettings {
-//                languageVersion = LanguageVersion.KOTLIN_2_1
-//                apiVersion = ApiVersion.KOTLIN_2_1
-//            }
-//            languageSettings {
-//                languageVersion = LanguageVersion.KOTLIN_1_9
-//                apiVersion = ApiVersion.KOTLIN_1_9
-//            }
         }
 
         builder.defaultDirectives {

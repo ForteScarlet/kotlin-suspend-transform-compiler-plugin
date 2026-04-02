@@ -25,9 +25,11 @@ final class ApiExecutable$executeAsync$1 : kotlin/coroutines/jvm/internal/Suspen
 }
 
 public abstract interface ApiExecutable : java/lang/Object {
+    public static java.util.concurrent.CompletableFuture access$executeAsync$jd(ApiExecutable $this, Api api)
+
     public abstract java.lang.Object execute(Api p0, kotlin.coroutines.Continuation p1)
 
-    public abstract java.util.concurrent.CompletableFuture executeAsync(Api p0)
+    public java.util.concurrent.CompletableFuture executeAsync(Api api)
 }
 
 public abstract interface ApiResult : java/lang/Object {

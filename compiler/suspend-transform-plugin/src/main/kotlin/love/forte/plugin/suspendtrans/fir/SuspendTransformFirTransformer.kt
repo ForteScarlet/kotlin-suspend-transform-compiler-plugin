@@ -267,7 +267,7 @@ class SuspendTransformFirTransformer(
         return copyConeType(originalTypeParameterCache) ?: this
     }
 
-    private fun FirSimpleFunctionBuilder.copyParameters() {
+    private fun FirNamedFunctionBuilder.copyParameters() {
         val newFunSymbol = symbol
         val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
@@ -353,24 +353,23 @@ class SuspendTransformFirTransformer(
 
     @OptIn(SymbolInternals::class)
     private fun generateSyntheticFunctionBody(
-        originFunc: FirSimpleFunction,
+        originFunc: FirNamedFunction,
         originFunSymbol: FirNamedFunctionSymbol,
         owner: FirClassSymbol<*>,
-//        thisContextReceivers: MutableList<FirContextReceiver>,
         thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
         newFunSymbol: FirBasedSymbol<*>,
-//        newFunSymbol: FirNamedFunctionSymbol,
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
         transformer: Transformer
     ): FirBlock = buildBlock {
-        this.source = originFunSymbol.bodySource ?: originFunSymbol.source
+        // Plugin-generated declarations still need a synthetic source element.
+        this.source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
         // lambda: suspend () -> T
         val lambdaTarget = FirFunctionTarget(null, isLambda = true)
         val lambda = buildAnonymousFunction {
-            this.source = originFunSymbol.bodySource ?: originFunSymbol.source
+            this.source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
             this.resolvePhase = FirResolvePhase.BODY_RESOLVE
             // this.resolvePhase = FirResolvePhase.RAW_FIR
             this.isLambda = true
@@ -389,9 +388,9 @@ class SuspendTransformFirTransformer(
                     result = buildFunctionCall {
                         // Call original fun
                         this.coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
-                        this.source = originFunSymbol.source
+                        this.source = null
                         this.calleeReference = buildResolvedNamedReference {
-                            this.source = originFunSymbol.source
+                            this.source = null
                             this.name = originFunSymbol.name
                             this.resolvedSymbol = originFunSymbol
                         }
@@ -400,7 +399,7 @@ class SuspendTransformFirTransformer(
 
                         this.dispatchReceiver = buildThisReceiverExpression {
                             coneTypeOrNull = originFunSymbol.dispatchReceiverType
-                            source = originFunSymbol.source
+                            source = null
                             calleeReference = buildImplicitThisReference {
                                 boundSymbol = owner
                             }
@@ -409,9 +408,9 @@ class SuspendTransformFirTransformer(
                         this.contextArguments.addAll(thisContextParameters.map { receiver ->
                             buildThisReceiverExpression {
                                 coneTypeOrNull = receiver.returnTypeRef.coneTypeOrNull
-                                source = receiver.source
+                                source = null
                                 calleeReference = buildExplicitThisReference {
-                                    source = receiver.source
+                                    source = null
                                     // labelName = receiver.labelName?.asString()
                                 }
                             }
@@ -423,7 +422,7 @@ class SuspendTransformFirTransformer(
                         this.extensionReceiver = thisReceiverParameter?.let { thisReceiverParameter ->
                             buildThisReceiverExpression {
                                 coneTypeOrNull = thisReceiverParameter.typeRef.coneTypeOrNull
-                                source = thisReceiverParameter.source
+                                source = null
                                 calleeReference = buildImplicitThisReference {
                                     boundSymbol = thisReceiverParameter.symbol
                                 }
@@ -459,9 +458,9 @@ class SuspendTransformFirTransformer(
                 this.target = newFunTarget
                 this.result = buildFunctionCall {
                     this.coneTypeOrNull = returnType.coneType
-                    this.source = originFunc.body?.source
+                    this.source = null
                     this.calleeReference = buildResolvedNamedReference {
-                        this.source = bridgeFunSymbol.source
+                        this.source = null
                         this.name = bridgeFunSymbol.name
                         this.resolvedSymbol = bridgeFunSymbol
                     }
@@ -510,7 +509,7 @@ class SuspendTransformFirTransformer(
                                     return buildThisReceiverExpression {
                                         coneTypeOrNull =
                                             originFunSymbol.dispatchReceiverType
-                                        source = originFunSymbol.source
+                                        source = null
                                         calleeReference = buildImplicitThisReference {
                                             boundSymbol = owner
                                         }
@@ -535,7 +534,7 @@ class SuspendTransformFirTransformer(
                                                 // scope = this as? CoroutineScope
                                                 put(
                                                     buildTypeOperatorCall {
-                                                        source = originFunSymbol.source
+                                                        source = null
                                                         coneTypeOrNull = parameterTypeNotNullable
                                                         argumentList = buildResolvedArgumentList(
                                                             null,
@@ -630,7 +629,7 @@ class SuspendTransformFirTransformer(
             val key = SuspendTransformK2V3Key
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
-            val newFun = buildSimpleFunctionCopy(originFunc) {
+            val newFun = buildNamedFunctionCopy(originFunc) {
                 origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
                 source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 name = callableId.callableName
@@ -752,6 +751,7 @@ class SuspendTransformFirTransformer(
             val p1 = buildProperty {
                 symbol = pSymbol
                 name = callableId.callableName
+                isLocal = false
                 source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 resolvePhase = original.resolvePhase
                 moduleData = original.moduleData
@@ -1079,7 +1079,7 @@ class SuspendTransformFirTransformer(
      * @return function annotations `to` property annotations.
      */
     private fun copyAnnotations(
-        original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
+        original: FirNamedFunction, syntheticFunData: SyntheticFunData,
     ): CopyAnnotations {
         val transformer = syntheticFunData.transformer
 
@@ -1287,7 +1287,7 @@ class SuspendTransformFirTransformer(
     private fun isOverridable(
         session: FirSession,
         functionName: Name,
-        originFunc: FirSimpleFunction,
+        originFunc: FirNamedFunction,
         owner: FirClassSymbol<*>,
         isProperty: Boolean = false,
     ): Boolean {
@@ -1461,7 +1461,7 @@ class SuspendTransformFirTransformer(
                         mapProjection(projection) ?: projection
                     }.toTypedArray()
 
-                    return classId?.createConeType(
+                    return classId.createConeType(
                         session = session,
                         typeArguments = typeArguments,
                         nullable = isMarkedNullable
@@ -1472,7 +1472,7 @@ class SuspendTransformFirTransformer(
                     return this
                 }
 
-                return classId?.createConeType(session = session, nullable = isMarkedNullable)
+                return classId.createConeType(session = session, nullable = isMarkedNullable)
             }
 
             is ConeTypeParameterType -> {
@@ -1503,7 +1503,7 @@ private val MarkAnnotation.fqName: FqName
         return FqName(classInfo.packageName + "." + classInfo.className)
     }
 
-private val FirSimpleFunction.syntheticModifier: Modality?
+private val FirNamedFunction.syntheticModifier: Modality?
     get() = when {
         status.isOverride -> Modality.OPEN
         modality == Modality.ABSTRACT -> Modality.OPEN
