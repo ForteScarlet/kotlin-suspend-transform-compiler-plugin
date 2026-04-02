@@ -35,7 +35,6 @@ import love.forte.plugin.suspendtrans.utils.*
 import love.forte.plugin.suspendtrans.valueParameters0
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.wasm.ir2wasm.getSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
@@ -55,7 +54,6 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.wasm.ir.source.location.SourceLocation
 
 /**
  *
@@ -367,22 +365,11 @@ class SuspendTransformTransformer(
     }
 }
 
-private fun IrFunction.reportLocation(): CompilerMessageSourceLocation? {
-    return when (val sourceLocation =
-//        getSourceLocation(runCatching { fileEntry }.getOrNull())) {
-        getSourceLocation(declaration = symbol, fileEntry = runCatching { fileEntry }.getOrNull())) {
-
-        is SourceLocation.WithFileAndLineNumberInformation ->
-            CompilerMessageLocation.create(
-                path = sourceLocation.file,
-                line = sourceLocation.line,
-                column = sourceLocation.column,
-                lineContent = null
-            )
-
-        else -> null
-    }
-}
+private fun IrFunction.reportLocation(): CompilerMessageSourceLocation? = runCatching {
+    val file = getSourceFile() ?: return null
+    val (line, column) = file.getLineAndColumnNumbers(startOffset)
+    return CompilerMessageLocation.create(file.name, line, column, null)
+}.getOrNull()
 
 
 @Deprecated("see generateTransformBodyForFunctionLambda")
