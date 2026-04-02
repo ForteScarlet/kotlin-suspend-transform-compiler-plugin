@@ -1,0 +1,62 @@
+FILE fqName:<root> fileName:/Main.kt
+  CLASS CLASS name:Foo modality:FINAL visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo
+    CONSTRUCTOR visibility:public returnType:<root>.Foo [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Foo modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:fooAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo
+      annotations:
+        Api4J
+        JvmName(name = "fooA")
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun fooAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.Foo.fooAsync'
+                    CALL 'public final fun foo (): kotlin.String declared in <root>.Foo' type=kotlin.String origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.fooAsync' type=<root>.Foo origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.Foo declared in <root>.Foo.fooAsync' type=<root>.Foo origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:fooBlocking visibility:public modality:FINAL returnType:kotlin.String
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo
+      annotations:
+        Api4J
+        JvmName(name = "fooB")
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun fooBlocking (): kotlin.String declared in <root>.Foo'
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=kotlin.String origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.Foo.fooBlocking'
+                    CALL 'public final fun foo (): kotlin.String declared in <root>.Foo' type=kotlin.String origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.Foo declared in <root>.Foo.fooBlocking' type=<root>.Foo origin=IMPLICIT_ARGUMENT
+    FUN name:foo visibility:public modality:FINAL returnType:kotlin.String [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo
+      annotations:
+        JvmName(name = "_foo")
+        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>, markName = "fooA")
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = "fooB")
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun foo (): kotlin.String declared in <root>.Foo'
+          CONST String type=kotlin.String value="foo"

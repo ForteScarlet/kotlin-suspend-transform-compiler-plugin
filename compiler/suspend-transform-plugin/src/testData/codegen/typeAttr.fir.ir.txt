@@ -1,220 +1,220 @@
 FILE fqName:<root> fileName:/Main.kt
   CLASS CLASS name:Api modality:FINAL visibility:public superTypes:[kotlin.Any]
-    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Api<T of <root>.Api>
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Api<T of <root>.Api>
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any] reified:false
-    CONSTRUCTOR visibility:public <> () returnType:<root>.Api<T of <root>.Api> [primary]
+    CONSTRUCTOR visibility:public returnType:<root>.Api<T of <root>.Api> [primary]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
-        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Api modality:FINAL visibility:public superTypes:[kotlin.Any]'
-    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Api modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-      VALUE_PARAMETER name:other index:0 type:kotlin.Any?
-    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun hashCode (): kotlin.Int declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
   CLASS CLASS name:Bar modality:OPEN visibility:public superTypes:[kotlin.Any]
-    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Bar
-    CONSTRUCTOR visibility:public <> () returnType:<root>.Bar [primary]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Bar
+    CONSTRUCTOR visibility:public returnType:<root>.Bar [primary]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
-        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Bar modality:OPEN visibility:public superTypes:[kotlin.Any]'
-    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Bar modality:OPEN visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-      VALUE_PARAMETER name:other index:0 type:kotlin.Any?
-    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun hashCode (): kotlin.Int declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
   CLASS CLASS name:FooImpl modality:FINAL visibility:public superTypes:[<root>.Foo<<root>.Tar>]
-    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.FooImpl
-    CONSTRUCTOR visibility:public <> () returnType:<root>.FooImpl [primary]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.FooImpl
+    CONSTRUCTOR visibility:public returnType:<root>.FooImpl [primary]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
-        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooImpl modality:FINAL visibility:public superTypes:[<root>.Foo<<root>.Tar>]'
-    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:FooImpl modality:FINAL visibility:public superTypes:[<root>.Foo<<root>.Tar>]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-      VALUE_PARAMETER name:other index:0 type:kotlin.Any?
-    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun hashCode (): kotlin.Int declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:runAsync visibility:public modality:OPEN <R> ($this:<root>.Foo<<root>.Tar>, api:<root>.Api<R of <root>.FooImpl.runAsync>) returnType:java.util.concurrent.CompletableFuture [fake_override]
+    FUN FAKE_OVERRIDE name:runAsync visibility:public modality:OPEN returnType:java.util.concurrent.CompletableFuture [fake_override]
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<<root>.Tar>
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.FooImpl.runAsync>
       annotations:
         Api4J
       overridden:
         public open fun runAsync <R> (api: <root>.Api<R of <root>.Foo.runAsync>): java.util.concurrent.CompletableFuture declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:runBlocking visibility:public modality:OPEN returnType:R of <root>.FooImpl.runBlocking [fake_override]
       TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.FooImpl.runAsync>
-    FUN FAKE_OVERRIDE name:runBlocking visibility:public modality:OPEN <R> ($this:<root>.Foo<<root>.Tar>, api:<root>.Api<R of <root>.FooImpl.runBlocking>) returnType:R of <root>.FooImpl.runBlocking [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<<root>.Tar>
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.FooImpl.runBlocking>
       annotations:
         Api4J
       overridden:
         public open fun runBlocking <R> (api: <root>.Api<R of <root>.Foo.runBlocking>): R of <root>.Foo.runBlocking declared in <root>.Foo
-      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.FooImpl.runBlocking>
-    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun toString (): kotlin.String declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<<root>.Tar>) returnType:java.util.concurrent.CompletableFuture [fake_override]
+    FUN FAKE_OVERRIDE name:valueAsync visibility:public modality:OPEN returnType:java.util.concurrent.CompletableFuture [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<<root>.Tar>
       annotations:
         Api4J
       overridden:
         public open fun valueAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
-    FUN FAKE_OVERRIDE name:valueBlocking visibility:public modality:OPEN <> ($this:<root>.Foo<<root>.Tar>) returnType:<root>.Tar [fake_override]
+    FUN FAKE_OVERRIDE name:valueBlocking visibility:public modality:OPEN returnType:<root>.Tar [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<<root>.Tar>
       annotations:
         Api4J
       overridden:
         public open fun valueBlocking (): T of <root>.Foo declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<<root>.Tar>
-    FUN name:run visibility:public modality:OPEN <R> ($this:<root>.FooImpl, api:<root>.Api<R of <root>.FooImpl.run>) returnType:R of <root>.FooImpl.run [suspend]
+    FUN name:run visibility:public modality:OPEN returnType:R of <root>.FooImpl.run [suspend]
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooImpl
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.FooImpl.run>
       overridden:
         public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo
-      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.FooImpl
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.FooImpl.run>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun run <R> (api: <root>.Api<R of <root>.FooImpl.run>): R of <root>.FooImpl.run declared in <root>.FooImpl'
           CALL 'public final fun TODO (): kotlin.Nothing declared in kotlin' type=kotlin.Nothing origin=null
-    FUN name:value visibility:public modality:OPEN <> ($this:<root>.FooImpl) returnType:<root>.Tar [suspend]
+    FUN name:value visibility:public modality:OPEN returnType:<root>.Tar [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.FooImpl
       overridden:
         public abstract fun value (): T of <root>.Foo declared in <root>.Foo
-      $this: VALUE_PARAMETER name:<this> type:<root>.FooImpl
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun value (): <root>.Tar declared in <root>.FooImpl'
           CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.Tar' type=<root>.Tar origin=null
   CLASS CLASS name:Tar modality:FINAL visibility:public superTypes:[<root>.Bar]
-    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Tar
-    CONSTRUCTOR visibility:public <> () returnType:<root>.Tar [primary]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Tar
+    CONSTRUCTOR visibility:public returnType:<root>.Tar [primary]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.Bar'
-        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Tar modality:FINAL visibility:public superTypes:[<root>.Bar]'
-    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Tar modality:FINAL visibility:public superTypes:[<root>.Bar]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Bar
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-      VALUE_PARAMETER name:other index:0 type:kotlin.Any?
-    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun hashCode (): kotlin.Int declared in <root>.Bar
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun toString (): kotlin.String declared in <root>.Bar
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
   CLASS INTERFACE name:Foo modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
-    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Foo<T of <root>.Foo>
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo<T of <root>.Foo>
     TYPE_PARAMETER name:T index:0 variance:out superTypes:[<root>.Bar] reified:false
-    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-      VALUE_PARAMETER name:other index:0 type:kotlin.Any?
-    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun hashCode (): kotlin.Int declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.String [fake_override]
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
-      $this: VALUE_PARAMETER name:<this> type:kotlin.Any
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runAsync visibility:public modality:OPEN <R> ($this:<root>.Foo<T of <root>.Foo>, api:<root>.Api<R of <root>.Foo.runAsync>) returnType:java.util.concurrent.CompletableFuture
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runAsync visibility:public modality:OPEN returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.Foo.runAsync>
       annotations:
         Api4J
-      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.Foo.runAsync>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun runAsync <R> (api: <root>.Api<R of <root>.Foo.runAsync>): java.util.concurrent.CompletableFuture declared in <root>.Foo'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
-            <T>: <none>
-            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:R of <root>.Foo.run [suspend]
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.run [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.run declared in <root>.Foo.runAsync'
                     CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.run origin=null
-                      <R>: <none>
-                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runAsync' type=<root>.Foo<T of <root>.Foo> origin=null
-                      api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runAsync> declared in <root>.Foo.runAsync' type=<root>.Api<R of <root>.Foo.runAsync> origin=null
-            scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                      TYPE_ARG R: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runAsync' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
+                      ARG api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runAsync> declared in <root>.Foo.runAsync' type=<root>.Api<R of <root>.Foo.runAsync> origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
               GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runAsync' type=<root>.Foo<T of <root>.Foo> origin=null
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runBlocking visibility:public modality:OPEN <R> ($this:<root>.Foo<T of <root>.Foo>, api:<root>.Api<R of <root>.Foo.runBlocking>) returnType:R of <root>.Foo.runBlocking
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runBlocking visibility:public modality:OPEN returnType:R of <root>.Foo.runBlocking
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.Foo.runBlocking>
       annotations:
         Api4J
-      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.Foo.runBlocking>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun runBlocking <R> (api: <root>.Api<R of <root>.Foo.runBlocking>): R of <root>.Foo.runBlocking declared in <root>.Foo'
           CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=R of <root>.Foo.run origin=null
-            <T>: <none>
-            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:R of <root>.Foo.run [suspend]
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.run [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.run declared in <root>.Foo.runBlocking'
                     CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.run origin=null
-                      <R>: <none>
-                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runBlocking' type=<root>.Foo<T of <root>.Foo> origin=null
-                      api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runBlocking> declared in <root>.Foo.runBlocking' type=<root>.Api<R of <root>.Foo.runBlocking> origin=null
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:valueAsync visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:java.util.concurrent.CompletableFuture
+                      TYPE_ARG R: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runBlocking' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
+                      ARG api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runBlocking> declared in <root>.Foo.runBlocking' type=<root>.Api<R of <root>.Foo.runBlocking> origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:valueAsync visibility:public modality:OPEN returnType:java.util.concurrent.CompletableFuture
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
       annotations:
         Api4J
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun valueAsync (): java.util.concurrent.CompletableFuture declared in <root>.Foo'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
-            <T>: <none>
-            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.Foo> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:T of <root>.Foo [suspend]
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.Foo> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.Foo [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.Foo declared in <root>.Foo.valueAsync'
                     CALL 'public abstract fun value (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
-                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueAsync' type=<root>.Foo<T of <root>.Foo> origin=null
-            scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                      ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueAsync' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
               GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueAsync' type=<root>.Foo<T of <root>.Foo> origin=null
-    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:valueBlocking visibility:public modality:OPEN <> ($this:<root>.Foo<T of <root>.Foo>) returnType:T of <root>.Foo
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:valueBlocking visibility:public modality:OPEN returnType:T of <root>.Foo
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
       annotations:
         Api4J
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun valueBlocking (): T of <root>.Foo declared in <root>.Foo'
           CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=T of <root>.Foo origin=null
-            <T>: <none>
-            block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.Foo> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:T of <root>.Foo [suspend]
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.Foo> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.Foo [suspend]
                 BLOCK_BODY
                   RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.Foo declared in <root>.Foo.valueBlocking'
                     CALL 'public abstract fun value (): T of <root>.Foo declared in <root>.Foo' type=T of <root>.Foo origin=null
-                      $this: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueBlocking' type=<root>.Foo<T of <root>.Foo> origin=null
-    FUN name:run visibility:public modality:ABSTRACT <R> ($this:<root>.Foo<T of <root>.Foo>, api:<root>.Api<R of <root>.Foo.run>) returnType:R of <root>.Foo.run [suspend]
-      annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
-        JvmSynthetic
+                      ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.valueBlocking' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
+    FUN name:run visibility:public modality:ABSTRACT returnType:R of <root>.Foo.run [suspend]
       TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any] reified:false
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
-      VALUE_PARAMETER name:api index:0 type:<root>.Api<R of <root>.Foo.run>
-    FUN name:value visibility:public modality:ABSTRACT <> ($this:<root>.Foo<T of <root>.Foo>) returnType:T of <root>.Foo [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
+      VALUE_PARAMETER kind:Regular name:api index:1 type:<root>.Api<R of <root>.Foo.run>
       annotations:
-        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>)
-        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>)
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
         JvmSynthetic
-      $this: VALUE_PARAMETER name:<this> type:<root>.Foo<T of <root>.Foo>
+    FUN name:value visibility:public modality:ABSTRACT returnType:T of <root>.Foo [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Foo<T of <root>.Foo>
+      annotations:
+        JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic

@@ -1,19 +1,27 @@
+public abstract interface Bar : java/lang/Object, Foo {
+
+}
+
+public abstract interface Foo : java/lang/Object {
+
+}
+
 public abstract interface FooInterface1 : java/lang/Object {
     public abstract java.lang.Object data(kotlin.coroutines.Continuation p0)
 
-    public abstract java.lang.Object data2(int p0, kotlin.coroutines.Continuation p1)
+    public abstract java.lang.Object data2(java.lang.Object p0, kotlin.coroutines.Continuation p1)
 
     public abstract java.lang.Object data3(int p0, kotlin.coroutines.Continuation p1)
 }
 
 final class FooInterface1Impl$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
-    final int $value
+    final java.lang.Object $value
 
     int label
 
     final FooInterface1Impl this$0
 
-    void <init>(FooInterface1Impl $receiver, int $value, kotlin.coroutines.Continuation $completion)
+    void <init>(FooInterface1Impl $receiver, java.lang.Object $value, kotlin.coroutines.Continuation $completion)
 
     public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
 
@@ -63,53 +71,33 @@ public final class FooInterface1Impl : java/lang/Object, FooInterface1 {
 
     public java.lang.Object data(kotlin.coroutines.Continuation $completion)
 
-    public java.lang.Object data2(int value, kotlin.coroutines.Continuation $completion)
+    public java.lang.Object data2(java.lang.Object value, kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String data2Blocking(int value)
+    public Bar data2Blocking(java.lang.Object value)
 
     public java.lang.Object data3(int $this$data3, kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String data3Blocking(int $this$data3Blocking)
+    public Bar data3Blocking(int $this$data3Blocking)
 
-    public java.lang.String dataBlocking()
-}
-
-public final class FooInterface2$DefaultImpls : java/lang/Object {
-    public static java.lang.String data2Blocking(FooInterface2 $this, int value)
-
-    public static java.lang.String data3Blocking(FooInterface2 $this, int $receiver)
-
-    public static java.lang.String dataBlocking(FooInterface2 $this)
+    public Bar dataBlocking()
 }
 
 public abstract interface FooInterface2 : java/lang/Object {
-    public static java.lang.String access$data2Blocking$jd(FooInterface2 $this, int value)
-
-    public static java.lang.String access$data3Blocking$jd(FooInterface2 $this, int $receiver)
-
-    public static java.lang.String access$dataBlocking$jd(FooInterface2 $this)
-
     public abstract java.lang.Object data(kotlin.coroutines.Continuation p0)
 
-    public abstract java.lang.Object data2(int p0, kotlin.coroutines.Continuation p1)
-
-    public java.lang.String data2Blocking(int value)
+    public abstract java.lang.Object data2(Foo p0, kotlin.coroutines.Continuation p1)
 
     public abstract java.lang.Object data3(int p0, kotlin.coroutines.Continuation p1)
-
-    public java.lang.String data3Blocking(int $this$data3Blocking)
-
-    public java.lang.String dataBlocking()
 }
 
 final class FooInterface2Impl$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
-    final int $value
+    final Foo $value
 
     int label
 
     final FooInterface2Impl this$0
 
-    void <init>(FooInterface2Impl $receiver, int $value, kotlin.coroutines.Continuation $completion)
+    void <init>(FooInterface2Impl $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
 
     public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
 
@@ -159,27 +147,131 @@ public final class FooInterface2Impl : java/lang/Object, FooInterface2 {
 
     public java.lang.Object data(kotlin.coroutines.Continuation $completion)
 
-    public java.lang.Object data2(int value, kotlin.coroutines.Continuation $completion)
+    public java.lang.Object data2(Foo value, kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String data2Blocking(int value)
+    public Foo data2Blocking(Foo value)
 
     public java.lang.Object data3(int $this$data3, kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String data3Blocking(int $this$data3Blocking)
+    public Foo data3Blocking(int $this$data3Blocking)
 
-    public java.lang.String dataBlocking()
+    public Foo dataBlocking()
 }
 
 public final class FooInterface3$DefaultImpls : java/lang/Object {
-    public static java.lang.String getDataBlocking(FooInterface3 $this)
+    public static Foo data2Blocking(FooInterface3 $this, java.lang.Object value)
+
+    public static Foo data3Blocking(FooInterface3 $this, int $receiver)
+
+    public static Foo dataBlocking(FooInterface3 $this)
+}
+
+final class FooInterface3$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final java.lang.Object $value
+
+    int label
+
+    final FooInterface3 this$0
+
+    void <init>(FooInterface3 $receiver, java.lang.Object $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class FooInterface3$data3Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final int $this_data3Blocking
+
+    int label
+
+    final FooInterface3 this$0
+
+    void <init>(FooInterface3 $receiver, int $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class FooInterface3$dataBlocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    int label
+
+    final FooInterface3 this$0
+
+    void <init>(FooInterface3 $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
 }
 
 public abstract interface FooInterface3 : java/lang/Object {
-    public static java.lang.String access$getDataBlocking$jd(FooInterface3 $this)
+    public static Foo access$data2Blocking$jd(FooInterface3 $this, java.lang.Object value)
+
+    public static Foo access$data3Blocking$jd(FooInterface3 $this, int $receiver)
+
+    public static Foo access$dataBlocking$jd(FooInterface3 $this)
 
     public abstract java.lang.Object data(kotlin.coroutines.Continuation p0)
 
-    public java.lang.String getDataBlocking()
+    public abstract java.lang.Object data2(java.lang.Object p0, kotlin.coroutines.Continuation p1)
+
+    public Foo data2Blocking(java.lang.Object value)
+
+    public abstract java.lang.Object data3(int p0, kotlin.coroutines.Continuation p1)
+
+    public Foo data3Blocking(int $this$data3Blocking)
+
+    public Foo dataBlocking()
+}
+
+final class FooInterface3Impl$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final java.lang.Object $value
+
+    int label
+
+    final FooInterface3Impl this$0
+
+    void <init>(FooInterface3Impl $receiver, java.lang.Object $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class FooInterface3Impl$data3Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final int $this_data3Blocking
+
+    int label
+
+    final FooInterface3Impl this$0
+
+    void <init>(FooInterface3Impl $receiver, int $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
 }
 
 final class FooInterface3Impl$dataBlocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
@@ -203,25 +295,57 @@ public final class FooInterface3Impl : java/lang/Object, FooInterface3 {
 
     public java.lang.Object data(kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String getDataBlocking()
+    public java.lang.Object data2(java.lang.Object value, kotlin.coroutines.Continuation $completion)
 
-    public static void getDataBlocking$annotations()
+    public Bar data2Blocking(java.lang.Object value)
+
+    public Foo data2Blocking(java.lang.Object value)
+
+    public java.lang.Object data3(int $this$data3, kotlin.coroutines.Continuation $completion)
+
+    public Bar data3Blocking(int $this$data3Blocking)
+
+    public Foo data3Blocking(int $this$data3Blocking)
+
+    public Bar dataBlocking()
+
+    public Foo dataBlocking()
 }
 
 public final class FooInterface4$DefaultImpls : java/lang/Object {
-    public static java.lang.String data2Blocking(FooInterface4 $this, int value)
+    public static Foo data2Blocking(FooInterface4 $this, Foo value)
 
-    public static java.lang.String dataBlocking(FooInterface4 $this)
+    public static Foo data3Blocking(FooInterface4 $this, int $receiver)
+
+    public static Foo dataBlocking(FooInterface4 $this)
 }
 
 final class FooInterface4$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
-    final int $value
+    final Foo $value
 
     int label
 
     final FooInterface4 this$0
 
-    void <init>(FooInterface4 $receiver, int $value, kotlin.coroutines.Continuation $completion)
+    void <init>(FooInterface4 $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class FooInterface4$data3Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final int $this_data3Blocking
+
+    int label
+
+    final FooInterface4 this$0
+
+    void <init>(FooInterface4 $receiver, int $receiver, kotlin.coroutines.Continuation $completion)
 
     public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
 
@@ -249,27 +373,51 @@ final class FooInterface4$dataBlocking$1 : kotlin/coroutines/jvm/internal/Suspen
 }
 
 public abstract interface FooInterface4 : java/lang/Object {
-    public static java.lang.String access$data2Blocking$jd(FooInterface4 $this, int value)
+    public static Foo access$data2Blocking$jd(FooInterface4 $this, Foo value)
 
-    public static java.lang.String access$dataBlocking$jd(FooInterface4 $this)
+    public static Foo access$data3Blocking$jd(FooInterface4 $this, int $receiver)
+
+    public static Foo access$dataBlocking$jd(FooInterface4 $this)
 
     public abstract java.lang.Object data(kotlin.coroutines.Continuation p0)
 
-    public abstract java.lang.Object data2(int p0, kotlin.coroutines.Continuation p1)
+    public abstract java.lang.Object data2(Foo p0, kotlin.coroutines.Continuation p1)
 
-    public java.lang.String data2Blocking(int value)
+    public Foo data2Blocking(Foo value)
 
-    public java.lang.String dataBlocking()
+    public abstract java.lang.Object data3(int p0, kotlin.coroutines.Continuation p1)
+
+    public Foo data3Blocking(int $this$data3Blocking)
+
+    public Foo dataBlocking()
 }
 
 final class FooInterface4Impl$data2Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
-    final int $value
+    final Foo $value
 
     int label
 
     final FooInterface4Impl this$0
 
-    void <init>(FooInterface4Impl $receiver, int $value, kotlin.coroutines.Continuation $completion)
+    void <init>(FooInterface4Impl $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class FooInterface4Impl$data3Blocking$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final int $this_data3Blocking
+
+    int label
+
+    final FooInterface4Impl this$0
+
+    void <init>(FooInterface4Impl $receiver, int $receiver, kotlin.coroutines.Continuation $completion)
 
     public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
 
@@ -301,9 +449,13 @@ public final class FooInterface4Impl : java/lang/Object, FooInterface4 {
 
     public java.lang.Object data(kotlin.coroutines.Continuation $completion)
 
-    public java.lang.Object data2(int value, kotlin.coroutines.Continuation $completion)
+    public java.lang.Object data2(Foo value, kotlin.coroutines.Continuation $completion)
 
-    public java.lang.String data2Blocking(int value)
+    public Foo data2Blocking(Foo value)
 
-    public java.lang.String dataBlocking()
+    public java.lang.Object data3(int $this$data3, kotlin.coroutines.Continuation $completion)
+
+    public Foo data3Blocking(int $this$data3Blocking)
+
+    public Foo dataBlocking()
 }
