@@ -356,11 +356,9 @@ class SuspendTransformFirTransformer(
         originFunc: FirNamedFunction,
         originFunSymbol: FirNamedFunctionSymbol,
         owner: FirClassSymbol<*>,
-//        thisContextReceivers: MutableList<FirContextReceiver>,
         thisContextParameters: List<FirValueParameter>,
         thisReceiverParameter: FirReceiverParameter?,
         newFunSymbol: FirBasedSymbol<*>,
-//        newFunSymbol: FirNamedFunctionSymbol,
         thisValueParameters: List<FirValueParameter>,
         bridgeFunSymbol: FirNamedFunctionSymbol,
         newFunTarget: FirFunctionTarget,
@@ -1461,7 +1459,7 @@ class SuspendTransformFirTransformer(
                         mapProjection(projection) ?: projection
                     }.toTypedArray()
 
-                    return classId?.createConeType(
+                    return classId.createConeType(
                         session = session,
                         typeArguments = typeArguments,
                         nullable = isMarkedNullable
@@ -1472,7 +1470,7 @@ class SuspendTransformFirTransformer(
                     return this
                 }
 
-                return classId?.createConeType(session = session, nullable = isMarkedNullable)
+                return classId.createConeType(session = session, nullable = isMarkedNullable)
             }
 
             is ConeTypeParameterType -> {
