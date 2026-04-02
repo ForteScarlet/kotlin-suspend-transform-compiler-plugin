@@ -66,6 +66,7 @@ class SuspendTransformTransformer(
 
     // TODO What should be used in K2?
     private val reporter = kotlin.runCatching {
+        // pluginContext.diagnosticReporter
         // error: "This API is not supported for K2"
         pluginContext.messageCollector
 //        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
@@ -117,8 +118,10 @@ class SuspendTransformTransformer(
 
                     // K2 v2
                     is SuspendTransformBridgeFunctionKey -> {
+                        // TODO 也许可以通过 .finderForSource(..) 支持寻找本地同模块函数？
                         val callableFunction =
-                            pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                            pluginContext.finderForBuiltins()
+                                .findFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
                                 .firstOrNull()
                                 ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
 
@@ -146,7 +149,9 @@ class SuspendTransformTransformer(
 
                     is SuspendTransformPluginKey -> {
                         val callableFunction =
-                            pluginContext.referenceFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
+                            pluginContext
+                                .finderForBuiltins()
+                                .findFunctions(pluginKey.data.transformer.transformFunctionInfo.toCallableId())
                                 .firstOrNull()
                                 ?: throw IllegalStateException("Transform function ${pluginKey.data.transformer.transformFunctionInfo} not found")
 
@@ -178,7 +183,9 @@ class SuspendTransformTransformer(
 
             userData != null -> {
                 val callableFunction =
-                    pluginContext.referenceFunctions(userData.transformer.transformFunctionInfo.toCallableId())
+                    pluginContext
+                        .finderForBuiltins()
+                        .findFunctions(userData.transformer.transformFunctionInfo.toCallableId())
                         .firstOrNull()
                         ?: throw IllegalStateException("Transform function ${userData.transformer.transformFunctionInfo} not found")
 
@@ -214,7 +221,8 @@ class SuspendTransformTransformer(
 
             originFunctionIncludeAnnotations.forEach { include ->
                 val classId = include.classInfo.toClassId()
-                val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
+                val annotationClass = pluginContext.finderForBuiltins()
+                    .findClass(classId) ?: return@forEach
                 if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
                     return@forEach
                 }
@@ -514,7 +522,7 @@ private fun IrCall.tryResolveCoroutineScopeValueParameter(
     }
 
     function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+        context.finderForBuiltins().findClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                 // put 'this' to the arg
                 arguments[index] = builderWithScope.irGet(dispatchReceiverParameter)
