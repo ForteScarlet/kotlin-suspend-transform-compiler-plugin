@@ -35,6 +35,9 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 
+/**
+ * Registers every compiler extension entry point used by the suspend-transform plugin.
+ */
 @OptIn(ExperimentalCompilerApi::class)
 class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
 
@@ -51,6 +54,9 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
 
 
     companion object {
+        /**
+         * Resolves plugin configuration from compiler arguments and registers all extensions.
+         */
         fun register(storage: ExtensionStorage, configuration: CompilerConfiguration) {
             val suspendTransformConfiguration =/* defaultConfiguration ?: */
                 configuration.resolveToSuspendTransformConfiguration()
@@ -58,6 +64,9 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
             register(storage, suspendTransformConfiguration)
         }
 
+        /**
+         * Registers FIR, IR, and legacy synthetic resolve extensions for the given configuration.
+         */
         fun register(storage: ExtensionStorage, configuration: SuspendTransformConfiguration) {
             val suspendTransformSyntheticResolveExtension =
                 SuspendTransformSyntheticResolveExtension(configuration)
@@ -85,6 +94,9 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
 // //    }
 // }
 
+/**
+ * Reads the merged suspend-transform configuration from compiler configuration storage.
+ */
 @OptIn(InternalSuspendTransformConfigurationApi::class)
 private fun CompilerConfiguration.resolveToSuspendTransformConfiguration(): SuspendTransformConfiguration {
     return get(

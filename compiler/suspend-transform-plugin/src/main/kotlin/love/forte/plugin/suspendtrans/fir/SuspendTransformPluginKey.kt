@@ -26,8 +26,15 @@ import love.forte.plugin.suspendtrans.SuspendTransformBridgeFunDataFir
 import love.forte.plugin.suspendtrans.SuspendTransformUserDataFir
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 
+/**
+ * Base generated-declaration key used to distinguish the different FIR/IR hand-off
+ * strategies supported by the suspend-transform plugin.
+ */
 sealed class SuspendTransformGeneratedDeclarationKey() : GeneratedDeclarationKey()
 
+/**
+ * Marks a generated declaration that still needs its body resolved from an original suspend function.
+ */
 data class SuspendTransformPluginKey(val data: SuspendTransformUserDataFir) :
     SuspendTransformGeneratedDeclarationKey() {
     override fun toString(): String {
@@ -35,6 +42,9 @@ data class SuspendTransformPluginKey(val data: SuspendTransformUserDataFir) :
     }
 }
 
+/**
+ * Marks a generated bridge declaration whose first parameter already carries the suspend block.
+ */
 data class SuspendTransformBridgeFunctionKey(val data: SuspendTransformBridgeFunDataFir) :
     SuspendTransformGeneratedDeclarationKey()
 

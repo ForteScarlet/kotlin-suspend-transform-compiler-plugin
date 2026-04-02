@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
 
 /**
+ * Registers FIR declaration generation for suspend-transform synthetic members.
  *
  * @author ForteScarlet
  */
