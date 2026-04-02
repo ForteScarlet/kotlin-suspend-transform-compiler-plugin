@@ -267,7 +267,7 @@ class SuspendTransformFirTransformer(
         return copyConeType(originalTypeParameterCache) ?: this
     }
 
-    private fun FirSimpleFunctionBuilder.copyParameters() {
+    private fun FirNamedFunctionBuilder.copyParameters() {
         val newFunSymbol = symbol
         val originalTypeParameterCache = mutableListOf<CopiedTypeParameterPair>()
 
@@ -353,7 +353,7 @@ class SuspendTransformFirTransformer(
 
     @OptIn(SymbolInternals::class)
     private fun generateSyntheticFunctionBody(
-        originFunc: FirSimpleFunction,
+        originFunc: FirNamedFunction,
         originFunSymbol: FirNamedFunctionSymbol,
         owner: FirClassSymbol<*>,
 //        thisContextReceivers: MutableList<FirContextReceiver>,
@@ -630,7 +630,7 @@ class SuspendTransformFirTransformer(
             val key = SuspendTransformK2V3Key
 
             val newFunTarget = FirFunctionTarget(null, isLambda = false)
-            val newFun = buildSimpleFunctionCopy(originFunc) {
+            val newFun = buildNamedFunctionCopy(originFunc) {
                 origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
                 source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
                 name = callableId.callableName
@@ -1079,7 +1079,7 @@ class SuspendTransformFirTransformer(
      * @return function annotations `to` property annotations.
      */
     private fun copyAnnotations(
-        original: FirSimpleFunction, syntheticFunData: SyntheticFunData,
+        original: FirNamedFunction, syntheticFunData: SyntheticFunData,
     ): CopyAnnotations {
         val transformer = syntheticFunData.transformer
 
@@ -1287,7 +1287,7 @@ class SuspendTransformFirTransformer(
     private fun isOverridable(
         session: FirSession,
         functionName: Name,
-        originFunc: FirSimpleFunction,
+        originFunc: FirNamedFunction,
         owner: FirClassSymbol<*>,
         isProperty: Boolean = false,
     ): Boolean {
@@ -1503,7 +1503,7 @@ private val MarkAnnotation.fqName: FqName
         return FqName(classInfo.packageName + "." + classInfo.className)
     }
 
-private val FirSimpleFunction.syntheticModifier: Modality?
+private val FirNamedFunction.syntheticModifier: Modality?
     get() = when {
         status.isOverride -> Modality.OPEN
         modality == Modality.ABSTRACT -> Modality.OPEN
