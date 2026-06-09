@@ -246,6 +246,23 @@ class IncludeAnnotation @InternalSuspendTransformConfigurationApi constructor(
     }
 }
 
+/**
+ * @since 0.14.0
+ */
+enum class TransformReturnTypeGenericMode {
+    NORMAL,
+
+    /**
+     * Mark this generic always nullable.
+     */
+    NULLABLE,
+
+    /**
+     * Mark this generic always non-nullable.
+     */
+    NON_NULL
+}
+
 @Serializable
 class Transformer @InternalSuspendTransformConfigurationApi constructor(
     /**
@@ -302,6 +319,8 @@ class Transformer @InternalSuspendTransformConfigurationApi constructor(
      * Whether there are generics in the transformed return type that need to be consistent with the original return type.
      */
     val transformReturnTypeGeneric: Boolean,
+
+    val transformReturnTypeGenericMode: TransformReturnTypeGenericMode = TransformReturnTypeGenericMode.NORMAL,
 
     /**
      * Annotation information that needs to be added to the original function after function generation.
