@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Forte Scarlet
+ * Copyright (c) 2026 Forte Scarlet
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,27 @@
  * SOFTWARE.
  */
 
-package love.forte.plugin.suspendtrans.ir
+package love.forte.plugin.suspendtrans.sample
 
-import love.forte.plugin.suspendtrans.PluginAvailability
-import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+import kotlinx.coroutines.suspendCancellableCoroutine
+import love.forte.plugin.suspendtrans.annotation.JvmAsync
+import love.forte.plugin.suspendtrans.annotation.JvmBlocking
+import java.math.BigDecimal
+import kotlin.coroutines.resume
 
-/**
- * IR extension entry point for suspend-transform plugin.
- *
- * It traverses the module and delegates declaration-level body completion to
- * [SuspendTransformTransformer].
- *
- * @author ForteScarlet
- */
-open class SuspendTransformIrGenerationExtension(private val configuration: SuspendTransformConfiguration) :
-    IrGenerationExtension, PluginAvailability {
-    override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        moduleFragment.transformChildrenVoid(SuspendTransformTransformer(configuration, pluginContext))
+typealias MoneyValue = Long
+typealias BigMoneyValue = BigDecimal
+
+class AliasTestClass {
+    @JvmBlocking
+    @JvmAsync
+    suspend fun errorReproduction1(amount: MoneyValue): MoneyValue = suspendCancellableCoroutine {
+        it.resume(amount)
+    }
+
+    @JvmBlocking
+    @JvmAsync
+    suspend fun errorReproduction2(amount: BigMoneyValue): BigMoneyValue = suspendCancellableCoroutine {
+        it.resume(amount)
     }
 }
