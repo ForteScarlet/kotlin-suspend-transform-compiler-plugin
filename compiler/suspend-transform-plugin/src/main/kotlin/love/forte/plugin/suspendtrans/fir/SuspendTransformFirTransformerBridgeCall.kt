@@ -26,24 +26,19 @@ import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
+import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
-import org.jetbrains.kotlin.fir.expressions.builder.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.buildThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildTypeOperatorCall
 import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.getSuperTypes
-import org.jetbrains.kotlin.fir.resolve.isSubtypeOf
-import org.jetbrains.kotlin.fir.resolve.toFirResolvedTypeRef
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.constructClassType
-import org.jetbrains.kotlin.fir.types.isMarkedNullable
-import org.jetbrains.kotlin.fir.types.makeConeTypeDefinitelyNotNullOrNotNull
-import org.jetbrains.kotlin.fir.types.typeContext
+import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.*
 
 /**
  * Builds the bridge-function invocation that wraps the suspend lambda and any
@@ -163,7 +158,7 @@ private fun SuspendTransformFirTransformer.buildBridgeArgumentMapping(
                             if (!ownerIsCoroutineScopeOrParameterIsOptional) {
                                 error(
                                     "Owner is not a CoroutineScope, " +
-                                        "and the transformer function requires a `CoroutineScope` parameter."
+                                            "and the transformer function requires a `CoroutineScope` parameter."
                                 )
                             }
                         }

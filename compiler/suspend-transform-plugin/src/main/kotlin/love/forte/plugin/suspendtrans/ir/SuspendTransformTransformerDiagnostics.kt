@@ -57,7 +57,7 @@ internal fun SuspendTransformTransformer.reportOriginFunctionSearchMismatch(
         "Synthetic function ${function.name.asString()}" +
             "(${kotlin.runCatching { function.kotlinFqName.asString() }.getOrElse { function.toString() }} " +
             "in " +
-            "${kotlin.runCatching { (parent as IrDeclaration).kotlinFqName.asString() }.getOrElse { parent.toString() }}) 's " +
+            "${kotlin.runCatching { parent.kotlinFqName.asString() }.getOrElse { parent.toString() }}) 's " +
             "originFunctions.size should be 1, " +
             "but $actualNum (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions, sourceKey = $sourceKey)"
 

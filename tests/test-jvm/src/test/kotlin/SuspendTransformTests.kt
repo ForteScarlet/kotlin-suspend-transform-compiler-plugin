@@ -22,7 +22,9 @@
  */
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
+import love.forte.plugin.suspendtrans.sample.AliasTestClass
 import java.lang.reflect.Modifier
+import java.math.BigDecimal
 import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.functions
@@ -182,5 +184,38 @@ class SuspendTransformTests {
 
         assertEquals(1, run1Async.get())
         assertEquals("run2", run2Async.get())
+    }
+
+    @Test
+    fun aliasTest() {
+        val alias = AliasTestClass()
+        val longType = Long::class.javaPrimitiveType!!
+        val bigDecimalType = BigDecimal::class.java
+
+        val errorReproduction1BlockingMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction1Blocking", longType)
+        val errorReproduction2BlockingMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction2Blocking", bigDecimalType)
+        val errorReproduction1AsyncMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction1Async", longType)
+        val errorReproduction2AsyncMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction2Async", bigDecimalType)
+
+        assertEquals(longType, errorReproduction1BlockingMethod.returnType)
+        assertEquals(bigDecimalType, errorReproduction2BlockingMethod.returnType)
+        assertEquals(CompletableFuture::class.java, errorReproduction1AsyncMethod.returnType)
+        assertEquals(CompletableFuture::class.java, errorReproduction2AsyncMethod.returnType)
+
+        assertEquals(1L, errorReproduction1BlockingMethod.invoke(alias, 1L))
+        assertEquals(BigDecimal("2.5"), errorReproduction2BlockingMethod.invoke(alias, BigDecimal("2.5")))
+
+        val errorReproduction1Async = errorReproduction1AsyncMethod.invoke(alias, 3L)
+        val errorReproduction2Async = errorReproduction2AsyncMethod.invoke(alias, BigDecimal("4.5"))
+
+        assertIs<CompletableFuture<*>>(errorReproduction1Async)
+        assertIs<CompletableFuture<*>>(errorReproduction2Async)
+
+        assertEquals(3L, errorReproduction1Async.join())
+        assertEquals(BigDecimal("4.5"), errorReproduction2Async.join())
     }
 }

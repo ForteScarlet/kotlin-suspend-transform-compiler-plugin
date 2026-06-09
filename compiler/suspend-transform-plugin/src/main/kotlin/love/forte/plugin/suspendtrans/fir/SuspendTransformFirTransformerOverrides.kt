@@ -62,7 +62,7 @@ internal fun SuspendTransformFirTransformer.checkSyntheticFunctionIsOverrideBase
                     val originReceiverTypeRef = func.resolvedReceiverTypeRef
 
                     // origin receiver should be the same as symbol receiver
-                    if (originReceiverTypeRef != resolvedReceiverTypeRef) {
+                    if (originReceiverTypeRef?.coneType != resolvedReceiverTypeRef?.coneType) {
                         return@processOverridden
                     }
 
