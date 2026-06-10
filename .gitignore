@@ -5,6 +5,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+_docs
+
 ### IntelliJ IDEA ###
 .idea/**
 !.idea/copyright

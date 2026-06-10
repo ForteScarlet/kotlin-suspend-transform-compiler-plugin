@@ -246,6 +246,53 @@ class IncludeAnnotation @InternalSuspendTransformConfigurationApi constructor(
     }
 }
 
+/**
+ * Controls the nullability applied to the generic argument copied from the
+ * original suspend function return type into [Transformer.transformReturnType].
+ *
+ * This setting is only meaningful when [Transformer.transformReturnType] is not
+ * `null` and [Transformer.transformReturnTypeGeneric] is `true`.
+ *
+ * The main use case is [NON_NULL]: some wrapper APIs, such as Reactive
+ * Streams-style containers, do not allow `null` elements and represent absence
+ * as an empty result instead. In that case the generated generic argument should
+ * describe the emitted element as non-null.
+ *
+ * @since 0.14.0
+ */
+@Serializable
+enum class TransformReturnTypeGenericMode {
+    /**
+     * Keep the original return type unchanged.
+     *
+     * Example: `T` remains `T`, and `Foo?` remains `Foo?`.
+     */
+    NORMAL,
+
+    /**
+     * Make the copied generic argument nullable.
+     *
+     * Example: `Foo` becomes `Foo?`.
+     *
+     * This is provided for explicit nullable wrappers. The primary motivation of
+     * this enum is [NON_NULL].
+     */
+    NULLABLE,
+
+    /**
+     * Make the copied generic argument non-nullable.
+     *
+     * For type parameters with nullable bounds, this uses a definitely-not-null
+     * type at the use site, e.g. `T` becomes `T & Any`. It does not rewrite the
+     * original type parameter declaration or its upper bound.
+     *
+     * This is useful for wrappers whose element type cannot be `null`, for
+     * example Reactive Streams-style APIs where `null` must be modeled as an
+     * empty result rather than as an emitted element.
+     */
+    NON_NULL
+}
+
 @Serializable
 class Transformer @InternalSuspendTransformConfigurationApi constructor(
     /**
@@ -331,7 +378,33 @@ class Transformer @InternalSuspendTransformConfigurationApi constructor(
      *
      * @since 0.9.0
      */
-    val copyAnnotationsToSyntheticProperty: Boolean = false
+    val copyAnnotationsToSyntheticProperty: Boolean = false,
+
+    /**
+     * Nullability mode for the generic argument copied from the original return type.
+     *
+     * This is used only when [transformReturnType] is not `null` and
+     * [transformReturnTypeGeneric] is `true`. It changes the generic argument
+     * placed inside the transformed return type, not the original function's type
+     * parameters or their bounds.
+     *
+     * For example, with a transformed return type like `Result<T>` and an
+     * original return type `T : Foo?`, [TransformReturnTypeGenericMode.NON_NULL]
+     * produces a use-site type like `Result<T & Any>`.
+     *
+     * [TransformReturnTypeGenericMode.NON_NULL] is intended for wrappers whose
+     * element type does not accept `null`, such as Reactive Streams-style APIs.
+     * This setting only changes the generated type; the configured transform
+     * function must still implement the matching runtime semantics, such as
+     * converting a `null` result to an empty completion when the wrapper requires it.
+     *
+     * Keep this property at the end of the constructor parameters because the
+     * configuration is serialized with ProtoBuf and field order is part of the
+     * compatibility surface.
+     *
+     * @since 0.14.0
+     */
+    val transformReturnTypeGenericMode: TransformReturnTypeGenericMode = TransformReturnTypeGenericMode.NORMAL,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -346,6 +419,7 @@ class Transformer @InternalSuspendTransformConfigurationApi constructor(
         if (originFunctionIncludeAnnotations != other.originFunctionIncludeAnnotations) return false
         if (syntheticFunctionIncludeAnnotations != other.syntheticFunctionIncludeAnnotations) return false
         if (copyAnnotationExcludes != other.copyAnnotationExcludes) return false
+        if (transformReturnTypeGenericMode != other.transformReturnTypeGenericMode) return false
 
         return true
     }
@@ -360,11 +434,12 @@ class Transformer @InternalSuspendTransformConfigurationApi constructor(
         result = 31 * result + originFunctionIncludeAnnotations.hashCode()
         result = 31 * result + syntheticFunctionIncludeAnnotations.hashCode()
         result = 31 * result + copyAnnotationExcludes.hashCode()
+        result = 31 * result + transformReturnTypeGenericMode.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "Transformer(copyAnnotationExcludes=$copyAnnotationExcludes, markAnnotation=$markAnnotation, transformFunctionInfo=$transformFunctionInfo, transformReturnType=$transformReturnType, transformReturnTypeGeneric=$transformReturnTypeGeneric, originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticFunctionIncludeAnnotations=$syntheticFunctionIncludeAnnotations, copyAnnotationsToSyntheticFunction=$copyAnnotationsToSyntheticFunction, copyAnnotationsToSyntheticProperty=$copyAnnotationsToSyntheticProperty)"
+        return "Transformer(copyAnnotationExcludes=$copyAnnotationExcludes, markAnnotation=$markAnnotation, transformFunctionInfo=$transformFunctionInfo, transformReturnType=$transformReturnType, transformReturnTypeGeneric=$transformReturnTypeGeneric, originFunctionIncludeAnnotations=$originFunctionIncludeAnnotations, syntheticFunctionIncludeAnnotations=$syntheticFunctionIncludeAnnotations, copyAnnotationsToSyntheticFunction=$copyAnnotationsToSyntheticFunction, copyAnnotationsToSyntheticProperty=$copyAnnotationsToSyntheticProperty, transformReturnTypeGenericMode=$transformReturnTypeGenericMode)"
     }
 }
 

@@ -24,6 +24,7 @@ package love.forte.plugin.suspendtrans.symbol
 
 import love.forte.plugin.suspendtrans.SuspendTransformUserData
 import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.utils.TransformAnnotationData
 import love.forte.plugin.suspendtrans.utils.copy
@@ -39,6 +40,7 @@ import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext.isArray
 import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isPrimitiveNumberType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
+import org.jetbrains.kotlin.types.typeUtil.makeNullable
 
 
 /**
@@ -70,17 +72,21 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
         }
 
         val arguments: List<TypeProjection> = if (transformer.transformReturnTypeGeneric) {
-            originReturnType?.let {
+            if (originReturnType != null) {
                 val variance = when {
-                    it.isUnit() || it.isNothing() -> Variance.INVARIANT
-                    it.isPrimitiveNumberType() -> Variance.INVARIANT
-                    it.isArrayOrNullableArray() -> Variance.INVARIANT
+                    originReturnType.isUnit() || originReturnType.isNothing() -> Variance.INVARIANT
+                    originReturnType.isPrimitiveNumberType() -> Variance.INVARIANT
+                    originReturnType.isArrayOrNullableArray() -> Variance.INVARIANT
 //                    it.isEnum() -> Variance.INVARIANT
 //                    it.isBoolean() -> Variance.INVARIANT
                     else -> Variance.OUT_VARIANCE
                 }
-                listOf(TypeProjectionImpl(variance, it))
-            } ?: emptyList()
+                val genericReturnType = transformReturnTypeGenericArgument(originReturnType)
+                val typeProjection = TypeProjectionImpl(variance, genericReturnType)
+                listOf(typeProjection)
+            } else {
+                emptyList()
+            }
         } else {
             emptyList()
         }
@@ -92,6 +98,23 @@ sealed class AbstractSuspendTransformFunctionDescriptor(
             nullable = returnType.nullable
         )
     }
+
+    /**
+     * Applies the configured nullability mode to the return type copied into the
+     * transformed return type's generic argument.
+     *
+     * `makeNullable()` is the classic high-level nullable conversion and delegates
+     * to `unwrap().makeNullableAsSpecified(true)`. For `NON_NULL`, the plain
+     * `makeNotNullable()` path is not enough: it only clears the nullable marker,
+     * while `makeDefinitelyNotNullOrNotNull()` can represent nullable-bounded type
+     * parameters as use-site types such as `T & Any`.
+     */
+    private fun transformReturnTypeGenericArgument(originReturnType: KotlinType): KotlinType =
+        when (transformer.transformReturnTypeGenericMode) {
+            TransformReturnTypeGenericMode.NORMAL -> originReturnType
+            TransformReturnTypeGenericMode.NULLABLE -> originReturnType.makeNullable()
+            TransformReturnTypeGenericMode.NON_NULL -> originReturnType.unwrap().makeDefinitelyNotNullOrNotNull()
+        }
 
     open fun init() {
         val returnType = returnType(originFunction.returnType)

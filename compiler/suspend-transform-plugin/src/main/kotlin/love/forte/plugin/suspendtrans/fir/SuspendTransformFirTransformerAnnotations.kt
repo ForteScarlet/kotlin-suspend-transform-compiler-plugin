@@ -22,6 +22,7 @@
 
 package love.forte.plugin.suspendtrans.fir
 
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.utils.toClassId
 import love.forte.plugin.suspendtrans.utils.toInfo
@@ -72,7 +73,11 @@ internal fun SuspendTransformFirTransformer.resolveReturnConeType(
         var typeArguments: Array<ConeTypeProjection> = emptyArray()
 
         if (transformer.transformReturnTypeGeneric) {
-            typeArguments = arrayOf(ConeKotlinTypeProjectionOut(returnTypeRef.coneType))
+            typeArguments = arrayOf(
+                ConeKotlinTypeProjectionOut(
+                    resolveReturnTypeGenericArgument(transformer, returnTypeRef.coneType)
+                )
+            )
         }
 
         returnType.toClassId().createConeType(
@@ -82,6 +87,25 @@ internal fun SuspendTransformFirTransformer.resolveReturnConeType(
         )
     }
     ?: returnTypeRef.coneType
+
+/**
+ * Applies the configured nullability mode to the return type copied into the
+ * transformed return type's generic argument.
+ *
+ * `NULLABLE` asks the FIR type context to explicitly mark the use-site type as
+ * nullable. `NON_NULL` uses Kotlin's definitely-not-null helper so type
+ * parameters with nullable upper bounds can become `T & Any` instead of only
+ * clearing the nullable marker.
+ */
+private fun SuspendTransformFirTransformer.resolveReturnTypeGenericArgument(
+    transformer: Transformer,
+    returnType: ConeKotlinType
+): ConeKotlinType = when (transformer.transformReturnTypeGenericMode) {
+    TransformReturnTypeGenericMode.NORMAL -> returnType
+    TransformReturnTypeGenericMode.NULLABLE -> returnType.withNullability(true, firSession.typeContext)
+    TransformReturnTypeGenericMode.NON_NULL ->
+        returnType.makeConeTypeDefinitelyNotNullOrNotNull(firSession.typeContext)
+}
 
 /**
  * Copies and augments annotations for generated functions, generated properties,
