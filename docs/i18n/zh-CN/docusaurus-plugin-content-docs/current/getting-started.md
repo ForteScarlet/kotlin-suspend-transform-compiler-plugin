@@ -32,6 +32,7 @@ suspendTransformPlugin {
         // 或精确的选择要启用的转化器:
         // addJvmBlocking()
         // addJvmAsync()
+        // addJvmReactive()
         // addJsPromise()
     }
 }
@@ -79,6 +80,28 @@ class Foo {
 
   </TabItem>
 </Tabs>
+
+### Reactive Streams
+
+`@JvmReactive` 会生成 Reactive Streams `Publisher`。
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class Foo {
+    @JvmReactive
+    suspend fun waitAndFind(): String? = null
+}
+```
+
+```kotlin
+class Foo {
+    @Api4J
+    fun waitAndFindReactive(): Publisher<String> = runInReactive { waitAndFind() }
+}
+```
+
+这个 publisher 会发出一个非 `null` 值；当挂起函数返回 `null` 时空完成。JVM
+classpath 需要包含 `org.reactivestreams.Publisher` 和 `kotlinx-coroutines-reactive`。
 
 ## JavaScript 平台
 

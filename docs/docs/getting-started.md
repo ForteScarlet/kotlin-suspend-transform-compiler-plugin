@@ -32,6 +32,7 @@ suspendTransformPlugin {
         // Or configure individually:
         // addJvmBlocking()
         // addJvmAsync()
+        // addJvmReactive()
         // addJsPromise()
     }
 }
@@ -79,6 +80,29 @@ class Foo {
 
   </TabItem>
 </Tabs>
+
+### Reactive Streams
+
+`@JvmReactive` generates a Reactive Streams `Publisher`.
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class Foo {
+    @JvmReactive
+    suspend fun waitAndFind(): String? = null
+}
+```
+
+```kotlin
+class Foo {
+    @Api4J
+    fun waitAndFindReactive(): Publisher<String> = runInReactive { waitAndFind() }
+}
+```
+
+The publisher emits one non-null value or completes empty when the suspend
+function returns `null`. It requires `org.reactivestreams.Publisher` and
+`kotlinx-coroutines-reactive` on the JVM classpath.
 
 ## JavaScript Platform
 

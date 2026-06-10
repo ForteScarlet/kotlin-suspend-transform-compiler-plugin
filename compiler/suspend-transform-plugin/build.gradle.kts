@@ -34,6 +34,7 @@ dependencies {
 //    testImplementation("org.bitbucket.mstrobel:procyon-compilertools:0.6.0")
 
     testImplementation(libs.kotlinx.coroutines.core)
+    testImplementation(libs.kotlinx.coroutines.reactive)
 }
 
 //val compileKotlin: KotlinCompile by tasks

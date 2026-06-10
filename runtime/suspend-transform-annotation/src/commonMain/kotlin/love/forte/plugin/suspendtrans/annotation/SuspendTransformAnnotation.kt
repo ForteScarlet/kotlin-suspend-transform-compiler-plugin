@@ -22,6 +22,11 @@
 
 package love.forte.plugin.suspendtrans.annotation
 
+
+@RequiresOptIn(message = "Experimental jvm api", level = RequiresOptIn.Level.WARNING)
+@Retention(AnnotationRetention.BINARY)
+public annotation class ExperimentalJvmApi
+
 /**
  * Marks an API that is specifically designed for Java interoperability.
  * 
@@ -217,6 +222,72 @@ public expect annotation class JvmAsync(
      *
      * Note: In the JVM, adding `@JvmName` to a non-final function is usually not allowed by the compiler.
      * @since 0.13.0
+     */
+    val markName: String = "",
+)
+
+/**
+ * Generate a Reactive Streams publisher function for Java interoperability based
+ * on the current suspend function.
+ *
+ * When applied to a suspend function like:
+ * ```kotlin
+ * @JvmReactive
+ * suspend fun load(): T?
+ * ```
+ *
+ * It generates:
+ * ```kotlin
+ * @JvmSynthetic
+ * suspend fun load(): T?
+ *
+ * @Api4J
+ * fun loadReactive(): Publisher<T & Any> = runInReactive { load() }
+ * ```
+ *
+ * The generated publisher emits one non-null value when the suspend function
+ * returns a non-null result and completes empty when it returns `null`.
+ *
+ * Requires:
+ * - `org.reactivestreams.Publisher` in your classpath.
+ * - `org.jetbrains.kotlinx:kotlinx-coroutines-reactive` in your classpath.
+ *
+ * @since 0.14.0
+ */
+@OptIn(ExperimentalMultiplatform::class)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+@OptionalExpectation
+@MustBeDocumented
+@ExperimentalJvmApi
+public expect annotation class JvmReactive(
+    /**
+     * The base name of the generated reactive function or the current function
+     * name if empty.
+     *
+     * The final function name is: [baseName] + [suffix].
+     */
+    val baseName: String = "",
+
+    /**
+     * The suffix appended to [baseName] when generating the reactive function name.
+     *
+     * Default value is `"Reactive"`, resulting in names like `fooReactive`.
+     */
+    val suffix: String = "Reactive",
+
+    /**
+     * Specifies whether to generate a property instead of a function.
+     *
+     * Note: If [asProperty] is `true`, the source function cannot have parameters.
+     */
+    val asProperty: Boolean = false,
+
+    /**
+     * The name of [@JvmName][kotlin.jvm.JvmName].
+     *
+     * If [markName] is not empty, [@JvmName][kotlin.jvm.JvmName] is added to the
+     * generated function.
      */
     val markName: String = "",
 )

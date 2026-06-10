@@ -35,6 +35,10 @@ private const val JVM_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME: String = "love.forte.p
 private val JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME: String? = null
 private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME: String = "\$runInAsync\$"
 
+private const val JVM_RUN_IN_REACTIVE_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
+private val JVM_RUN_IN_REACTIVE_FUNCTION_CLASS_NAME: String? = null
+private const val JVM_RUN_IN_REACTIVE_FUNCTION_FUNCTION_NAME: String = "\$runInReactive\$"
+
 private const val JS_RUN_IN_ASYNC_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
 private val JS_RUN_IN_ASYNC_FUNCTION_CLASS_NAME: String? = null
 private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME: String = "\$runInAsync\$"
@@ -254,7 +258,7 @@ open class SuspendTransformConfiguration {
 
     @Deprecated(USE_NEW_EXTENSION)
     open fun useJvmDefault() {
-        transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer)
+        transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer, jvmReactiveTransformer)
     }
 
     @Deprecated(USE_NEW_EXTENSION)
@@ -354,6 +358,46 @@ open class SuspendTransformConfiguration {
             JVM_RUN_IN_ASYNC_FUNCTION_CLASS_NAME,
             JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
         )
+
+        /**
+         * The deprecated `love.forte.plugin.suspendtrans.annotation.JvmReactive` class info.
+         *
+         * Deprecated configuration cannot represent `transformReturnTypeGenericMode`,
+         * so Gradle maps this exact transformer to the new default reactive transformer.
+         *
+         * @since 0.14.0
+         */
+        @JvmStatic
+        val jvmReactiveMarkAnnotationClassInfo =
+            ClassInfo("love.forte.plugin.suspendtrans.annotation", "JvmReactive")
+
+        /**
+         * Deprecated mark annotation mapping for `@JvmReactive`.
+         *
+         * @since 0.14.0
+         */
+        @JvmStatic
+        val jvmReactiveAnnotationInfo = MarkAnnotation(jvmReactiveMarkAnnotationClassInfo, defaultSuffix = "Reactive")
+
+        /**
+         * Deprecated runtime transform function info for `$runInReactive$`.
+         *
+         * @since 0.14.0
+         */
+        @JvmStatic
+        val jvmReactiveTransformFunction = FunctionInfo(
+            JVM_RUN_IN_REACTIVE_FUNCTION_PACKAGE_NAME,
+            JVM_RUN_IN_REACTIVE_FUNCTION_CLASS_NAME,
+            JVM_RUN_IN_REACTIVE_FUNCTION_FUNCTION_NAME,
+        )
+
+        /**
+         * Deprecated Reactive Streams `Publisher` class info.
+         *
+         * @since 0.14.0
+         */
+        @JvmStatic
+        val jvmReactivePublisherClassInfo = ClassInfo("org.reactivestreams", "Publisher")
         //endregion
 
         //region JVM blocking defaults
@@ -369,6 +413,7 @@ open class SuspendTransformConfiguration {
                 jvmSyntheticClassInfo,
                 jvmBlockingMarkAnnotationClassInfo,
                 jvmAsyncMarkAnnotationClassInfo,
+                jvmReactiveMarkAnnotationClassInfo,
                 kotlinOptInClassInfo,
             ),
             syntheticFunctionIncludeAnnotations = listOf(
@@ -392,6 +437,42 @@ open class SuspendTransformConfiguration {
                 jvmSyntheticClassInfo,
                 jvmBlockingMarkAnnotationClassInfo,
                 jvmAsyncMarkAnnotationClassInfo,
+                jvmReactiveMarkAnnotationClassInfo,
+                kotlinOptInClassInfo,
+            ),
+            syntheticFunctionIncludeAnnotations = listOf(
+                IncludeAnnotation(jvmApi4JAnnotationClassInfo).apply {
+                    includeProperty = true
+                }
+            )
+        )
+        //endregion
+
+        //region JVM reactive defaults
+
+        /**
+         * Deprecated default JVM transformer for `@JvmReactive`.
+         *
+         * This value is mainly a compatibility marker for the deprecated Gradle
+         * extension. The new configuration model maps it to
+         * `SuspendTransformConfigurations.jvmReactiveTransformer`, which applies
+         * non-null generic arguments for Reactive Streams elements.
+         *
+         * @since 0.14.0
+         */
+        @JvmStatic
+        val jvmReactiveTransformer = Transformer(
+            markAnnotation = jvmReactiveAnnotationInfo,
+            transformFunctionInfo = jvmReactiveTransformFunction,
+            transformReturnType = jvmReactivePublisherClassInfo,
+            transformReturnTypeGeneric = true,
+            originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+            copyAnnotationsToSyntheticFunction = true,
+            copyAnnotationExcludes = listOf(
+                jvmSyntheticClassInfo,
+                jvmBlockingMarkAnnotationClassInfo,
+                jvmAsyncMarkAnnotationClassInfo,
+                jvmReactiveMarkAnnotationClassInfo,
                 kotlinOptInClassInfo,
             ),
             syntheticFunctionIncludeAnnotations = listOf(
@@ -441,4 +522,3 @@ open class SuspendTransformConfiguration {
 
     }
 }
-

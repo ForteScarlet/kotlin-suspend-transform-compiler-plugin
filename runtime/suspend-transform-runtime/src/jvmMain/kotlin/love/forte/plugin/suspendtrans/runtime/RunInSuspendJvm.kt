@@ -25,9 +25,14 @@
 package love.forte.plugin.suspendtrans.runtime
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.future.future
+import kotlinx.coroutines.reactive.publish
+import kotlinx.coroutines.reactive.publishInternal
+import org.reactivestreams.Publisher
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 // private val
@@ -49,8 +54,7 @@ public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(`$Coro
 private val classLoader: ClassLoader
     get() = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
 
-// 现在是不是最低也是JDK8了？
-// 也许这个判断已经不需要了？
+// The minimum JVM target may already make this check redundant.
 private val jdk8Support: Boolean by lazy {
     runCatching {
         classLoader.loadClass("kotlinx.coroutines.future.FutureKt")
@@ -104,15 +108,44 @@ private val transformer: FutureTransformer by lazy {
 public fun <T> `$runInAsync$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
-): CompletableFuture<T> =
-    // 比起在内部构建一个使用 Dispatchers.IO、并且永不被关闭的 CoroutineScope，
-    // 为何不直接使用 GlobalScope？
-    // 作为作用域：它用不被关闭、无法被关闭
-    // 作为异步调度器：它没必要使用IO
-    // 而对于更加复杂的场景，也许需要考虑完全定制化，
-    // 而不是使用当前这个简单的runtime包内的实现
-    transformer.trans(scope ?: GlobalScope, block)
+): CompletableFuture<T> {
+    // This simple runtime bridge uses GlobalScope instead of keeping an internal
+    // Dispatchers.IO scope that would also live for the whole process lifetime.
+    // More advanced lifecycle needs should use a custom transform runtime.
+    return transformer.trans(scope ?: GlobalScope, block)
+}
 
+/**
+ * Runs [block] as a cold Reactive Streams [Publisher].
+ *
+ * The returned publisher emits one non-null value when [block] completes with a
+ * non-null result, completes empty when [block] returns `null`, and propagates
+ * failures as publisher errors.
+ *
+ * If [scope] is provided, the publisher coroutine is created as a child of that
+ * scope when subscribed.
+ */
+@OptIn(InternalCoroutinesApi::class)
+@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
+@Suppress("FunctionName")
+public fun <T> `$runInReactive$`(
+    block: suspend () -> T,
+    scope: CoroutineScope? = null
+): Publisher<T & Any> {
+    val publisherBlock: suspend ProducerScope<T & Any>.() -> Unit = {
+        block()?.let { send(it) }
+    }
 
+    return if (scope == null) {
+        publish(EmptyCoroutineContext, publisherBlock)
+    } else {
+        publishInternal(scope, EmptyCoroutineContext, ::handleReactiveCancelException, publisherBlock)
+    }
+}
 
-
+@OptIn(InternalCoroutinesApi::class)
+private fun handleReactiveCancelException(cause: Throwable, context: CoroutineContext) {
+    if (cause !is CancellationException) {
+        handleCoroutineException(context, cause)
+    }
+}

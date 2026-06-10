@@ -24,6 +24,7 @@ import { CoverImage } from '@site/src/components/Snippets';
 class Foo {
     @JvmBlocking
     @JvmAsync
+    @JvmReactive
     suspend fun waitAndGet(): String {
         delay(5)
         return "Hello"
@@ -46,8 +47,13 @@ class Foo {
 
     @Api4J
     fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() }
+
+    @Api4J
+    fun waitAndGetReactive(): Publisher<String> = runInReactive { waitAndGet() }
 }
 ```
+
+`@JvmReactive` 返回 Reactive Streams `Publisher`；当挂起函数返回 `null` 时空完成。
 
 ### JavaScript 平台
 
@@ -88,4 +94,3 @@ JS 平台支持在版本 0.6.0 中添加。查看实现详情请参考
 [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 和 [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39)。
 :::
-

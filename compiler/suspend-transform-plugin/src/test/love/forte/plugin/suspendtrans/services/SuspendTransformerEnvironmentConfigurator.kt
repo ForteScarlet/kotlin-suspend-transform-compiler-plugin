@@ -5,6 +5,7 @@ import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmReactiveTransformer
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -33,6 +34,7 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                 TargetPlatform.JVM to listOf(
                     jvmBlockingTransformer,
                     jvmAsyncTransformer,
+                    jvmReactiveTransformer,
                     nullmarkModeTransformer("AsyncNullable", "NullableAsync", TransformReturnTypeGenericMode.NULLABLE),
                     nullmarkModeTransformer("AsyncNonNull", "NonNullAsync", TransformReturnTypeGenericMode.NON_NULL),
                 )
@@ -62,9 +64,24 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                 it
             )
         }
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmReactive")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
 
         // register coroutines
         getRuntimeJarFile("kotlinx.coroutines.CoroutineScope")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("kotlinx.coroutines.reactive.PublishKt")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("org.reactivestreams.Publisher")?.let {
             configuration.addJvmClasspathRoot(
                 it
             )

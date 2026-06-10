@@ -146,6 +146,7 @@ suspendTransformPlugin {
         // 或者单独配置：
         // addJvmBlocking()
         // addJvmAsync()
+        // addJvmReactive()
         // addJsPromise()
     }
 }

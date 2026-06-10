@@ -235,6 +235,69 @@ If `asProperty` is `true`, the function cannot have parameters.
 
 Refer to [Mark Name](../features/mark-name.md).
 
+### JVM Reactive Transformer
+
+The JVM Reactive transformer generates Reactive Streams `Publisher` variants.
+
+#### Configuration {#jvm-reactive-configuration}
+
+```kotlin
+suspendTransformPlugin {
+    transformers {
+        // Way 1: Simple addition
+        addJvmReactive()
+
+        // Way 2: Using configuration object
+        addJvm(SuspendTransformConfigurations.jvmReactiveTransformer)
+    }
+}
+```
+
+#### Usage {#jvm-reactive-usage}
+
+<Tabs>
+  <TabItem value="source" label="Source">
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class ApiService {
+    @JvmReactive
+    suspend fun fetchData(): String? = null
+}
+```
+
+  </TabItem>
+  <TabItem value="compiled" label="Compiled">
+
+```kotlin
+class ApiService {
+    @JvmSynthetic
+    suspend fun fetchData(): String? = null
+
+    @Api4J
+    fun fetchDataReactive(): Publisher<String> =
+        `$runInReactive$`(
+            block = { fetchData() },
+            scope = this as? CoroutineScope
+        )
+}
+```
+
+  </TabItem>
+</Tabs>
+
+#### Key Features {#jvm-reactive-key-features}
+
+- **Default Generated Function Suffix**: `Reactive`
+- **Return Type**: `Publisher<T & Any>` where T is the original return type
+- **Runtime Function**: `$runInReactive$`
+- **Null Handling**: `null` results complete empty
+
+:::note
+This transformer requires `org.reactivestreams.Publisher` and
+`kotlinx-coroutines-reactive` on the JVM classpath.
+:::
+
 ## JavaScript Transformers
 
 ### JS Promise Transformer
@@ -351,7 +414,7 @@ Refer to [Mark Name](../features/mark-name.md).
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        // Includes both addJvmBlocking() and addJvmAsync()
+        // Includes addJvmBlocking(), addJvmAsync(), and addJvmReactive()
         useJvmDefault()
     }
 }
@@ -364,6 +427,7 @@ suspendTransformPlugin {
     transformers {
         addJvmBlocking()
         addJvmAsync()
+        addJvmReactive()
     }
 }
 ```
@@ -395,7 +459,7 @@ This is equivalent to:
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        useJvmDefault()  // JVM Blocking + JVM Async
+        useJvmDefault()  // JVM Blocking + JVM Async + JVM Reactive
         useJsDefault()   // JS Promise
     }
 }
@@ -409,6 +473,7 @@ You can use multiple transformer annotations on the same function:
 class ApiService {
     @JvmBlocking
     @JvmAsync
+    @JvmReactive
     @JsPromise
     suspend fun fetchData(): String {
         delay(1000)
@@ -420,4 +485,5 @@ class ApiService {
 This will generate:
 - `fetchDataBlocking(): String` (JVM)
 - `fetchDataAsync(): CompletableFuture<out String>` (JVM)
+- `fetchDataReactive(): Publisher<String>` (JVM)
 - `fetchDataAsync(): Promise<String>` (JS)

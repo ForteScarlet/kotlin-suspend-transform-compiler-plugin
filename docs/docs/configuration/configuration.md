@@ -146,6 +146,7 @@ suspendTransformPlugin {
         // Or configure individually:
         // addJvmBlocking()
         // addJvmAsync()
+        // addJvmReactive()
         // addJsPromise()
     }
 }

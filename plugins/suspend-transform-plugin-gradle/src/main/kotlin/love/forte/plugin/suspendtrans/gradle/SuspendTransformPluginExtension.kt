@@ -26,6 +26,7 @@ import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmReactiveTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
@@ -537,6 +538,33 @@ abstract class TransformersContainer
         }
     }
 
+    /**
+     * Adds the default JVM Reactive Streams transformer.
+     */
+    fun addJvmReactive() {
+        addJvm(jvmReactiveTransformer)
+    }
+
+    /**
+     * Adds the default JVM Reactive Streams transformer and customizes it with a Gradle [Action].
+     */
+    fun addJvmReactive(action: Action<in TransformerSpec>) {
+        addJvm {
+            from(jvmReactiveTransformer)
+            action.execute(this)
+        }
+    }
+
+    /**
+     * Adds the default JVM Reactive Streams transformer and customizes it with the Kotlin DSL.
+     */
+    fun addJvmReactive(action: TransformerSpec.() -> Unit) {
+        addJvm {
+            from(jvmReactiveTransformer)
+            action()
+        }
+    }
+
     // JS defaults
 
     /**
@@ -562,6 +590,7 @@ abstract class TransformersContainer
     fun useJvmDefault() {
         addJvmBlocking()
         addJvmAsync()
+        addJvmReactive()
     }
 
     /**

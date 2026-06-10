@@ -23,6 +23,7 @@
 package love.forte.plugin.suspendtrans.configuration
 
 import kotlinx.serialization.Serializable
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmReactiveTransformer
 
 // NOTE:
 //   配置信息均使用 `Protobuf` 进行序列化
@@ -505,6 +506,7 @@ object SuspendTransformConfigurations {
 
     private const val JVM_RUN_IN_BLOCKING_FUNCTION_FUNCTION_NAME = "\$runInBlocking$"
     private const val JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
+    private const val JVM_RUN_IN_REACTIVE_FUNCTION_FUNCTION_NAME = "\$runInReactive$"
 
     private const val JS_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME = "\$runInAsync$"
 
@@ -586,6 +588,56 @@ object SuspendTransformConfigurations {
         functionName = JVM_RUN_IN_ASYNC_FUNCTION_FUNCTION_NAME,
     )
 
+    /**
+     * The `love.forte.plugin.suspendtrans.annotation.JvmReactive`.
+     *
+     * @since 0.14.0
+     */
+    @JvmStatic
+    val jvmReactiveMarkAnnotationClassInfo = ClassInfo(
+        packageName = SUSPENDTRANS_ANNOTATION_PACKAGE,
+        className = "JvmReactive"
+    )
+
+    /**
+     * Default mark annotation mapping for [jvmReactiveTransformer].
+     *
+     * @since 0.14.0
+     */
+    @JvmStatic
+    val jvmReactiveAnnotationInfo = MarkAnnotation(
+        classInfo = jvmReactiveMarkAnnotationClassInfo,
+        defaultSuffix = "Reactive",
+        markNameProperty = MarkNameProperty(
+            propertyName = "markName",
+            annotation = jvmNameAnnotationClassInfo,
+            annotationMarkNamePropertyName = "name"
+        )
+    )
+
+    /**
+     * Runtime transform function used by [jvmReactiveTransformer].
+     *
+     * @since 0.14.0
+     */
+    @JvmStatic
+    val jvmReactiveTransformFunction = FunctionInfo(
+        packageName = SUSPENDTRANS_RUNTIME_PACKAGE,
+        functionName = JVM_RUN_IN_REACTIVE_FUNCTION_FUNCTION_NAME,
+    )
+
+    /**
+     * The Reactive Streams `org.reactivestreams.Publisher` return type used by
+     * [jvmReactiveTransformer].
+     *
+     * @since 0.14.0
+     */
+    @JvmStatic
+    val jvmReactivePublisherClassInfo = ClassInfo(
+        packageName = "org.reactivestreams",
+        className = "Publisher"
+    )
+
     @JvmStatic
     val jvmBlockingTransformer = Transformer(
         markAnnotation = jvmBlockingAnnotationInfo,
@@ -604,6 +656,7 @@ object SuspendTransformConfigurations {
             jvmSyntheticClassInfo,
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
+            jvmReactiveMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
             jvmNameAnnotationClassInfo,
         ),
@@ -624,9 +677,41 @@ object SuspendTransformConfigurations {
             jvmSyntheticClassInfo,
             jvmBlockingMarkAnnotationClassInfo,
             jvmAsyncMarkAnnotationClassInfo,
+            jvmReactiveMarkAnnotationClassInfo,
             kotlinOptInClassInfo,
             jvmNameAnnotationClassInfo,
         ),
+    )
+
+    /**
+     * Default JVM transformer for `@JvmReactive`.
+     *
+     * It generates functions returning `org.reactivestreams.Publisher<T & Any>`.
+     * The copied generic argument uses [TransformReturnTypeGenericMode.NON_NULL]
+     * because Reactive Streams publishers must not emit `null`.
+     *
+     * @since 0.14.0
+     */
+    @JvmStatic
+    val jvmReactiveTransformer = Transformer(
+        markAnnotation = jvmReactiveAnnotationInfo,
+        transformFunctionInfo = jvmReactiveTransformFunction,
+        transformReturnType = jvmReactivePublisherClassInfo,
+        transformReturnTypeGeneric = true,
+        originFunctionIncludeAnnotations = listOf(IncludeAnnotation(jvmSyntheticClassInfo)),
+        syntheticFunctionIncludeAnnotations = listOf(
+            IncludeAnnotation(jvmApi4JAnnotationClassInfo, includeProperty = true)
+        ),
+        copyAnnotationsToSyntheticFunction = true,
+        copyAnnotationExcludes = listOf(
+            jvmSyntheticClassInfo,
+            jvmBlockingMarkAnnotationClassInfo,
+            jvmAsyncMarkAnnotationClassInfo,
+            jvmReactiveMarkAnnotationClassInfo,
+            kotlinOptInClassInfo,
+            jvmNameAnnotationClassInfo,
+        ),
+        transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NON_NULL,
     )
     //endregion
 

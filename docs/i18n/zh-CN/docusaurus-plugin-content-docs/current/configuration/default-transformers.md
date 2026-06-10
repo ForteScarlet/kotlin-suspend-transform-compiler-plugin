@@ -235,6 +235,69 @@ val fooAsync: CompletableFuture<out T>
 
 参考 [MarkName](../features/mark-name.md)。
 
+### JVM Reactive 转换器
+
+JVM Reactive 转换器会生成 Reactive Streams `Publisher` 变体。
+
+#### 配置 {#jvm-reactive-configuration}
+
+```kotlin
+suspendTransformPlugin {
+    transformers {
+        // 方式 1：简单添加
+        addJvmReactive()
+
+        // 方式 2：使用配置对象
+        addJvm(SuspendTransformConfigurations.jvmReactiveTransformer)
+    }
+}
+```
+
+#### 用法 {#jvm-reactive-usage}
+
+<Tabs>
+  <TabItem value="source" label="源代码">
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class ApiService {
+    @JvmReactive
+    suspend fun fetchData(): String? = null
+}
+```
+
+  </TabItem>
+  <TabItem value="compiled" label="编译后">
+
+```kotlin
+class ApiService {
+    @JvmSynthetic
+    suspend fun fetchData(): String? = null
+
+    @Api4J
+    fun fetchDataReactive(): Publisher<String> =
+        `$runInReactive$`(
+            block = { fetchData() },
+            scope = this as? CoroutineScope
+        )
+}
+```
+
+  </TabItem>
+</Tabs>
+
+#### 主要特性 {#jvm-reactive-key-features}
+
+- **默认生成函数后缀**：`Reactive`
+- **返回类型**：`Publisher<T & Any>`，其中 T 是原返回类型
+- **运行时函数**：`$runInReactive$`
+- **null 处理**：`null` 结果会空完成
+
+:::note
+这个转换器需要 JVM classpath 中包含 `org.reactivestreams.Publisher` 和
+`kotlinx-coroutines-reactive`。
+:::
+
 ## JavaScript 转换器
 
 ### JS Promise 转换器
@@ -351,7 +414,7 @@ val fooAsync: Promise<T>
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        // 包括 addJvmBlocking() 和 addJvmAsync()
+        // 包括 addJvmBlocking()、addJvmAsync() 和 addJvmReactive()
         useJvmDefault()
     }
 }
@@ -364,6 +427,7 @@ suspendTransformPlugin {
     transformers {
         addJvmBlocking()
         addJvmAsync()
+        addJvmReactive()
     }
 }
 ```
@@ -395,7 +459,7 @@ suspendTransformPlugin {
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        useJvmDefault()  // JVM 阻塞 + JVM 异步
+        useJvmDefault()  // JVM 阻塞 + JVM 异步 + JVM Reactive
         useJsDefault()   // JS Promise
     }
 }
@@ -409,6 +473,7 @@ suspendTransformPlugin {
 class ApiService {
     @JvmBlocking
     @JvmAsync
+    @JvmReactive
     @JsPromise
     suspend fun fetchData(): String {
         delay(1000)
@@ -420,4 +485,5 @@ class ApiService {
 这将生成：
 - `fetchDataBlocking(): String` (JVM)
 - `fetchDataAsync(): CompletableFuture<out String>` (JVM)
+- `fetchDataReactive(): Publisher<String>` (JVM)
 - `fetchDataAsync(): Promise<String>` (JS)
