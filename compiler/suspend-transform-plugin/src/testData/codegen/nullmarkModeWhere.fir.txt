@@ -1,0 +1,72 @@
+FILE: Main.kt
+    public final annotation class AsyncNullable : R|kotlin/Annotation| {
+        public constructor(): R|AsyncNullable| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final annotation class AsyncNonNull : R|kotlin/Annotation| {
+        public constructor(): R|AsyncNonNull| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public open class Foo : R|kotlin/Any| {
+        public constructor(): R|Foo| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public open class Bar : R|Foo| {
+        public constructor(): R|Bar| {
+            super<R|Foo|>()
+        }
+
+    }
+    public abstract interface Marker : R|kotlin/Any| {
+    }
+    public final class MarkedBar : R|Bar|, R|Marker| {
+        public constructor(): R|MarkedBar| {
+            super<R|Bar|>()
+        }
+
+    }
+    public final class NullmarkModeWhere : R|kotlin/Any| {
+        public constructor(): R|NullmarkModeWhere| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|AsyncNullable|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo|, R|Marker|> whereGenericValue(value: R|T|): R|T| {
+            ^whereGenericValue R|<local>/value|
+        }
+
+        @R|AsyncNonNull|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo?|, R|Marker?|> nullableWhereGenericValue(value: R|T|): R|T| {
+            ^nullableWhereGenericValue R|<local>/value|
+        }
+
+        @R|AsyncNonNull|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo|, R|Marker?|> nonNullToNonNullWhereGenericValue(value: R|T|): R|T| {
+            ^nonNullToNonNullWhereGenericValue R|<local>/value|
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo|, R|Marker|> whereGenericValueNullableAsync(value: R|T|): R|java/util/concurrent/CompletableFuture<out T?>| {
+            ^whereGenericValueNullableAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/NullmarkModeWhere|.R|/NullmarkModeWhere.whereGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/NullmarkModeWhere| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo|, R|Marker?|> nonNullToNonNullWhereGenericValueNonNullAsync(value: R|T|): R|java/util/concurrent/CompletableFuture<out T>| {
+            ^nonNullToNonNullWhereGenericValueNonNullAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/NullmarkModeWhere|.R|/NullmarkModeWhere.nonNullToNonNullWhereGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/NullmarkModeWhere| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo?|, R|Marker?|> nullableWhereGenericValueNonNullAsync(value: R|T|): R|java/util/concurrent/CompletableFuture<out T & Any>| {
+            ^nullableWhereGenericValueNonNullAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/NullmarkModeWhere|.R|/NullmarkModeWhere.nullableWhereGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/NullmarkModeWhere| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+    }

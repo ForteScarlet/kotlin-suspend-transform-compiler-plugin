@@ -1,0 +1,223 @@
+FILE fqName:<root> fileName:/Main.kt
+  CLASS ANNOTATION_CLASS name:AsyncNonNull modality:OPEN visibility:public superTypes:[kotlin.Annotation]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.AsyncNonNull
+    CONSTRUCTOR visibility:public returnType:<root>.AsyncNonNull [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS ANNOTATION_CLASS name:AsyncNonNull modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Annotation
+  CLASS ANNOTATION_CLASS name:AsyncNullable modality:OPEN visibility:public superTypes:[kotlin.Annotation]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.AsyncNullable
+    CONSTRUCTOR visibility:public returnType:<root>.AsyncNullable [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS ANNOTATION_CLASS name:AsyncNullable modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Annotation
+  CLASS CLASS name:Bar modality:OPEN visibility:public superTypes:[<root>.Foo]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Bar
+    CONSTRUCTOR visibility:public returnType:<root>.Bar [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.Foo'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Bar modality:OPEN visibility:public superTypes:[<root>.Foo]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.Foo
+  CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo
+    CONSTRUCTOR visibility:public returnType:<root>.Foo [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+  CLASS CLASS name:MarkedBar modality:FINAL visibility:public superTypes:[<root>.Bar; <root>.Marker]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.MarkedBar
+    CONSTRUCTOR visibility:public returnType:<root>.MarkedBar [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.Bar'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:MarkedBar modality:FINAL visibility:public superTypes:[<root>.Bar; <root>.Marker]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Bar
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Marker
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.Bar
+        public open fun hashCode (): kotlin.Int declared in <root>.Marker
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.Bar
+        public open fun toString (): kotlin.String declared in <root>.Marker
+  CLASS CLASS name:NullmarkModeWhere modality:FINAL visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.NullmarkModeWhere
+    CONSTRUCTOR visibility:public returnType:<root>.NullmarkModeWhere [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:NullmarkModeWhere modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nonNullToNonNullWhereGenericValueNonNullAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nonNullToNonNullWhereGenericValueNonNullAsync <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync'
+                    CALL 'public final fun nonNullToNonNullWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullableWhereGenericValueNonNullAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableWhereGenericValueNonNullAsync <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nullableWhereGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nullableWhereGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync'
+                    CALL 'public final fun nullableWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValue): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:whereGenericValueNullableAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo; <root>.Marker] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun whereGenericValueNullableAsync <T> (value: T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.whereGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.whereGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync'
+                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.NullmarkModeWhere.whereGenericValue): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.whereGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync' type=T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync' type=<root>.NullmarkModeWhere origin=null
+    FUN name:nonNullToNonNullWhereGenericValue visibility:public modality:FINAL returnType:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue
+      annotations:
+        AsyncNonNull
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nonNullToNonNullWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere'
+          GET_VAR 'value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue origin=null
+    FUN name:nullableWhereGenericValue visibility:public modality:FINAL returnType:T of <root>.NullmarkModeWhere.nullableWhereGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.nullableWhereGenericValue
+      annotations:
+        AsyncNonNull
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValue): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere'
+          GET_VAR 'value: T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere.nullableWhereGenericValue' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValue origin=null
+    FUN name:whereGenericValue visibility:public modality:FINAL returnType:T of <root>.NullmarkModeWhere.whereGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo; <root>.Marker] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkModeWhere
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkModeWhere.whereGenericValue
+      annotations:
+        AsyncNullable
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun whereGenericValue <T> (value: T of <root>.NullmarkModeWhere.whereGenericValue): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere'
+          GET_VAR 'value: T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere.whereGenericValue' type=T of <root>.NullmarkModeWhere.whereGenericValue origin=null
+  CLASS INTERFACE name:Marker modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Marker
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any

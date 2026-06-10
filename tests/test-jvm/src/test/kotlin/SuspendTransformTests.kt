@@ -23,9 +23,11 @@
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 import love.forte.plugin.suspendtrans.sample.AliasTestClass
+import love.forte.plugin.suspendtrans.sample.NullmarkModeSamples
 import java.lang.reflect.Modifier
 import java.math.BigDecimal
 import java.util.concurrent.CompletableFuture
+import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
@@ -217,5 +219,51 @@ class SuspendTransformTests {
 
         assertEquals(3L, errorReproduction1Async.join())
         assertEquals(BigDecimal("4.5"), errorReproduction2Async.join())
+    }
+
+    @Test
+    fun `transform return type generic nullmark mode test`() {
+        val functions = NullmarkModeSamples::class.functions.associateBy { it.name }
+
+        fun futureArgumentType(functionName: String): KType {
+            val returnType = requireNotNull(functions[functionName]) {
+                "Function $functionName was not generated"
+            }.returnType
+
+            assertEquals(CompletableFuture::class, returnType.classifier)
+            return requireNotNull(returnType.arguments.single().type) {
+                "Function $functionName has no CompletableFuture generic argument"
+            }
+        }
+
+        with(futureArgumentType("stringValueNullableAsync")) {
+            assertEquals("kotlin.String?", toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("genericValueNullableAsync")) {
+            assertTrue(toString().endsWith("?"), toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("whereGenericValueNullableAsync")) {
+            assertTrue(toString().endsWith("?"), toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableStringValueNonNullAsync")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableBoundGenericValueNonNullAsync")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableWhereGenericValueNonNullAsync")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
     }
 }

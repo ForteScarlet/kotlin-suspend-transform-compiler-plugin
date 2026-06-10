@@ -1,0 +1,75 @@
+FILE: Main.kt
+    public final annotation class AsyncNullable : R|kotlin/Annotation| {
+        public constructor(): R|AsyncNullable| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final annotation class AsyncNonNull : R|kotlin/Annotation| {
+        public constructor(): R|AsyncNonNull| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public open class Foo : R|kotlin/Any| {
+        public constructor(): R|Foo| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final class Bar : R|Foo| {
+        public constructor(): R|Bar| {
+            super<R|Foo|>()
+        }
+
+    }
+    public final class NullmarkMode : R|kotlin/Any| {
+        public constructor(): R|NullmarkMode| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|AsyncNullable|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun stringValue(): R|kotlin/String| {
+            ^stringValue String(value)
+        }
+
+        @R|AsyncNullable|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|kotlin/Any|> genericValue(value: R|T|): R|T| {
+            ^genericValue R|<local>/value|
+        }
+
+        @R|AsyncNonNull|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun nullableStringValue(): R|kotlin/String?| {
+            ^nullableStringValue String(value)
+        }
+
+        @R|AsyncNonNull|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo?|> nullableBoundGenericValue(value: R|T|): R|T| {
+            ^nullableBoundGenericValue R|<local>/value|
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun nullableStringValueNonNullAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/String>| {
+            ^nullableStringValueNonNullAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|kotlin/String?| <inline=Unknown>  {
+                ^ this@R|/NullmarkMode|.R|/NullmarkMode.nullableStringValue|()
+            }
+            , (this@R|/NullmarkMode| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|kotlin/Any|> genericValueNullableAsync(value: R|T|): R|java/util/concurrent/CompletableFuture<out T?>| {
+            ^genericValueNullableAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/NullmarkMode|.R|/NullmarkMode.genericValue|(R|<local>/value|)
+            }
+            , (this@R|/NullmarkMode| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo?|> nullableBoundGenericValueNonNullAsync(value: R|T|): R|java/util/concurrent/CompletableFuture<out T & Any>| {
+            ^nullableBoundGenericValueNonNullAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/NullmarkMode|.R|/NullmarkMode.nullableBoundGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/NullmarkMode| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun stringValueNullableAsync(): R|java/util/concurrent/CompletableFuture<out kotlin/String?>| {
+            ^stringValueNullableAsync R|love/forte/plugin/suspendtrans/runtime/$runInAsync$|(suspend fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+                ^ this@R|/NullmarkMode|.R|/NullmarkMode.stringValue|()
+            }
+            , (this@R|/NullmarkMode| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+    }

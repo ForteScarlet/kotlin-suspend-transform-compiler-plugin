@@ -106,6 +106,8 @@ suspendTransformPlugin {
 配置您的自定义转换函数：
 
 ```kotlin
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+
 suspendTransformPlugin {
     transformers {
         addJvm {
@@ -122,6 +124,7 @@ suspendTransformPlugin {
             // 返回类型配置
             transformReturnType = null  // null 表示与原函数相同的类型
             transformReturnTypeGeneric = false  // 如果返回类型有泛型则为 true
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NORMAL
         }
     }
 }
@@ -185,6 +188,58 @@ transformReturnTypeGeneric = false
 transformReturnType = "java.util.concurrent.CompletableFuture"
 transformReturnTypeGeneric = true
 ```
+
+#### 泛型实参空性
+
+当 `transformReturnTypeGeneric` 为 `true` 时，
+`transformReturnTypeGenericMode` 用来控制原返回类型复制到转换返回类型泛型实参时的空性。
+
+这个配置的主要动机是 `NON_NULL`。有些包装类型描述的是“发出的元素”，而不是一个
+可以保存 `null` 的值槽。例如 Reactive Streams 风格的 API，像 Reactor
+`Mono<T>`，可以用空完成表示没有元素，但不能发出 `null`。这种包装类型在转换后
+通常应该暴露非空的泛型实参，即使源挂起函数返回的是上界可能可空的类型参数。
+
+`NULLABLE` 则用于相反场景：包装类型明确需要承载可空值。
+
+设置此选项时，需要在 Gradle 脚本中导入枚举：
+
+```kotlin
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+```
+
+可选模式：
+
+- `TransformReturnTypeGenericMode.NORMAL`：保持原返回类型不变。这是默认值。
+- `TransformReturnTypeGenericMode.NULLABLE`：让复制后的泛型实参可空。
+- `TransformReturnTypeGenericMode.NON_NULL`：让复制后的泛型实参非空。
+
+示例：
+
+```kotlin
+transformReturnType = "java.util.concurrent.CompletableFuture"
+transformReturnTypeGeneric = true
+transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NON_NULL
+```
+
+也可以使用 DSL 便捷方法：
+
+```kotlin
+transformReturnTypeGenericModeNonNull()
+```
+
+对于如下源函数：
+
+```kotlin
+suspend fun <T : Foo?> load(): T
+```
+
+`NON_NULL` 不会修改原类型参数声明，而是在使用点表达非空要求，生成类似
+`CompletableFuture<out T & Any>` 的类型。
+
+对于返回 `Mono<T>` 的 Reactor 风格转换器，同一个源函数会表达为类似
+`Mono<T & Any>` 的使用点类型。这个配置只改变生成的类型签名；转换函数本身仍然
+需要满足包装类型的运行时语义，例如在包装类型不能发出 `null` 时，将 `null` 结果
+转换为空完成，而不是发出 `null`。
 
 #### 特定返回类型
 

@@ -1,0 +1,204 @@
+FILE fqName:<root> fileName:/Main.kt
+  CLASS ANNOTATION_CLASS name:AsyncNonNull modality:OPEN visibility:public superTypes:[kotlin.Annotation]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.AsyncNonNull
+    CONSTRUCTOR visibility:public returnType:<root>.AsyncNonNull [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS ANNOTATION_CLASS name:AsyncNonNull modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Annotation
+  CLASS ANNOTATION_CLASS name:AsyncNullable modality:OPEN visibility:public superTypes:[kotlin.Annotation]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.AsyncNullable
+    CONSTRUCTOR visibility:public returnType:<root>.AsyncNullable [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS ANNOTATION_CLASS name:AsyncNullable modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Annotation
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Annotation
+  CLASS CLASS name:Bar modality:FINAL visibility:public superTypes:[<root>.Foo]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Bar
+    CONSTRUCTOR visibility:public returnType:<root>.Bar [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.Foo'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Bar modality:FINAL visibility:public superTypes:[<root>.Foo]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in <root>.Foo
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in <root>.Foo
+  CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo
+    CONSTRUCTOR visibility:public returnType:<root>.Foo [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+  CLASS CLASS name:NullmarkMode modality:FINAL visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.NullmarkMode
+    CONSTRUCTOR visibility:public returnType:<root>.NullmarkMode [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:NullmarkMode modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:genericValueNullableAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkMode.genericValueNullableAsync
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun genericValueNullableAsync <T> (value: T of <root>.NullmarkMode.genericValueNullableAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkMode'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkMode.genericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkMode.genericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkMode.genericValue declared in <root>.NullmarkMode.genericValueNullableAsync'
+                    CALL 'public final fun genericValue <T> (value: T of <root>.NullmarkMode.genericValue): T of <root>.NullmarkMode.genericValue declared in <root>.NullmarkMode' type=T of <root>.NullmarkMode.genericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.genericValueNullableAsync' type=<root>.NullmarkMode origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.NullmarkMode.genericValueNullableAsync declared in <root>.NullmarkMode.genericValueNullableAsync' type=T of <root>.NullmarkMode.genericValueNullableAsync origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.genericValueNullableAsync' type=<root>.NullmarkMode origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullableBoundGenericValueNonNullAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableBoundGenericValueNonNullAsync <T> (value: T of <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkMode'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkMode.nullableBoundGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkMode.nullableBoundGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkMode.nullableBoundGenericValue declared in <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync'
+                    CALL 'public final fun nullableBoundGenericValue <T> (value: T of <root>.NullmarkMode.nullableBoundGenericValue): T of <root>.NullmarkMode.nullableBoundGenericValue declared in <root>.NullmarkMode' type=T of <root>.NullmarkMode.nullableBoundGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync' type=<root>.NullmarkMode origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync declared in <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync' type=T of <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.nullableBoundGenericValueNonNullAsync' type=<root>.NullmarkMode origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullableStringValueNonNullAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableStringValueNonNullAsync (): java.util.concurrent.CompletableFuture declared in <root>.NullmarkMode'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String?> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String? [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String? declared in <root>.NullmarkMode.nullableStringValueNonNullAsync'
+                    CALL 'public final fun nullableStringValue (): kotlin.String? declared in <root>.NullmarkMode' type=kotlin.String? origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.nullableStringValueNonNullAsync' type=<root>.NullmarkMode origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.nullableStringValueNonNullAsync' type=<root>.NullmarkMode origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:stringValueNullableAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun stringValueNullableAsync (): java.util.concurrent.CompletableFuture declared in <root>.NullmarkMode'
+          CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.NullmarkMode.stringValueNullableAsync'
+                    CALL 'public final fun stringValue (): kotlin.String declared in <root>.NullmarkMode' type=kotlin.String origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.stringValueNullableAsync' type=<root>.NullmarkMode origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.NullmarkMode declared in <root>.NullmarkMode.stringValueNullableAsync' type=<root>.NullmarkMode origin=null
+    FUN name:genericValue visibility:public modality:FINAL returnType:T of <root>.NullmarkMode.genericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkMode.genericValue
+      annotations:
+        AsyncNullable
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun genericValue <T> (value: T of <root>.NullmarkMode.genericValue): T of <root>.NullmarkMode.genericValue declared in <root>.NullmarkMode'
+          GET_VAR 'value: T of <root>.NullmarkMode.genericValue declared in <root>.NullmarkMode.genericValue' type=T of <root>.NullmarkMode.genericValue origin=null
+    FUN name:nullableBoundGenericValue visibility:public modality:FINAL returnType:T of <root>.NullmarkMode.nullableBoundGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.NullmarkMode.nullableBoundGenericValue
+      annotations:
+        AsyncNonNull
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableBoundGenericValue <T> (value: T of <root>.NullmarkMode.nullableBoundGenericValue): T of <root>.NullmarkMode.nullableBoundGenericValue declared in <root>.NullmarkMode'
+          GET_VAR 'value: T of <root>.NullmarkMode.nullableBoundGenericValue declared in <root>.NullmarkMode.nullableBoundGenericValue' type=T of <root>.NullmarkMode.nullableBoundGenericValue origin=null
+    FUN name:nullableStringValue visibility:public modality:FINAL returnType:kotlin.String? [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      annotations:
+        AsyncNonNull
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableStringValue (): kotlin.String? declared in <root>.NullmarkMode'
+          CONST String type=kotlin.String value="value"
+    FUN name:stringValue visibility:public modality:FINAL returnType:kotlin.String [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.NullmarkMode
+      annotations:
+        AsyncNullable
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun stringValue (): kotlin.String declared in <root>.NullmarkMode'
+          CONST String type=kotlin.String value="value"
