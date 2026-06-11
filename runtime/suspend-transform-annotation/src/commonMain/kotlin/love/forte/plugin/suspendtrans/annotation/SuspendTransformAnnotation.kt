@@ -249,8 +249,10 @@ public expect annotation class JvmAsync(
  * returns a non-null result and completes empty when it returns `null`.
  *
  * Requires:
- * - `org.reactivestreams.Publisher` in your classpath.
- * - `org.jetbrains.kotlinx:kotlinx-coroutines-reactive` in your classpath.
+ * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) in your classpath.
+ * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md) in your classpath.
+ *
+ * Add these dependencies to the user JVM project or source set manually.
  *
  * @since 0.14.0
  */

@@ -258,7 +258,7 @@ open class SuspendTransformConfiguration {
 
     @Deprecated(USE_NEW_EXTENSION)
     open fun useJvmDefault() {
-        transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer, jvmReactiveTransformer)
+        transformers[TargetPlatform.JVM] = mutableListOf(jvmBlockingTransformer, jvmAsyncTransformer)
     }
 
     @Deprecated(USE_NEW_EXTENSION)
@@ -457,6 +457,12 @@ open class SuspendTransformConfiguration {
          * extension. The new configuration model maps it to
          * `SuspendTransformConfigurations.jvmReactiveTransformer`, which applies
          * non-null generic arguments for Reactive Streams elements.
+         *
+         * Requires the target JVM classpath to contain:
+         * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+         * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+         *
+         * These dependencies are not added automatically by this transformer.
          *
          * @since 0.14.0
          */

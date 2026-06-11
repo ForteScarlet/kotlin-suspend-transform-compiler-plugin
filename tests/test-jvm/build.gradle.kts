@@ -48,6 +48,7 @@ suspendTransformPlugin {
     includeRuntime = false
     transformers {
         useDefault()
+        addJvmReactive()
         addJvm {
             markAnnotation {
                 classInfo {

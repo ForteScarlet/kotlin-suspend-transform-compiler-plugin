@@ -540,6 +540,13 @@ abstract class TransformersContainer
 
     /**
      * Adds the default JVM Reactive Streams transformer.
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
      */
     fun addJvmReactive() {
         addJvm(jvmReactiveTransformer)
@@ -547,6 +554,13 @@ abstract class TransformersContainer
 
     /**
      * Adds the default JVM Reactive Streams transformer and customizes it with a Gradle [Action].
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
      */
     fun addJvmReactive(action: Action<in TransformerSpec>) {
         addJvm {
@@ -557,6 +571,13 @@ abstract class TransformersContainer
 
     /**
      * Adds the default JVM Reactive Streams transformer and customizes it with the Kotlin DSL.
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
      */
     fun addJvmReactive(action: TransformerSpec.() -> Unit) {
         addJvm {
@@ -590,7 +611,6 @@ abstract class TransformersContainer
     fun useJvmDefault() {
         addJvmBlocking()
         addJvmAsync()
-        addJvmReactive()
     }
 
     /**

@@ -55,6 +55,9 @@ class Foo {
 
 `@JvmReactive` 返回 Reactive Streams `Publisher`；当挂起函数返回 `null` 时空完成。
 
+需要显式启用 `addJvmReactive()`，并由用户 JVM classpath 自行添加 reactive 依赖。
+详见 [默认转换器](./configuration/default-transformers.md#jvm-reactive-configuration)。
+
 ### JavaScript 平台
 
 ```kotlin

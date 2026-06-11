@@ -25,24 +25,29 @@
 package love.forte.plugin.suspendtrans.runtime
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.reactive.publish
-import kotlinx.coroutines.reactive.publishInternal
 import org.reactivestreams.Publisher
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-
-// private val
-
-@Suppress("ObjectPropertyName", "unused")
+@Suppress("ObjectPropertyName")
 private val `$CoroutineContext4J$`: CoroutineContext = Dispatchers.IO
 
-@Suppress("ObjectPropertyName", "unused")
-private val `$CoroutineScope4J$`: CoroutineScope = CoroutineScope(`$CoroutineContext4J$`)
-
+/**
+ * Runs [block] to completion for generated JVM blocking bridges.
+ *
+ * This bridge blocks the calling thread and runs the suspend body with
+ * [Dispatchers.IO]. The IO dispatcher is a conservative default for Java
+ * interop and potentially blocking suspend work, but the caller is still
+ * blocked until completion.
+ *
+ * Do not call generated blocking bridges from coroutines, UI/event-loop
+ * threads, or other thread-limited execution paths. Use a custom transform
+ * runtime when a specific dispatcher, transaction context, MDC, or thread
+ * affinity is required.
+ */
 @Suppress("FunctionName")
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Throws(InterruptedException::class)
@@ -101,7 +106,13 @@ private val transformer: FutureTransformer by lazy {
     else SimpleTransformer
 }
 
-
+/**
+ * Runs [block] as a [CompletableFuture] for generated JVM async bridges.
+ *
+ * If [scope] is provided, the coroutine is launched in that scope. Otherwise,
+ * this bridge uses [GlobalScope]. Cancelling the returned future cancels the
+ * coroutine; dropping the future without cancellation does not.
+ */
 @OptIn(DelicateCoroutinesApi::class)
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Suppress("FunctionName")
@@ -122,30 +133,24 @@ public fun <T> `$runInAsync$`(
  * non-null result, completes empty when [block] returns `null`, and propagates
  * failures as publisher errors.
  *
- * If [scope] is provided, the publisher coroutine is created as a child of that
- * scope when subscribed.
+ * The [scope] parameter is kept for generated bridge compatibility and for a
+ * possible future runtime strategy, but it is intentionally ignored by this
+ * default bridge. It is not used as a coroutine parent or dispatcher source.
+ *
+ * Reactive Streams lifecycle is controlled by `Subscription.cancel()`, and
+ * dispatcher or lifecycle requirements should be expressed inside [block] or by
+ * a custom transform runtime.
  */
-@OptIn(InternalCoroutinesApi::class)
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
-@Suppress("FunctionName")
+@Suppress("FunctionName", "UNUSED_PARAMETER")
 public fun <T> `$runInReactive$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
 ): Publisher<T & Any> {
-    val publisherBlock: suspend ProducerScope<T & Any>.() -> Unit = {
+    // Reactive APIs should keep scheduling and lifecycle decisions at the
+    // subscription chain or in the suspend block, so this default bridge does
+    // not attach the publisher coroutine to an owner CoroutineScope.
+    return publish(EmptyCoroutineContext) {
         block()?.let { send(it) }
-    }
-
-    return if (scope == null) {
-        publish(EmptyCoroutineContext, publisherBlock)
-    } else {
-        publishInternal(scope, EmptyCoroutineContext, ::handleReactiveCancelException, publisherBlock)
-    }
-}
-
-@OptIn(InternalCoroutinesApi::class)
-private fun handleReactiveCancelException(cause: Throwable, context: CoroutineContext) {
-    if (cause !is CancellationException) {
-        handleCoroutineException(context, cause)
     }
 }

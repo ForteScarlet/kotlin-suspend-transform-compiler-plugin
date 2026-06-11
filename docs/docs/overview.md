@@ -56,6 +56,10 @@ class Foo {
 `@JvmReactive` returns a Reactive Streams `Publisher` and completes empty when
 the suspend function returns `null`.
 
+Enable `addJvmReactive()` explicitly and add the required reactive dependencies
+to the user JVM classpath manually. See
+[Default Transformers](./configuration/default-transformers.md#jvm-reactive-configuration).
+
 ### JavaScript Platform
 
 ```kotlin

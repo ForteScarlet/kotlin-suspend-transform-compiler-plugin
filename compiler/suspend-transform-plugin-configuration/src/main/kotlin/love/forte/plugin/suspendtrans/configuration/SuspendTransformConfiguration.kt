@@ -690,6 +690,12 @@ object SuspendTransformConfigurations {
      * The copied generic argument uses [TransformReturnTypeGenericMode.NON_NULL]
      * because Reactive Streams publishers must not emit `null`.
      *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * These dependencies are not added automatically by this transformer.
+     *
      * @since 0.14.0
      */
     @JvmStatic

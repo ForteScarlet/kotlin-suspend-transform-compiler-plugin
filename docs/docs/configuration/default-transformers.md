@@ -87,6 +87,21 @@ class ApiService {
 - **Return Type**: Same as the original function
 - **Runtime Function**: `$runInBlocking$` (based on `kotlinx.coroutines.runBlocking`)
 
+#### Lifecycle And Dispatcher {#jvm-blocking-lifecycle}
+
+The generated blocking bridge is only intended for Java-style blocking
+interop. It blocks the calling thread until the suspend function completes.
+Thread interruption cancels the bridge and is reported as `InterruptedException`.
+
+The default runtime uses `runBlocking(Dispatchers.IO)`. This keeps the suspend
+body off the calling thread after dispatch and is a conservative default for
+possibly blocking work, but the caller is still blocked. Avoid generated
+blocking bridges from coroutines, UI/event-loop threads, or other thread-limited
+execution paths.
+
+Use a custom transformer/runtime when a specific dispatcher, transaction
+context, MDC, or thread affinity is required.
+
 #### Mark Annotation {#jvm-blocking-mark-annotation}
 
 `@JvmBlocking` provides some properties to change the default values and customize the generated function results.
@@ -196,6 +211,16 @@ class ApiService {
 - **Runtime Function**: `$runInAsync$`
 - **Scope Handling**: Uses the current `CoroutineScope` if available, otherwise `GlobalScope`
 
+#### Lifecycle And Cancellation {#jvm-async-lifecycle}
+
+If the receiver is a `CoroutineScope`, the generated bridge launches the
+coroutine in that scope. Otherwise, the default runtime uses `GlobalScope`.
+
+Cancelling the returned `CompletableFuture` cancels the coroutine. Dropping a
+long-running future without cancelling it does not stop the underlying work, so
+Java callers should keep and cancel the returned future when the operation is no
+longer needed.
+
 #### Mark Annotation {#jvm-async-mark-annotation}
 
 `@JvmAsync` provides some properties to change the default values and customize the generated function results.
@@ -292,10 +317,27 @@ class ApiService {
 - **Return Type**: `Publisher<T & Any>` where T is the original return type
 - **Runtime Function**: `$runInReactive$`
 - **Null Handling**: `null` results complete empty
+- **Scope Handling**: the generated call may pass a `CoroutineScope`, but the
+  default runtime keeps the parameter only for generated bridge compatibility
+  and future runtime strategies. It does not use it as a coroutine parent or
+  dispatcher source.
+
+#### Lifecycle And Cancellation {#jvm-reactive-lifecycle}
+
+The returned `Publisher` is cold: the suspend block starts when a subscriber
+subscribes. Cancelling the Reactive Streams `Subscription` cancels the publisher
+coroutine.
+
+Reactive scheduling is not configured by the default bridge. Use the caller's
+reactive chain, `withContext` inside the suspend function, or a custom
+transformer/runtime for dispatcher or lifecycle requirements.
 
 :::note
-This transformer requires `org.reactivestreams.Publisher` and
-`kotlinx-coroutines-reactive` on the JVM classpath.
+This transformer requires
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) and
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+on the JVM classpath. These dependencies are not added automatically by
+`addJvmReactive()`; add them to the user JVM project or source set.
 :::
 
 ## JavaScript Transformers
@@ -414,7 +456,7 @@ Refer to [Mark Name](../features/mark-name.md).
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        // Includes addJvmBlocking(), addJvmAsync(), and addJvmReactive()
+        // Includes addJvmBlocking() and addJvmAsync()
         useJvmDefault()
     }
 }
@@ -427,10 +469,11 @@ suspendTransformPlugin {
     transformers {
         addJvmBlocking()
         addJvmAsync()
-        addJvmReactive()
     }
 }
 ```
+
+`addJvmReactive()` is not included in `useJvmDefault()` and must be enabled explicitly.
 
 ### Combined JS Transformers
 
@@ -459,7 +502,7 @@ This is equivalent to:
 ```kotlin
 suspendTransformPlugin {
     transformers {
-        useJvmDefault()  // JVM Blocking + JVM Async + JVM Reactive
+        useJvmDefault()  // JVM Blocking + JVM Async
         useJsDefault()   // JS Promise
     }
 }

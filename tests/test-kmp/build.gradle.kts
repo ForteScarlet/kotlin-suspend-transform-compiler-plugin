@@ -95,6 +95,7 @@ suspendTransformPlugin {
     includeAnnotation = false
     transformers {
         useJvmDefault()
+        addJvmReactive()
         addJvm {
             markAnnotation {
                 classInfo {

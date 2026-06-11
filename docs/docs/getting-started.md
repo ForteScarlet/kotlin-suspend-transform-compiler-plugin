@@ -26,14 +26,16 @@ For more information on configuration, refer to [Configuration](./configuration/
 suspendTransformPlugin {
     // `enable = true` is default.
     transformers {
-        // Use all default transformers
+        // Use the standard default transformers.
         useDefault()
 
         // Or configure individually:
         // addJvmBlocking()
         // addJvmAsync()
-        // addJvmReactive()
         // addJsPromise()
+
+        // Enable Reactive Streams explicitly when needed:
+        // addJvmReactive()
     }
 }
 ```
@@ -101,8 +103,11 @@ class Foo {
 ```
 
 The publisher emits one non-null value or completes empty when the suspend
-function returns `null`. It requires `org.reactivestreams.Publisher` and
-`kotlinx-coroutines-reactive` on the JVM classpath.
+function returns `null`. It requires
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) and
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+on the JVM classpath. Add these dependencies to the user JVM project or source
+set manually.
 
 ## JavaScript Platform
 
