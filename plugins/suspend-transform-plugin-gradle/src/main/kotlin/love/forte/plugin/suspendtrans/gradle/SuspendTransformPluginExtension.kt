@@ -26,6 +26,7 @@ import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmReactiveTransformer
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
@@ -533,6 +534,54 @@ abstract class TransformersContainer
     fun addJvmAsync(action: TransformerSpec.() -> Unit) {
         addJvm {
             from(jvmAsyncTransformer)
+            action()
+        }
+    }
+
+    /**
+     * Adds the default JVM Reactive Streams transformer.
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
+     */
+    fun addJvmReactive() {
+        addJvm(jvmReactiveTransformer)
+    }
+
+    /**
+     * Adds the default JVM Reactive Streams transformer and customizes it with a Gradle [Action].
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
+     */
+    fun addJvmReactive(action: Action<in TransformerSpec>) {
+        addJvm {
+            from(jvmReactiveTransformer)
+            action.execute(this)
+        }
+    }
+
+    /**
+     * Adds the default JVM Reactive Streams transformer and customizes it with the Kotlin DSL.
+     *
+     * Requires the target JVM classpath to contain:
+     * - [`org.reactivestreams.Publisher`](https://www.reactive-streams.org/)
+     * - [`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+     *
+     * This method registers only the transformer; it does not add these
+     * dependencies automatically.
+     */
+    fun addJvmReactive(action: TransformerSpec.() -> Unit) {
+        addJvm {
+            from(jvmReactiveTransformer)
             action()
         }
     }

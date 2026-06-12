@@ -194,6 +194,10 @@ private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformP
                             transformerContainer.add(target, SuspendTransformConfigurations.jvmAsyncTransformer)
                         }
 
+                        DeprecatedSuspendTransformConfiguration.jvmReactiveTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmReactiveTransformer)
+                        }
+
                         DeprecatedSuspendTransformConfiguration.jsPromiseTransformer -> {
                             transformerContainer.add(target, SuspendTransformConfigurations.jsPromiseTransformer)
                         }

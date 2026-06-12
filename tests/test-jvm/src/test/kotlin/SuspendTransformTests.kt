@@ -20,10 +20,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
+import love.forte.plugin.suspendtrans.annotation.Api4J
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 import love.forte.plugin.suspendtrans.sample.AliasTestClass
+import love.forte.plugin.suspendtrans.sample.JvmReactiveScopedSamples
+import love.forte.plugin.suspendtrans.sample.JvmReactiveSamples
 import love.forte.plugin.suspendtrans.sample.NullmarkModeSamples
+import org.reactivestreams.Publisher
 import java.lang.reflect.Modifier
 import java.math.BigDecimal
 import java.util.concurrent.CompletableFuture
@@ -264,6 +271,61 @@ class SuspendTransformTests {
         with(futureArgumentType("nullableWhereGenericValueNonNullAsync")) {
             assertTrue(toString().contains("&") && toString().contains("Any"), toString())
             assertFalse(isMarkedNullable)
+        }
+    }
+
+    @OptIn(Api4J::class)
+    @Test
+    fun `jvm reactive transform test`() {
+        val functions = JvmReactiveSamples::class.functions.associateBy { it.name }
+
+        fun publisherArgumentType(functionName: String): KType {
+            val returnType = requireNotNull(functions[functionName]) {
+                "Function $functionName was not generated"
+            }.returnType
+
+            assertEquals(Publisher::class, returnType.classifier)
+            return requireNotNull(returnType.arguments.single().type) {
+                "Function $functionName has no Publisher generic argument"
+            }
+        }
+
+        with(publisherArgumentType("stringValueReactive")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("nullableStringValueReactive")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("nullableBoundGenericValueReactive")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("whereGenericValueReactive")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(JvmReactiveSamples::class.memberProperties.single { it.name == "nullablePropertyValueReactive" }) {
+            assertEquals(Publisher::class, returnType.classifier)
+            val argumentType = requireNotNull(returnType.arguments.single().type)
+            assertEquals("kotlin.String", argumentType.toString())
+            assertFalse(argumentType.isMarkedNullable)
+        }
+
+        val samples = JvmReactiveSamples()
+        assertEquals("value", runBlocking { samples.stringValueReactive().awaitFirstOrNull() })
+        assertNull(runBlocking { samples.nullableStringValueReactive().awaitFirstOrNull() })
+
+        val scopedSamples = JvmReactiveScopedSamples()
+        try {
+            assertEquals("scoped", runBlocking { scopedSamples.scopedValueReactive().awaitFirstOrNull() })
+        } finally {
+            scopedSamples.cancel()
         }
     }
 }

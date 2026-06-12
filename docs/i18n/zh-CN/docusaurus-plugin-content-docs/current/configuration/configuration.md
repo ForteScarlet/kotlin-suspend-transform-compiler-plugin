@@ -140,13 +140,21 @@ suspendTransformPlugin {
 
     // 配置转换器
     transformers {
-        // 使用所有默认转换器
+        // 使用标准默认转换器
         useDefault()
 
         // 或者单独配置：
         // addJvmBlocking()
         // addJvmAsync()
         // addJsPromise()
+
+        // 如需 Reactive Streams，显式启用：
+        // addJvmReactive()
     }
 }
 ```
+
+`addJvmReactive()` 需要目标 JVM classpath 中包含
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) 和
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)。
+这些依赖需要由用户 JVM 项目或 source set 自行添加。

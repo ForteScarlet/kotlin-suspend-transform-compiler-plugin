@@ -26,13 +26,16 @@ For more information on configuration, refer to [Configuration](./configuration/
 suspendTransformPlugin {
     // `enable = true` is default.
     transformers {
-        // Use all default transformers
+        // Use the standard default transformers.
         useDefault()
 
         // Or configure individually:
         // addJvmBlocking()
         // addJvmAsync()
         // addJsPromise()
+
+        // Enable Reactive Streams explicitly when needed:
+        // addJvmReactive()
     }
 }
 ```
@@ -79,6 +82,32 @@ class Foo {
 
   </TabItem>
 </Tabs>
+
+### Reactive Streams
+
+`@JvmReactive` generates a Reactive Streams `Publisher`.
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class Foo {
+    @JvmReactive
+    suspend fun waitAndFind(): String? = null
+}
+```
+
+```kotlin
+class Foo {
+    @Api4J
+    fun waitAndFindReactive(): Publisher<String> = runInReactive { waitAndFind() }
+}
+```
+
+The publisher emits one non-null value or completes empty when the suspend
+function returns `null`. It requires
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) and
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+on the JVM classpath. Add these dependencies to the user JVM project or source
+set manually.
 
 ## JavaScript Platform
 

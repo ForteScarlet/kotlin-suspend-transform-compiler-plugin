@@ -87,6 +87,19 @@ class ApiService {
 - **返回类型**：与原函数相同
 - **运行时函数**：`$runInBlocking$`（基于 `kotlinx.coroutines.runBlocking`）
 
+#### 生命周期与调度 {#jvm-blocking-lifecycle}
+
+生成的 blocking bridge 只面向 Java 风格的阻塞互操作。它会阻塞调用线程，直到
+挂起函数完成。线程中断会取消 bridge，并以 `InterruptedException` 报告。
+
+默认 runtime 使用 `runBlocking(Dispatchers.IO)`。这会在调度后让 suspend 主体
+离开调用线程执行，是面对可能阻塞的工作时较保守的默认值；但调用线程仍然会被
+阻塞。不要在 coroutine、UI/event-loop 线程或其他线程受限的执行路径中调用生成的
+blocking bridge。
+
+如果需要特定 dispatcher、事务上下文、MDC 或线程亲和性，请使用自定义
+transformer/runtime。
+
 #### 标记注解 {#jvm-blocking-mark-annotation}
 
 `@JvmBlocking` 提供一些属性来更改默认值并自定义生成的函数结果。
@@ -196,6 +209,14 @@ class ApiService {
 - **运行时函数**：`$runInAsync$`
 - **作用域处理**：如果可用，使用当前 `CoroutineScope`，否则使用 `GlobalScope`
 
+#### 生命周期与取消 {#jvm-async-lifecycle}
+
+如果 receiver 是 `CoroutineScope`，生成的 bridge 会在该 scope 中启动 coroutine。
+否则，默认 runtime 使用 `GlobalScope`。
+
+取消返回的 `CompletableFuture` 会取消 coroutine。丢弃一个长期运行的 future 但不
+取消它，并不会停止底层工作；Java 调用方应保存并在不再需要时取消返回的 future。
+
 #### 标记注解 {#jvm-async-mark-annotation}
 
 `@JvmAsync` 提供一些属性来更改默认值并自定义生成的函数结果。
@@ -234,6 +255,83 @@ val fooAsync: CompletableFuture<out T>
 ##### markName {#jvmasync-markname}
 
 参考 [MarkName](../features/mark-name.md)。
+
+### JVM Reactive 转换器
+
+JVM Reactive 转换器会生成 Reactive Streams `Publisher` 变体。
+
+#### 配置 {#jvm-reactive-configuration}
+
+```kotlin
+suspendTransformPlugin {
+    transformers {
+        // 方式 1：简单添加
+        addJvmReactive()
+
+        // 方式 2：使用配置对象
+        addJvm(SuspendTransformConfigurations.jvmReactiveTransformer)
+    }
+}
+```
+
+#### 用法 {#jvm-reactive-usage}
+
+<Tabs>
+  <TabItem value="source" label="源代码">
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class ApiService {
+    @JvmReactive
+    suspend fun fetchData(): String? = null
+}
+```
+
+  </TabItem>
+  <TabItem value="compiled" label="编译后">
+
+```kotlin
+class ApiService {
+    @JvmSynthetic
+    suspend fun fetchData(): String? = null
+
+    @Api4J
+    fun fetchDataReactive(): Publisher<String> =
+        `$runInReactive$`(
+            block = { fetchData() },
+            scope = this as? CoroutineScope
+        )
+}
+```
+
+  </TabItem>
+</Tabs>
+
+#### 主要特性 {#jvm-reactive-key-features}
+
+- **默认生成函数后缀**：`Reactive`
+- **返回类型**：`Publisher<T & Any>`，其中 T 是原返回类型
+- **运行时函数**：`$runInReactive$`
+- **null 处理**：`null` 结果会空完成
+- **作用域处理**：生成调用可能传入 `CoroutineScope`，但默认 runtime 仅为生成
+  bridge 兼容性和未来运行时策略保留该参数，不会把它作为 coroutine parent 或
+  dispatcher 来源。
+
+#### 生命周期与取消 {#jvm-reactive-lifecycle}
+
+返回的 `Publisher` 是 cold publisher：subscriber 订阅时才会启动 suspend block。
+取消 Reactive Streams `Subscription` 会取消 publisher coroutine。
+
+默认 bridge 不配置 reactive 调度。需要 dispatcher 或生命周期约束时，应使用调用方
+reactive 链、在 suspend 函数内部使用 `withContext`，或使用自定义
+transformer/runtime。
+
+:::note
+这个转换器需要 JVM classpath 中包含
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) 和
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)。
+这些依赖不会由 `addJvmReactive()` 自动添加；需要由用户 JVM 项目或 source set 自行添加。
+:::
 
 ## JavaScript 转换器
 
@@ -368,6 +466,8 @@ suspendTransformPlugin {
 }
 ```
 
+`useJvmDefault()` 不包含 `addJvmReactive()`，如需 JVM Reactive 需要显式启用。
+
 ### 组合 JS 转换器
 
 ```kotlin
@@ -409,6 +509,7 @@ suspendTransformPlugin {
 class ApiService {
     @JvmBlocking
     @JvmAsync
+    @JvmReactive
     @JsPromise
     suspend fun fetchData(): String {
         delay(1000)
@@ -420,4 +521,5 @@ class ApiService {
 这将生成：
 - `fetchDataBlocking(): String` (JVM)
 - `fetchDataAsync(): CompletableFuture<out String>` (JVM)
+- `fetchDataReactive(): Publisher<String>` (JVM)
 - `fetchDataAsync(): Promise<String>` (JS)

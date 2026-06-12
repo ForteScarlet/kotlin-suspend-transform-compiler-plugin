@@ -26,18 +26,28 @@ package love.forte.plugin.suspendtrans.runtime
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.future
+import kotlinx.coroutines.reactive.publish
+import org.reactivestreams.Publisher
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
-
-// private val
-
-@Suppress("ObjectPropertyName", "unused")
+@Suppress("ObjectPropertyName")
 private val `$CoroutineContext4J$`: CoroutineContext = Dispatchers.IO
 
-@Suppress("ObjectPropertyName", "unused")
-private val `$CoroutineScope4J$`: CoroutineScope = CoroutineScope(`$CoroutineContext4J$`)
-
+/**
+ * Runs [block] to completion for generated JVM blocking bridges.
+ *
+ * This bridge blocks the calling thread and runs the suspend body with
+ * [Dispatchers.IO]. The IO dispatcher is a conservative default for Java
+ * interop and potentially blocking suspend work, but the caller is still
+ * blocked until completion.
+ *
+ * Do not call generated blocking bridges from coroutines, UI/event-loop
+ * threads, or other thread-limited execution paths. Use a custom transform
+ * runtime when a specific dispatcher, transaction context, MDC, or thread
+ * affinity is required.
+ */
 @Suppress("FunctionName")
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Throws(InterruptedException::class)
@@ -49,8 +59,7 @@ public fun <T> `$runInBlocking$`(block: suspend () -> T): T = runBlocking(`$Coro
 private val classLoader: ClassLoader
     get() = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
 
-// 现在是不是最低也是JDK8了？
-// 也许这个判断已经不需要了？
+// The minimum JVM target may already make this check redundant.
 private val jdk8Support: Boolean by lazy {
     runCatching {
         classLoader.loadClass("kotlinx.coroutines.future.FutureKt")
@@ -97,22 +106,51 @@ private val transformer: FutureTransformer by lazy {
     else SimpleTransformer
 }
 
-
+/**
+ * Runs [block] as a [CompletableFuture] for generated JVM async bridges.
+ *
+ * If [scope] is provided, the coroutine is launched in that scope. Otherwise,
+ * this bridge uses [GlobalScope]. Cancelling the returned future cancels the
+ * coroutine; dropping the future without cancellation does not.
+ */
 @OptIn(DelicateCoroutinesApi::class)
 @Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
 @Suppress("FunctionName")
 public fun <T> `$runInAsync$`(
     block: suspend () -> T,
     scope: CoroutineScope? = null
-): CompletableFuture<T> =
-    // 比起在内部构建一个使用 Dispatchers.IO、并且永不被关闭的 CoroutineScope，
-    // 为何不直接使用 GlobalScope？
-    // 作为作用域：它用不被关闭、无法被关闭
-    // 作为异步调度器：它没必要使用IO
-    // 而对于更加复杂的场景，也许需要考虑完全定制化，
-    // 而不是使用当前这个简单的runtime包内的实现
-    transformer.trans(scope ?: GlobalScope, block)
+): CompletableFuture<T> {
+    // This simple runtime bridge uses GlobalScope instead of keeping an internal
+    // Dispatchers.IO scope that would also live for the whole process lifetime.
+    // More advanced lifecycle needs should use a custom transform runtime.
+    return transformer.trans(scope ?: GlobalScope, block)
+}
 
-
-
-
+/**
+ * Runs [block] as a cold Reactive Streams [Publisher].
+ *
+ * The returned publisher emits one non-null value when [block] completes with a
+ * non-null result, completes empty when [block] returns `null`, and propagates
+ * failures as publisher errors.
+ *
+ * The [scope] parameter is kept for generated bridge compatibility and for a
+ * possible future runtime strategy, but it is intentionally ignored by this
+ * default bridge. It is not used as a coroutine parent or dispatcher source.
+ *
+ * Reactive Streams lifecycle is controlled by `Subscription.cancel()`, and
+ * dispatcher or lifecycle requirements should be expressed inside [block] or by
+ * a custom transform runtime.
+ */
+@Deprecated("Just for generate.", level = DeprecationLevel.HIDDEN)
+@Suppress("FunctionName", "UNUSED_PARAMETER")
+public fun <T> `$runInReactive$`(
+    block: suspend () -> T,
+    scope: CoroutineScope? = null
+): Publisher<T & Any> {
+    // Reactive APIs should keep scheduling and lifecycle decisions at the
+    // subscription chain or in the suspend block, so this default bridge does
+    // not attach the publisher coroutine to an owner CoroutineScope.
+    return publish(EmptyCoroutineContext) {
+        block()?.let { send(it) }
+    }
+}

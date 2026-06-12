@@ -26,13 +26,16 @@ import { ExperimentalBadge, VersionBadge } from '@site/src/components/Snippets';
 suspendTransformPlugin {
     // `enable = true` 是默认的
     transformers {
-        // 使用全部的默认转化器
+        // 使用标准默认转换器
         useDefault()
 
         // 或精确的选择要启用的转化器:
         // addJvmBlocking()
         // addJvmAsync()
         // addJsPromise()
+
+        // 如需 Reactive Streams，显式启用：
+        // addJvmReactive()
     }
 }
 ```
@@ -79,6 +82,31 @@ class Foo {
 
   </TabItem>
 </Tabs>
+
+### Reactive Streams
+
+`@JvmReactive` 会生成 Reactive Streams `Publisher`。
+
+```kotlin
+@OptIn(ExperimentalJvmApi::class)
+class Foo {
+    @JvmReactive
+    suspend fun waitAndFind(): String? = null
+}
+```
+
+```kotlin
+class Foo {
+    @Api4J
+    fun waitAndFindReactive(): Publisher<String> = runInReactive { waitAndFind() }
+}
+```
+
+这个 publisher 会发出一个非 `null` 值；当挂起函数返回 `null` 时空完成。JVM
+classpath 需要包含
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) 和
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)。
+这些依赖需要由用户 JVM 项目或 source set 自行添加。
 
 ## JavaScript 平台
 

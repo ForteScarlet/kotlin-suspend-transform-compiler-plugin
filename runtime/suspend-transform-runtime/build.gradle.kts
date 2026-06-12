@@ -90,6 +90,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.jdk8)
+            compileOnly(libs.kotlinx.coroutines.reactive)
         }
 
         jvmTest.dependencies {

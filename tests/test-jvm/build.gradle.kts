@@ -32,6 +32,7 @@ dependencies {
     api(project(":runtime:suspend-transform-annotation"))
     api(project(":runtime:suspend-transform-runtime"))
     api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.coroutines.reactive)
 }
 
 // @Suppress("DEPRECATION")
@@ -47,6 +48,7 @@ suspendTransformPlugin {
     includeRuntime = false
     transformers {
         useDefault()
+        addJvmReactive()
         addJvm {
             markAnnotation {
                 classInfo {

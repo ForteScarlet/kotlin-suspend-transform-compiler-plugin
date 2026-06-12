@@ -50,6 +50,14 @@ kotlin {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
         }
+
+        jvmMain.dependencies {
+            implementation(libs.kotlinx.coroutines.reactive)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.coroutines.reactive)
+        }
     }
 }
 
@@ -87,6 +95,7 @@ suspendTransformPlugin {
     includeAnnotation = false
     transformers {
         useJvmDefault()
+        addJvmReactive()
         addJvm {
             markAnnotation {
                 classInfo {
