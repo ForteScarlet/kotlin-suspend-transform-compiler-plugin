@@ -99,6 +99,28 @@ const val COMPLETABLE_FUTURE_CLASS_NAME: String =
 
 val completableFutureClassName: FqName = COMPLETABLE_FUTURE_CLASS_NAME.fqn
 // endregion
+
+// region jvm reactive
+const val TO_JVM_REACTIVE_ANNOTATION_NAME: String =
+    "love.forte.plugin.suspendtrans.annotation.JvmReactive"
+
+val toJvmReactiveAnnotationName: FqName = TO_JVM_REACTIVE_ANNOTATION_NAME.fqn
+
+const val JVM_RUN_IN_REACTIVE_FUNCTION_NAME: String =
+    "love.forte.plugin.suspendtrans.runtime.\$runInReactive\$"
+
+const val JVM_RUN_IN_REACTIVE_FUNCTION_PACKAGE_NAME: String = "love.forte.plugin.suspendtrans.runtime"
+
+@JvmField
+val JVM_RUN_IN_REACTIVE_FUNCTION_CLASS_NAME: String? = null
+
+const val JVM_RUN_IN_REACTIVE_FUNCTION_FUNCTION_NAME: String = "\$runInReactive\$"
+
+const val REACTIVE_STREAMS_PUBLISHER_CLASS_NAME: String =
+    "org.reactivestreams.Publisher"
+
+val reactiveStreamsPublisherClassName: FqName = REACTIVE_STREAMS_PUBLISHER_CLASS_NAME.fqn
+// endregion
 //endregion
 
 // region js promise
@@ -126,6 +148,5 @@ const val JS_PROMISE_CLASS_NAME: String =
 val jsPromiseClassName = JS_PROMISE_CLASS_NAME.fqn
 
 // endregion
-
 
 

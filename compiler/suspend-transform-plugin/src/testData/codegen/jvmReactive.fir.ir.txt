@@ -1,0 +1,192 @@
+FILE fqName:<root> fileName:/Main.kt
+  CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Foo
+    CONSTRUCTOR visibility:public returnType:<root>.Foo [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Foo modality:OPEN visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+  CLASS CLASS name:JvmReactiveCodegen modality:FINAL visibility:public superTypes:[kotlin.Any]
+    annotations:
+      OptIn(markerClass = [CLASS_REFERENCE 'CLASS IR_EXTERNAL_DECLARATION_STUB ANNOTATION_CLASS name:ExperimentalJvmApi modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<love.forte.plugin.suspendtrans.annotation.ExperimentalJvmApi>] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.JvmReactiveCodegen
+    CONSTRUCTOR visibility:public returnType:<root>.JvmReactiveCodegen [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:JvmReactiveCodegen modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullableBoundGenericValueReactive visibility:public modality:FINAL returnType:org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive & Any}>
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableBoundGenericValueReactive <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive): org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive & Any}> declared in <root>.JvmReactiveCodegen'
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValue & Any}> origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.nullableBoundGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.nullableBoundGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive'
+                    CALL 'public final fun nullableBoundGenericValue <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValue): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive' type=<root>.JvmReactiveCodegen origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullableStringValueReactive visibility:public modality:FINAL returnType:org.reactivestreams.Publisher<out kotlin.String>
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableStringValueReactive (): org.reactivestreams.Publisher<out kotlin.String> declared in <root>.JvmReactiveCodegen'
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out kotlin.String> origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String?> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String? [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String? declared in <root>.JvmReactiveCodegen.nullableStringValueReactive'
+                    CALL 'public final fun nullableStringValue (): kotlin.String? declared in <root>.JvmReactiveCodegen' type=kotlin.String? origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.nullableStringValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.nullableStringValueReactive' type=<root>.JvmReactiveCodegen origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:stringValueReactive visibility:public modality:FINAL returnType:org.reactivestreams.Publisher<out kotlin.String>
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun stringValueReactive (): org.reactivestreams.Publisher<out kotlin.String> declared in <root>.JvmReactiveCodegen'
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out kotlin.String> origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.JvmReactiveCodegen.stringValueReactive'
+                    CALL 'public final fun stringValue (): kotlin.String declared in <root>.JvmReactiveCodegen' type=kotlin.String origin=null
+                      ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.stringValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.stringValueReactive' type=<root>.JvmReactiveCodegen origin=null
+    FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:whereGenericValueReactive visibility:public modality:FINAL returnType:org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValueReactive & Any}>
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.JvmReactiveCodegen.whereGenericValueReactive
+      annotations:
+        Api4J
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun whereGenericValueReactive <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValueReactive): org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValueReactive & Any}> declared in <root>.JvmReactiveCodegen'
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValue & Any}> origin=null
+            TYPE_ARG T: <none>
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.whereGenericValue> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.whereGenericValue [suspend]
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen.whereGenericValueReactive'
+                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValue): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.whereGenericValue origin=null
+                      TYPE_ARG T: <none>
+                      ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.whereGenericValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
+                      ARG value: GET_VAR 'value: T of <root>.JvmReactiveCodegen.whereGenericValueReactive declared in <root>.JvmReactiveCodegen.whereGenericValueReactive' type=T of <root>.JvmReactiveCodegen.whereGenericValueReactive origin=null
+            ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+              GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.whereGenericValueReactive' type=<root>.JvmReactiveCodegen origin=null
+    FUN name:nullableBoundGenericValue visibility:public modality:FINAL returnType:T of <root>.JvmReactiveCodegen.nullableBoundGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.JvmReactiveCodegen.nullableBoundGenericValue
+      annotations:
+        JvmReactive(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableBoundGenericValue <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValue): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen'
+          GET_VAR 'value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen.nullableBoundGenericValue' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValue origin=null
+    FUN name:nullablePropertyValue visibility:public modality:FINAL returnType:kotlin.String? [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      annotations:
+        JvmReactive(baseName = <null>, suffix = <null>, asProperty = true, markName = <null>)
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullablePropertyValue (): kotlin.String? declared in <root>.JvmReactiveCodegen'
+          CONST Null type=kotlin.Nothing? value=null
+    FUN name:nullableStringValue visibility:public modality:FINAL returnType:kotlin.String? [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      annotations:
+        JvmReactive(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun nullableStringValue (): kotlin.String? declared in <root>.JvmReactiveCodegen'
+          CONST Null type=kotlin.Nothing? value=null
+    FUN name:stringValue visibility:public modality:FINAL returnType:kotlin.String [suspend]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      annotations:
+        JvmReactive(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun stringValue (): kotlin.String declared in <root>.JvmReactiveCodegen'
+          CONST String type=kotlin.String value=""
+    FUN name:whereGenericValue visibility:public modality:FINAL returnType:T of <root>.JvmReactiveCodegen.whereGenericValue [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[<root>.Foo?; <root>.Marker?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+      VALUE_PARAMETER kind:Regular name:value index:1 type:T of <root>.JvmReactiveCodegen.whereGenericValue
+      annotations:
+        JvmReactive(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
+        JvmSynthetic
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun whereGenericValue <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValue): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen'
+          GET_VAR 'value: T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen.whereGenericValue' type=T of <root>.JvmReactiveCodegen.whereGenericValue origin=null
+    PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullablePropertyValueReactive visibility:public modality:FINAL [val]
+      annotations:
+        Api4J
+      FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:<get-nullablePropertyValueReactive> visibility:public modality:FINAL returnType:org.reactivestreams.Publisher<out kotlin.String>
+        VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.JvmReactiveCodegen
+        annotations:
+          Api4J
+        correspondingProperty: PROPERTY GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:nullablePropertyValueReactive visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-nullablePropertyValueReactive> (): org.reactivestreams.Publisher<out kotlin.String> declared in <root>.JvmReactiveCodegen'
+            CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out kotlin.String> origin=null
+              TYPE_ARG T: <none>
+              ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String?> origin=LAMBDA
+                FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String? [suspend]
+                  BLOCK_BODY
+                    RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String? declared in <root>.JvmReactiveCodegen.<get-nullablePropertyValueReactive>'
+                      CALL 'public final fun nullablePropertyValue (): kotlin.String? declared in <root>.JvmReactiveCodegen' type=kotlin.String? origin=null
+                        ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.<get-nullablePropertyValueReactive>' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
+              ARG scope: TYPE_OP type=kotlinx.coroutines.CoroutineScope? origin=SAFE_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.<get-nullablePropertyValueReactive>' type=<root>.JvmReactiveCodegen origin=null
+  CLASS INTERFACE name:Marker modality:ABSTRACT visibility:public superTypes:[kotlin.Any]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.Marker
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in kotlin.Any
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in kotlin.Any

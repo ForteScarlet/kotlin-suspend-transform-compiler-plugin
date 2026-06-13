@@ -1,11 +1,11 @@
 package love.forte.plugin.suspendtrans.services
 
 import love.forte.plugin.suspendtrans.SuspendTransformComponentRegistrar
-import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConfigurationApi
+import love.forte.plugin.suspendtrans.configuration.*
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jsPromiseTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmAsyncTransformer
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmBlockingTransformer
-import love.forte.plugin.suspendtrans.configuration.TargetPlatform
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations.jvmReactiveTransformer
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -31,7 +31,13 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
         val testConfiguration = love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration(
             transformers = mapOf(
                 TargetPlatform.JS to listOf(jsPromiseTransformer),
-                TargetPlatform.JVM to listOf(jvmBlockingTransformer, jvmAsyncTransformer)
+                TargetPlatform.JVM to listOf(
+                    jvmBlockingTransformer,
+                    jvmAsyncTransformer,
+                    jvmReactiveTransformer,
+                    nullmarkModeTransformer("AsyncNullable", "NullableAsync", TransformReturnTypeGenericMode.NULLABLE),
+                    nullmarkModeTransformer("AsyncNonNull", "NonNullAsync", TransformReturnTypeGenericMode.NON_NULL),
+                )
             )
         )
         // register plugin
@@ -58,9 +64,24 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
                 it
             )
         }
+        getRuntimeJarFile("love.forte.plugin.suspendtrans.annotation.JvmReactive")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
 
         // register coroutines
         getRuntimeJarFile("kotlinx.coroutines.CoroutineScope")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("kotlinx.coroutines.reactive.PublishKt")?.let {
+            configuration.addJvmClasspathRoot(
+                it
+            )
+        }
+        getRuntimeJarFile("org.reactivestreams.Publisher")?.let {
             configuration.addJvmClasspathRoot(
                 it
             )
@@ -88,3 +109,27 @@ class SuspendTransformerEnvironmentConfigurator(testServices: TestServices) : En
     }
 
 }
+
+@OptIn(InternalSuspendTransformConfigurationApi::class)
+private fun nullmarkModeTransformer(
+    annotationName: String,
+    defaultSuffix: String,
+    mode: TransformReturnTypeGenericMode,
+): Transformer =
+    Transformer(
+        markAnnotation = MarkAnnotation(
+            classInfo = ClassInfo("", annotationName),
+            defaultSuffix = defaultSuffix,
+            markNameProperty = null,
+        ),
+        transformFunctionInfo = jvmAsyncTransformer.transformFunctionInfo,
+        transformReturnType = jvmAsyncTransformer.transformReturnType,
+        transformReturnTypeGeneric = true,
+        originFunctionIncludeAnnotations = jvmAsyncTransformer.originFunctionIncludeAnnotations,
+        syntheticFunctionIncludeAnnotations = listOf(
+            IncludeAnnotation(ClassInfo("love.forte.plugin.suspendtrans.annotation", "Api4J"), includeProperty = true)
+        ),
+        copyAnnotationsToSyntheticFunction = false,
+        copyAnnotationExcludes = emptyList(),
+        transformReturnTypeGenericMode = mode,
+    )

@@ -106,6 +106,8 @@ suspendTransformPlugin {
 Configure your custom transform function:
 
 ```kotlin
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+
 suspendTransformPlugin {
     transformers {
         addJvm {
@@ -122,6 +124,7 @@ suspendTransformPlugin {
             // Return type configuration
             transformReturnType = null  // null means same type as original function
             transformReturnTypeGeneric = false  // true if return type has generics
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NORMAL
         }
     }
 }
@@ -185,6 +188,64 @@ For functions that return a generic type containing the original type (e.g., `Co
 transformReturnType = "java.util.concurrent.CompletableFuture"
 transformReturnTypeGeneric = true
 ```
+
+#### Generic Argument Nullability
+
+When `transformReturnTypeGeneric` is `true`, `transformReturnTypeGenericMode`
+controls the nullability of the original return type when it is copied into the
+transformed return type's generic argument.
+
+The primary reason for this option is `NON_NULL`. Some wrappers describe an
+emitted element rather than a nullable value slot. Reactive Streams-style APIs,
+for example Reactor `Mono<T>`, can complete with no element, but they must not
+emit `null`. For such wrappers, a transformed return type should usually expose
+a non-null generic argument even when the source suspend function returns a type
+parameter whose bound may be nullable.
+
+`NULLABLE` exists for the opposite case, where the wrapper intentionally carries
+a nullable value.
+
+Import the enum in your Gradle script when setting this option:
+
+```kotlin
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+```
+
+Available modes:
+
+- `TransformReturnTypeGenericMode.NORMAL`: keep the original return type unchanged. This is the default.
+- `TransformReturnTypeGenericMode.NULLABLE`: make the copied generic argument nullable.
+- `TransformReturnTypeGenericMode.NON_NULL`: make the copied generic argument non-nullable.
+
+Example:
+
+```kotlin
+transformReturnType = "java.util.concurrent.CompletableFuture"
+transformReturnTypeGeneric = true
+transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NON_NULL
+```
+
+You can also use the convenience DSL method:
+
+```kotlin
+transformReturnTypeGenericModeNonNull()
+```
+
+For a source function like:
+
+```kotlin
+suspend fun <T : Foo?> load(): T
+```
+
+`NON_NULL` keeps the original type parameter declaration unchanged and expresses
+the non-null requirement at the use site, producing a type like
+`CompletableFuture<out T & Any>`.
+
+For a Reactor-style transformer returning `Mono<T>`, the same source function
+would be represented as a use-site type like `Mono<T & Any>`. The setting only
+changes the generated type signature; your transform function must still enforce
+the wrapper's runtime contract, for example by converting a `null` result to an
+empty completion instead of emitting `null`.
 
 #### Specific Return Type
 

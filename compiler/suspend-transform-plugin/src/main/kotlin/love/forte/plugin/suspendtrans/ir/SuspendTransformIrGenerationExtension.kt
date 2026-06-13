@@ -30,6 +30,10 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 
 /**
+ * IR extension entry point for suspend-transform plugin.
+ *
+ * It traverses the module and delegates declaration-level body completion to
+ * [SuspendTransformTransformer].
  *
  * @author ForteScarlet
  */

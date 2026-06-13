@@ -194,6 +194,10 @@ private fun SuspendTransformGradleExtension.mergeTo(extension: SuspendTransformP
                             transformerContainer.add(target, SuspendTransformConfigurations.jvmAsyncTransformer)
                         }
 
+                        DeprecatedSuspendTransformConfiguration.jvmReactiveTransformer -> {
+                            transformerContainer.add(target, SuspendTransformConfigurations.jvmReactiveTransformer)
+                        }
+
                         DeprecatedSuspendTransformConfiguration.jsPromiseTransformer -> {
                             transformerContainer.add(target, SuspendTransformConfigurations.jsPromiseTransformer)
                         }
@@ -229,7 +233,9 @@ private fun DeprecatedTransformer.toTransformer(): Transformer {
         syntheticFunctionIncludeAnnotations = this.syntheticFunctionIncludeAnnotations.map { it.toIncludeAnnotation() },
         copyAnnotationsToSyntheticFunction = this.copyAnnotationsToSyntheticFunction,
         copyAnnotationExcludes = this.copyAnnotationExcludes.map { it.toClassInfo() },
-        copyAnnotationsToSyntheticProperty = this.copyAnnotationsToSyntheticProperty
+        copyAnnotationsToSyntheticProperty = this.copyAnnotationsToSyntheticProperty,
+        // Deprecated configuration has no nullability-mode field; keep legacy behavior.
+        transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NORMAL,
     )
 }
 

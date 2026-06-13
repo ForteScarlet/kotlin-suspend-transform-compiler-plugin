@@ -1,0 +1,93 @@
+public abstract interface AsyncNonNull : java/lang/Object, java/lang/annotation/Annotation {
+
+}
+
+public abstract interface AsyncNullable : java/lang/Object, java/lang/annotation/Annotation {
+
+}
+
+public class Bar : Foo {
+    public void <init>()
+}
+
+public class Foo : java/lang/Object {
+    public void <init>()
+}
+
+public final class MarkedBar : Bar, Marker {
+    public void <init>()
+}
+
+public abstract interface Marker : java/lang/Object {
+
+}
+
+final class NullmarkModeWhere$nonNullToNonNullWhereGenericValueNonNullAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final Foo $value
+
+    int label
+
+    final NullmarkModeWhere this$0
+
+    void <init>(NullmarkModeWhere $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class NullmarkModeWhere$nullableWhereGenericValueNonNullAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final Foo $value
+
+    int label
+
+    final NullmarkModeWhere this$0
+
+    void <init>(NullmarkModeWhere $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class NullmarkModeWhere$whereGenericValueNullableAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final Foo $value
+
+    int label
+
+    final NullmarkModeWhere this$0
+
+    void <init>(NullmarkModeWhere $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+public final class NullmarkModeWhere : java/lang/Object {
+    public void <init>()
+
+    public final java.lang.Object nonNullToNonNullWhereGenericValue(Foo value, kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture nonNullToNonNullWhereGenericValueNonNullAsync(Foo value)
+
+    public final java.lang.Object nullableWhereGenericValue(Foo value, kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture nullableWhereGenericValueNonNullAsync(Foo value)
+
+    public final java.lang.Object whereGenericValue(Foo value, kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture whereGenericValueNullableAsync(Foo value)
+}

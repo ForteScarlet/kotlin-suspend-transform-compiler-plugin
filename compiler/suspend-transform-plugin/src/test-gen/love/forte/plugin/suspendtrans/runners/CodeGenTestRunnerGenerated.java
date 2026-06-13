@@ -85,4 +85,22 @@ public class CodeGenTestRunnerGenerated extends AbstractCodeGenTestRunner {
   public void testMarkName() {
     runTest("src/testData/codegen/markName.kt");
   }
+
+  @Test
+  @TestMetadata("nullmarkMode.kt")
+  public void testNullmarkMode() {
+    runTest("src/testData/codegen/nullmarkMode.kt");
+  }
+
+  @Test
+  @TestMetadata("nullmarkModeWhere.kt")
+  public void testNullmarkModeWhere() {
+    runTest("src/testData/codegen/nullmarkModeWhere.kt");
+  }
+
+  @Test
+  @TestMetadata("jvmReactive.kt")
+  public void testJvmReactive() {
+    runTest("src/testData/codegen/jvmReactive.kt");
+  }
 }

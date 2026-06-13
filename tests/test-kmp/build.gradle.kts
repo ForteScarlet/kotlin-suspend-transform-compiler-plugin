@@ -1,4 +1,5 @@
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
 
 plugins {
     kotlin("multiplatform")
@@ -49,6 +50,14 @@ kotlin {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
         }
+
+        jvmMain.dependencies {
+            implementation(libs.kotlinx.coroutines.reactive)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.coroutines.reactive)
+        }
     }
 }
 
@@ -86,6 +95,71 @@ suspendTransformPlugin {
     includeAnnotation = false
     transformers {
         useJvmDefault()
+        addJvmReactive()
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "example"
+                    className = "JvmNullableAsync"
+                }
+                defaultSuffix = "NullableAsync"
+            }
+
+            transformFunctionInfo {
+                from(SuspendTransformConfigurations.jvmAsyncTransformFunction)
+            }
+
+            transformReturnType {
+                packageName = "java.util.concurrent"
+                className = "CompletableFuture"
+            }
+            transformReturnTypeGeneric = true
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NULLABLE
+
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+                }
+            }
+            addSyntheticFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmApi4JAnnotationClassInfo)
+                }
+                includeProperty = true
+            }
+        }
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "example"
+                    className = "JvmNonNullAsync"
+                }
+                defaultSuffix = "NonNullAsync"
+            }
+
+            transformFunctionInfo {
+                from(SuspendTransformConfigurations.jvmAsyncTransformFunction)
+            }
+
+            transformReturnType {
+                packageName = "java.util.concurrent"
+                className = "CompletableFuture"
+            }
+            transformReturnTypeGeneric = true
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NON_NULL
+
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+                }
+            }
+            addSyntheticFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmApi4JAnnotationClassInfo)
+                }
+                includeProperty = true
+            }
+        }
         addJsPromise {
             addCopyAnnotationExclude {
                 from(SuspendTransformConfigurations.kotlinJsExportIgnoreClassInfo)

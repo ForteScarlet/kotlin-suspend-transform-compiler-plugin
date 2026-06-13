@@ -20,10 +20,21 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
+import love.forte.plugin.suspendtrans.annotation.Api4J
 import love.forte.plugin.suspendtrans.annotation.JvmAsync
 import love.forte.plugin.suspendtrans.annotation.JvmBlocking
+import love.forte.plugin.suspendtrans.sample.AliasTestClass
+import love.forte.plugin.suspendtrans.sample.JvmReactiveScopedSamples
+import love.forte.plugin.suspendtrans.sample.JvmReactiveSamples
+import love.forte.plugin.suspendtrans.sample.NullmarkModeSamples
+import org.reactivestreams.Publisher
 import java.lang.reflect.Modifier
+import java.math.BigDecimal
 import java.util.concurrent.CompletableFuture
+import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
@@ -182,5 +193,139 @@ class SuspendTransformTests {
 
         assertEquals(1, run1Async.get())
         assertEquals("run2", run2Async.get())
+    }
+
+    @Test
+    fun aliasTest() {
+        val alias = AliasTestClass()
+        val longType = Long::class.javaPrimitiveType!!
+        val bigDecimalType = BigDecimal::class.java
+
+        val errorReproduction1BlockingMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction1Blocking", longType)
+        val errorReproduction2BlockingMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction2Blocking", bigDecimalType)
+        val errorReproduction1AsyncMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction1Async", longType)
+        val errorReproduction2AsyncMethod =
+            AliasTestClass::class.java.getMethod("errorReproduction2Async", bigDecimalType)
+
+        assertEquals(longType, errorReproduction1BlockingMethod.returnType)
+        assertEquals(bigDecimalType, errorReproduction2BlockingMethod.returnType)
+        assertEquals(CompletableFuture::class.java, errorReproduction1AsyncMethod.returnType)
+        assertEquals(CompletableFuture::class.java, errorReproduction2AsyncMethod.returnType)
+
+        assertEquals(1L, errorReproduction1BlockingMethod.invoke(alias, 1L))
+        assertEquals(BigDecimal("2.5"), errorReproduction2BlockingMethod.invoke(alias, BigDecimal("2.5")))
+
+        val errorReproduction1Async = errorReproduction1AsyncMethod.invoke(alias, 3L)
+        val errorReproduction2Async = errorReproduction2AsyncMethod.invoke(alias, BigDecimal("4.5"))
+
+        assertIs<CompletableFuture<*>>(errorReproduction1Async)
+        assertIs<CompletableFuture<*>>(errorReproduction2Async)
+
+        assertEquals(3L, errorReproduction1Async.join())
+        assertEquals(BigDecimal("4.5"), errorReproduction2Async.join())
+    }
+
+    @Test
+    fun `transform return type generic nullmark mode test`() {
+        val functions = NullmarkModeSamples::class.functions.associateBy { it.name }
+
+        fun futureArgumentType(functionName: String): KType {
+            val returnType = requireNotNull(functions[functionName]) {
+                "Function $functionName was not generated"
+            }.returnType
+
+            assertEquals(CompletableFuture::class, returnType.classifier)
+            return requireNotNull(returnType.arguments.single().type) {
+                "Function $functionName has no CompletableFuture generic argument"
+            }
+        }
+
+        with(futureArgumentType("stringValueNullableAsync")) {
+            assertEquals("kotlin.String?", toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("genericValueNullableAsync")) {
+            assertTrue(toString().endsWith("?"), toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("whereGenericValueNullableAsync")) {
+            assertTrue(toString().endsWith("?"), toString())
+            assertTrue(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableStringValueNonNullAsync")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableBoundGenericValueNonNullAsync")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(futureArgumentType("nullableWhereGenericValueNonNullAsync")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+    }
+
+    @OptIn(Api4J::class)
+    @Test
+    fun `jvm reactive transform test`() {
+        val functions = JvmReactiveSamples::class.functions.associateBy { it.name }
+
+        fun publisherArgumentType(functionName: String): KType {
+            val returnType = requireNotNull(functions[functionName]) {
+                "Function $functionName was not generated"
+            }.returnType
+
+            assertEquals(Publisher::class, returnType.classifier)
+            return requireNotNull(returnType.arguments.single().type) {
+                "Function $functionName has no Publisher generic argument"
+            }
+        }
+
+        with(publisherArgumentType("stringValueReactive")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("nullableStringValueReactive")) {
+            assertEquals("kotlin.String", toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("nullableBoundGenericValueReactive")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(publisherArgumentType("whereGenericValueReactive")) {
+            assertTrue(toString().contains("&") && toString().contains("Any"), toString())
+            assertFalse(isMarkedNullable)
+        }
+
+        with(JvmReactiveSamples::class.memberProperties.single { it.name == "nullablePropertyValueReactive" }) {
+            assertEquals(Publisher::class, returnType.classifier)
+            val argumentType = requireNotNull(returnType.arguments.single().type)
+            assertEquals("kotlin.String", argumentType.toString())
+            assertFalse(argumentType.isMarkedNullable)
+        }
+
+        val samples = JvmReactiveSamples()
+        assertEquals("value", runBlocking { samples.stringValueReactive().awaitFirstOrNull() })
+        assertNull(runBlocking { samples.nullableStringValueReactive().awaitFirstOrNull() })
+
+        val scopedSamples = JvmReactiveScopedSamples()
+        try {
+            assertEquals("scoped", runBlocking { scopedSamples.scopedValueReactive().awaitFirstOrNull() })
+        } finally {
+            scopedSamples.cancel()
+        }
     }
 }

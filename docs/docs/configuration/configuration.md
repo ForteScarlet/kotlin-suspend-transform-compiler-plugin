@@ -140,13 +140,22 @@ suspendTransformPlugin {
 
     // Configure transformers
     transformers {
-        // Use all default transformers
+        // Use the standard default transformers.
         useDefault()
 
         // Or configure individually:
         // addJvmBlocking()
         // addJvmAsync()
         // addJsPromise()
+
+        // Enable Reactive Streams explicitly when needed:
+        // addJvmReactive()
     }
 }
 ```
+
+`addJvmReactive()` requires
+[`org.reactivestreams.Publisher`](https://www.reactive-streams.org/) and
+[`org.jetbrains.kotlinx:kotlinx-coroutines-reactive`](https://github.com/Kotlin/kotlinx.coroutines/blob/master/reactive/README.md)
+on the target JVM classpath. Add these dependencies to the user JVM project or
+source set manually.

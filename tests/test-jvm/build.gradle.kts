@@ -1,3 +1,5 @@
+import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations
+import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 
 plugins {
@@ -30,6 +32,7 @@ dependencies {
     api(project(":runtime:suspend-transform-annotation"))
     api(project(":runtime:suspend-transform-runtime"))
     api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.coroutines.reactive)
 }
 
 // @Suppress("DEPRECATION")
@@ -45,6 +48,71 @@ suspendTransformPlugin {
     includeRuntime = false
     transformers {
         useDefault()
+        addJvmReactive()
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.plugin.suspendtrans.sample"
+                    className = "JvmNullableAsync"
+                }
+                defaultSuffix = "NullableAsync"
+            }
+
+            transformFunctionInfo {
+                from(SuspendTransformConfigurations.jvmAsyncTransformFunction)
+            }
+
+            transformReturnType {
+                packageName = "java.util.concurrent"
+                className = "CompletableFuture"
+            }
+            transformReturnTypeGeneric = true
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NULLABLE
+
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+                }
+            }
+            addSyntheticFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmApi4JAnnotationClassInfo)
+                }
+                includeProperty = true
+            }
+        }
+        addJvm {
+            markAnnotation {
+                classInfo {
+                    packageName = "love.forte.plugin.suspendtrans.sample"
+                    className = "JvmNonNullAsync"
+                }
+                defaultSuffix = "NonNullAsync"
+            }
+
+            transformFunctionInfo {
+                from(SuspendTransformConfigurations.jvmAsyncTransformFunction)
+            }
+
+            transformReturnType {
+                packageName = "java.util.concurrent"
+                className = "CompletableFuture"
+            }
+            transformReturnTypeGeneric = true
+            transformReturnTypeGenericMode = TransformReturnTypeGenericMode.NON_NULL
+
+            addOriginFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmSyntheticClassInfo)
+                }
+            }
+            addSyntheticFunctionIncludeAnnotation {
+                classInfo {
+                    from(SuspendTransformConfigurations.jvmApi4JAnnotationClassInfo)
+                }
+                includeProperty = true
+            }
+        }
     }
 }
 

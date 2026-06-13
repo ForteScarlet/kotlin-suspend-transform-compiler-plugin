@@ -24,6 +24,7 @@ Kotlin compiler plugin for generating platform-compatible functions for suspend 
 class Foo {
     @JvmBlocking
     @JvmAsync
+    @JvmReactive
     suspend fun waitAndGet(): String {
         delay(5)
         return "Hello"
@@ -46,8 +47,18 @@ class Foo {
 
     @Api4J
     fun waitAndGetAsync(): CompletableFuture<out String> = runInAsync { waitAndGet() }
+
+    @Api4J
+    fun waitAndGetReactive(): Publisher<String> = runInReactive { waitAndGet() }
 }
 ```
+
+`@JvmReactive` returns a Reactive Streams `Publisher` and completes empty when
+the suspend function returns `null`.
+
+Enable `addJvmReactive()` explicitly and add the required reactive dependencies
+to the user JVM classpath manually. See
+[Default Transformers](./configuration/default-transformers.md#jvm-reactive-configuration).
 
 ### JavaScript Platform
 
@@ -88,4 +99,3 @@ JS platform support was added in version 0.6.0. See the implementation details
 at [KT-53993](https://youtrack.jetbrains.com/issue/KT-53993)
 and [PR #39](https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/pull/39).
 :::
-

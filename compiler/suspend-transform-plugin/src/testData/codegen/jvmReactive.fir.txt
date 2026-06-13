@@ -1,0 +1,71 @@
+FILE: Main.kt
+    public open class Foo : R|kotlin/Any| {
+        public constructor(): R|Foo| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public abstract interface Marker : R|kotlin/Any| {
+    }
+    @R|kotlin/OptIn|(markerClass = vararg(<getClass>(Q|love/forte/plugin/suspendtrans/annotation/ExperimentalJvmApi|))) public final class JvmReactiveCodegen : R|kotlin/Any| {
+        public constructor(): R|JvmReactiveCodegen| {
+            super<R|kotlin/Any|>()
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun stringValue(): R|kotlin/String| {
+            ^stringValue String()
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun nullableStringValue(): R|kotlin/String?| {
+            ^nullableStringValue Null(null)
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo?|> nullableBoundGenericValue(value: R|T|): R|T| {
+            ^nullableBoundGenericValue R|<local>/value|
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|() @R|kotlin/jvm/JvmSynthetic|() public final suspend fun <T : R|Foo?|, R|Marker?|> whereGenericValue(value: R|T|): R|T| {
+            ^whereGenericValue R|<local>/value|
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|(asProperty = Boolean(true)) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun nullablePropertyValue(): R|kotlin/String?| {
+            ^nullablePropertyValue Null(null)
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo?|, R|Marker?|> whereGenericValueReactive(value: R|T|): R|org/reactivestreams/Publisher<out T & Any>| {
+            ^whereGenericValueReactive R|love/forte/plugin/suspendtrans/runtime/$runInReactive$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/JvmReactiveCodegen|.R|/JvmReactiveCodegen.whereGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/JvmReactiveCodegen| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun nullableStringValueReactive(): R|org/reactivestreams/Publisher<out kotlin/String>| {
+            ^nullableStringValueReactive R|love/forte/plugin/suspendtrans/runtime/$runInReactive$|(suspend fun <anonymous>(): R|kotlin/String?| <inline=Unknown>  {
+                ^ this@R|/JvmReactiveCodegen|.R|/JvmReactiveCodegen.nullableStringValue|()
+            }
+            , (this@R|/JvmReactiveCodegen| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun stringValueReactive(): R|org/reactivestreams/Publisher<out kotlin/String>| {
+            ^stringValueReactive R|love/forte/plugin/suspendtrans/runtime/$runInReactive$|(suspend fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+                ^ this@R|/JvmReactiveCodegen|.R|/JvmReactiveCodegen.stringValue|()
+            }
+            , (this@R|/JvmReactiveCodegen| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final val nullablePropertyValueReactive: R|org/reactivestreams/Publisher<out kotlin/String>|
+            @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public get(): R|org/reactivestreams/Publisher<out kotlin/String>| {
+                ^ R|love/forte/plugin/suspendtrans/runtime/$runInReactive$|(suspend fun <anonymous>(): R|kotlin/String?| <inline=Unknown>  {
+                    ^ this@R|/JvmReactiveCodegen|.R|/JvmReactiveCodegen.nullablePropertyValue|()
+                }
+                , (this@R|/JvmReactiveCodegen| as? R|kotlinx/coroutines/CoroutineScope|))
+            }
+
+        @R|love/forte/plugin/suspendtrans/annotation/Api4J|() public final fun <T : R|Foo?|> nullableBoundGenericValueReactive(value: R|T|): R|org/reactivestreams/Publisher<out T & Any>| {
+            ^nullableBoundGenericValueReactive R|love/forte/plugin/suspendtrans/runtime/$runInReactive$|(suspend fun <anonymous>(): R|T| <inline=Unknown>  {
+                ^ this@R|/JvmReactiveCodegen|.R|/JvmReactiveCodegen.nullableBoundGenericValue|(R|<local>/value|)
+            }
+            , (this@R|/JvmReactiveCodegen| as? R|kotlinx/coroutines/CoroutineScope|))
+        }
+
+    }

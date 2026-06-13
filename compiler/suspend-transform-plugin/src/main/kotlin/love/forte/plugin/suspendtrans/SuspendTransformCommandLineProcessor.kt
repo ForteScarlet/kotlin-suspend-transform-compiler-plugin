@@ -35,9 +35,14 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
+/**
+ * CLI entry point that decodes serialized suspend-transform configuration and
+ * stores it in the compiler configuration.
+ */
 @OptIn(ExperimentalCompilerApi::class)
 class SuspendTransformCommandLineProcessor : CommandLineProcessor {
     companion object {
+        /** Compiler configuration key used to carry merged plugin configuration. */
         val CONFIGURATION_KEY: CompilerConfigurationKey<SuspendTransformConfiguration> =
             CompilerConfigurationKey.create(SuspendTransformCliOptions.CONFIGURATION)
     }

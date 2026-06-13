@@ -1,0 +1,103 @@
+public abstract interface AsyncNonNull : java/lang/Object, java/lang/annotation/Annotation {
+
+}
+
+public abstract interface AsyncNullable : java/lang/Object, java/lang/annotation/Annotation {
+
+}
+
+public final class Bar : Foo {
+    public void <init>()
+}
+
+public class Foo : java/lang/Object {
+    public void <init>()
+}
+
+final class NullmarkMode$genericValueNullableAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final java.lang.Object $value
+
+    int label
+
+    final NullmarkMode this$0
+
+    void <init>(NullmarkMode $receiver, java.lang.Object $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class NullmarkMode$nullableBoundGenericValueNonNullAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    final Foo $value
+
+    int label
+
+    final NullmarkMode this$0
+
+    void <init>(NullmarkMode $receiver, Foo $value, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class NullmarkMode$nullableStringValueNonNullAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    int label
+
+    final NullmarkMode this$0
+
+    void <init>(NullmarkMode $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+final class NullmarkMode$stringValueNullableAsync$1 : kotlin/coroutines/jvm/internal/SuspendLambda, kotlin/jvm/functions/Function1 {
+    int label
+
+    final NullmarkMode this$0
+
+    void <init>(NullmarkMode $receiver, kotlin.coroutines.Continuation $completion)
+
+    public final kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation $completion)
+
+    public final java.lang.Object invoke(kotlin.coroutines.Continuation p1)
+
+    public java.lang.Object invoke(java.lang.Object p1)
+
+    public final java.lang.Object invokeSuspend(java.lang.Object $result)
+}
+
+public final class NullmarkMode : java/lang/Object {
+    public void <init>()
+
+    public final java.lang.Object genericValue(java.lang.Object value, kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture genericValueNullableAsync(java.lang.Object value)
+
+    public final java.lang.Object nullableBoundGenericValue(Foo value, kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture nullableBoundGenericValueNonNullAsync(Foo value)
+
+    public final java.lang.Object nullableStringValue(kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture nullableStringValueNonNullAsync()
+
+    public final java.lang.Object stringValue(kotlin.coroutines.Continuation $completion)
+
+    public final java.util.concurrent.CompletableFuture stringValueNullableAsync()
+}
