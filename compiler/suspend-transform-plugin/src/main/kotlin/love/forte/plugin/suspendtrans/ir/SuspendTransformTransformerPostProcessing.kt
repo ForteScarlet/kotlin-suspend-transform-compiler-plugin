@@ -24,11 +24,12 @@ package love.forte.plugin.suspendtrans.ir
 
 import love.forte.plugin.suspendtrans.configuration.IncludeAnnotation
 import love.forte.plugin.suspendtrans.utils.createIrBuilder
-import love.forte.plugin.suspendtrans.utils.irAnnotationConstructor
+import love.forte.plugin.suspendtrans.utils.irAnnotation
 import love.forte.plugin.suspendtrans.utils.toClassId
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.util.classId
+import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.parentAsClass
 
 /**
@@ -51,7 +52,8 @@ internal fun SuspendTransformTransformer.postProcessGenerateOriginFunction(
                 return@forEach
             }
 
-            add(pluginContext.createIrBuilder(function.symbol).irAnnotationConstructor(annotationClass))
+            val firstAnnotationConstructor = annotationClass.constructors.first()
+            add(pluginContext.createIrBuilder(function.symbol).irAnnotation(firstAnnotationConstructor))
         }
     }
 }
