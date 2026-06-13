@@ -99,7 +99,8 @@ sourceSets {
     }
 }
 
-task<JavaExec>("generateTest") {
+tasks.register<JavaExec>("generateTest") {
+    description = "Generate test"
     classpath = sourceSets.test.get().runtimeClasspath
     mainClass = "love.forte.plugin.suspendtrans.GenerateTestsKt"
 }

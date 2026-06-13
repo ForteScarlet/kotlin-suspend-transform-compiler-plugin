@@ -38,7 +38,8 @@ allprojects {
 
 apply(plugin = "suspend-transform.nexus-publish")
 
-tasks.create("createChangelog") {
+tasks.register("createChangelog") {
+    description = "Create changelog file."
     group = "documentation"
     doFirst {
         val tag = "v$ktVersion-${IProject.pluginVersion}"
