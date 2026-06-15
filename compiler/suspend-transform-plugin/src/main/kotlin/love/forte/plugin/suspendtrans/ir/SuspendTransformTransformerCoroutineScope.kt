@@ -64,7 +64,7 @@ internal fun IrCall.tryResolveCoroutineScopeValueParameter(
     }
 
     function.dispatchReceiverParameter?.also { dispatchReceiverParameter ->
-        context.referenceClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
+        context.finderForBuiltins().findClass(coroutineScopeTypeClassId)?.also { coroutineScopeRef ->
             if (dispatchReceiverParameter.type.isSubtypeOfClass(coroutineScopeRef)) {
                 // put 'this' to the arg
                 arguments[index] = builderWithScope.irGet(dispatchReceiverParameter)

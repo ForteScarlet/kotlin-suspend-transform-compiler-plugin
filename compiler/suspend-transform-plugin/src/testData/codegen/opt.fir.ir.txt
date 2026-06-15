@@ -1,7 +1,7 @@
 FILE fqName:<root> fileName:/Main.kt
   CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]
     annotations:
-      RequiresOptIn(message = <null>, level = GET_ENUM 'ENUM_ENTRY IR_EXTERNAL_DECLARATION_STUB name:ERROR' type=kotlin.RequiresOptIn.Level)
+      RequiresOptIn(message = <null>, level = Level.ERROR)
     thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.OneOptAnno
     CONSTRUCTOR visibility:public returnType:<root>.OneOptAnno [primary]
       BLOCK_BODY
@@ -73,7 +73,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runAsync visibility:public modality:FINAL returnType:java.util.concurrent.CompletableFuture
       VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.OptInTest
       annotations:
-        Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
+        Values(target = OptInTest::class)
         Api4J
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun runAsync (): java.util.concurrent.CompletableFuture declared in <root>.OptInTest'
@@ -90,7 +90,7 @@ FILE fqName:<root> fileName:/Main.kt
     FUN GENERATED[love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key] name:runBlocking visibility:public modality:FINAL returnType:kotlin.Int
       VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.OptInTest
       annotations:
-        Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
+        Values(target = OptInTest::class)
         Api4J
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun runBlocking (): kotlin.Int declared in <root>.OptInTest'
@@ -105,8 +105,8 @@ FILE fqName:<root> fileName:/Main.kt
     FUN name:run visibility:public modality:FINAL returnType:kotlin.Int [suspend]
       VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.OptInTest
       annotations:
-        OptIn(markerClass = [CLASS_REFERENCE 'CLASS ANNOTATION_CLASS name:OneOptAnno modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<<root>.OneOptAnno>] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
-        Values(target = CLASS_REFERENCE 'CLASS CLASS name:OptInTest modality:FINAL visibility:public superTypes:[kotlin.Any]' type=kotlin.reflect.KClass<<root>.OptInTest>)
+        OptIn(markerClass = [OneOptAnno::class] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
+        Values(target = OptInTest::class)
         JvmBlocking(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
         JvmAsync(baseName = <null>, suffix = <null>, asProperty = <null>, markName = <null>)
         JvmSynthetic

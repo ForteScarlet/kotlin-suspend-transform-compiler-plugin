@@ -42,7 +42,8 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
  */
 internal fun SuspendTransformTransformer.findTransformTargetFunction(transformer: Transformer): IrSimpleFunctionSymbol {
     return pluginContext
-        .referenceFunctions(transformer.transformFunctionInfo.toCallableId())
+        .finderForBuiltins()
+        .findFunctions(transformer.transformFunctionInfo.toCallableId())
         .firstOrNull()
         ?: throw IllegalStateException("Transform function ${transformer.transformFunctionInfo} not found")
 }

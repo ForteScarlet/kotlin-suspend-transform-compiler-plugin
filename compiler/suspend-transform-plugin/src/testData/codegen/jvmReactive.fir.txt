@@ -7,7 +7,7 @@ FILE: Main.kt
     }
     public abstract interface Marker : R|kotlin/Any| {
     }
-    @R|kotlin/OptIn|(markerClass = vararg(<getClass>(Q|love/forte/plugin/suspendtrans/annotation/ExperimentalJvmApi|))) public final class JvmReactiveCodegen : R|kotlin/Any| {
+    @R|kotlin/OptIn|(markerClass = vararg(<getClass>(Q|love/forte/plugin/suspendtrans/annotation/ExperimentalJvmApi|)) [evaluated = vararg(<getClass>(Q|love/forte/plugin/suspendtrans/annotation/ExperimentalJvmApi|))]) public final class JvmReactiveCodegen : R|kotlin/Any| {
         public constructor(): R|JvmReactiveCodegen| {
             super<R|kotlin/Any|>()
         }
@@ -28,7 +28,7 @@ FILE: Main.kt
             ^whereGenericValue R|<local>/value|
         }
 
-        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|(asProperty = Boolean(true)) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun nullablePropertyValue(): R|kotlin/String?| {
+        @R|love/forte/plugin/suspendtrans/annotation/JvmReactive|(asProperty = Boolean(true) [evaluated = Boolean(true)]) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun nullablePropertyValue(): R|kotlin/String?| {
             ^nullablePropertyValue Null(null)
         }
 

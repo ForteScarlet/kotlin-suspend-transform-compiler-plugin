@@ -2,6 +2,7 @@ import love.forte.gradle.common.core.Gpg
 import love.forte.gradle.common.publication.configure.configPublishMaven
 import love.forte.gradle.common.publication.configure.publishingExtension
 import love.forte.gradle.common.publication.configure.setupPom
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import utils.isMainPublishable
@@ -36,7 +37,7 @@ dependencies {
 kotlin {
     configGradleBuildSrcFriendly()
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjvm-default=all")
+        jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
     }
 }
 

@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -17,7 +18,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            freeCompilerArgs.add("-Xjvm-default=all")
+            jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
             jvmTarget = JvmTarget.JVM_1_8
         }
 
@@ -56,4 +57,3 @@ kotlin {
         }
     }
 }
-

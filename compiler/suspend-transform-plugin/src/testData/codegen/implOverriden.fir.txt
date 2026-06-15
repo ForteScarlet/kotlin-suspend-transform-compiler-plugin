@@ -119,7 +119,7 @@ FILE: Main.kt
             super<R|kotlin/Any|>()
         }
 
-        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true)) @R|kotlin/jvm/JvmSynthetic|() public open override suspend fun data(): R|kotlin/String| {
+        @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(asProperty = Boolean(true) [evaluated = Boolean(true)]) @R|kotlin/jvm/JvmSynthetic|() public open override suspend fun data(): R|kotlin/String| {
             ^data String()
         }
 

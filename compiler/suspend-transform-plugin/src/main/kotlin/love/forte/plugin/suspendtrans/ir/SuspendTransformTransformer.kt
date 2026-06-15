@@ -44,13 +44,7 @@ class SuspendTransformTransformer(
      * Best-effort reporter used for informational diagnostics while K2 reporting
      * APIs remain in flux.
      */
-    // TODO What should be used in K2?
-    internal val reporter = kotlin.runCatching {
-        // pluginContext.diagnosticReporter
-        // error: "This API is not supported for K2"
-        pluginContext.messageCollector
-//        pluginContext.createDiagnosticReporter(PLUGIN_REPORT_ID)
-    }.getOrNull()
+    internal val reporter = pluginContext.diagnosticReporter
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
