@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -55,10 +56,7 @@ kotlin {
             "kotlin.RequiresOptIn",
             "org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI"
         )
-        freeCompilerArgs.addAll(
-            "-Xjvm-default=all",
-            "-Xcontext-parameters"
-        )
+        jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
     }
 }
 

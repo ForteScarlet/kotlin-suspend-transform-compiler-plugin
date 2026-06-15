@@ -4,7 +4,7 @@ FILE: Main.kt
             super<R|kotlin/Any|>()
         }
 
-        @R|kotlin/jvm/JvmName|(name = String(_foo)) @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(markName = String(fooA)) @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(markName = String(fooB)) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun foo(): R|kotlin/String| {
+        @R|kotlin/jvm/JvmName|(name = String(_foo) [evaluated = String(_foo)]) @R|love/forte/plugin/suspendtrans/annotation/JvmAsync|(markName = String(fooA) [evaluated = String(fooA)]) @R|love/forte/plugin/suspendtrans/annotation/JvmBlocking|(markName = String(fooB) [evaluated = String(fooB)]) @R|kotlin/jvm/JvmSynthetic|() public final suspend fun foo(): R|kotlin/String| {
             ^foo String(foo)
         }
 

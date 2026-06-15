@@ -20,7 +20,7 @@ FILE fqName:<root> fileName:/Main.kt
         public open fun toString (): kotlin.String declared in kotlin.Any
   CLASS CLASS name:JvmReactiveCodegen modality:FINAL visibility:public superTypes:[kotlin.Any]
     annotations:
-      OptIn(markerClass = [CLASS_REFERENCE 'CLASS IR_EXTERNAL_DECLARATION_STUB ANNOTATION_CLASS name:ExperimentalJvmApi modality:OPEN visibility:public superTypes:[kotlin.Annotation]' type=kotlin.reflect.KClass<love.forte.plugin.suspendtrans.annotation.ExperimentalJvmApi>] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
+      OptIn(markerClass = [ExperimentalJvmApi::class] type=kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>> varargElementType=kotlin.reflect.KClass<out kotlin.Annotation>)
     thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.JvmReactiveCodegen
     CONSTRUCTOR visibility:public returnType:<root>.JvmReactiveCodegen [primary]
       BLOCK_BODY

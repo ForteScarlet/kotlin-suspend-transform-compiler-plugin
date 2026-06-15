@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
 import org.jetbrains.kotlin.test.configuration.commonConfigurationForJvmTest
 import org.jetbrains.kotlin.test.directives.AsmLikeInstructionListingDirectives.CHECK_ASM_LIKE_INSTRUCTIONS
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.FIR_PARSER
-import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
-import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontendFacade
 import org.jetbrains.kotlin.test.frontend.fir.Fir2IrResultsConverter
 import org.jetbrains.kotlin.test.frontend.fir.FirFrontendFacade
 import org.jetbrains.kotlin.test.initIdeaConfiguration
@@ -54,14 +52,14 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
         }
 
         when (targetFrontend) {
-            FrontendKinds.ClassicFrontend -> {
-                builder.commonConfigurationForJvmTest(
-                    FrontendKinds.ClassicFrontend,
-                    ::ClassicFrontendFacade,
-                    ::ClassicFrontend2IrConverter,
-                    ::JvmIrBackendFacade
-                ) // { }
-            }
+            // FrontendKinds .ClassicFrontend -> {
+            //     builder.commonConfigurationForJvmTest(
+            //         FrontendKinds.ClassicFrontend,
+            //         ::ClassicFrontendFacade,
+            //         ::ClassicFrontend2IrConverter,
+            //         ::JvmIrBackendFacade
+            //     ) // { }
+            // }
 
             FrontendKinds.FIR -> {
                 builder.commonConfigurationForJvmTest(

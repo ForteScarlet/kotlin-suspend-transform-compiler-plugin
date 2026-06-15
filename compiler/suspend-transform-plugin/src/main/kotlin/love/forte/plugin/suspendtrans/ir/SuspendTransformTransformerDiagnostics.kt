@@ -23,8 +23,11 @@
 package love.forte.plugin.suspendtrans.ir
 
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap
+import org.jetbrains.kotlin.diagnostics.KtSourcelessDiagnosticFactory
+import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
@@ -81,22 +84,28 @@ internal fun SuspendTransformTransformer.reportGeneratedBodyResolution(
 }
 
 /**
- * Emits informational diagnostics through the compiler reporter when available and
- * falls back to stderr otherwise.
+ * Emits informational diagnostics through the compiler diagnostic reporter.
  */
 private fun SuspendTransformTransformer.reportInfo(
     message: String,
     location: CompilerMessageSourceLocation?,
 ) {
-    if (reporter != null) {
-        // WARN? DEBUG? IGNORE?
-        reporter.report(
-            CompilerMessageSeverity.INFO,
-            message,
-            location,
-        )
-    } else {
-        // TODO In K2?
-        System.err.println(message)
+    val messageWithLocation = location?.let {
+        "$message (${it.path}:${it.line}:${it.column})"
+    } ?: message
+    reporter.report(SuspendTransformIrDiagnostics.INFO, messageWithLocation)
+}
+
+private object SuspendTransformIrDiagnostics {
+    val INFO = KtSourcelessDiagnosticFactory(
+        "SUSPEND_TRANSFORM_INFO",
+        Severity.INFO,
+        SuspendTransformIrDiagnosticMessages,
+    )
+}
+
+private object SuspendTransformIrDiagnosticMessages : BaseDiagnosticRendererFactory() {
+    override val MAP by KtDiagnosticFactoryToRendererMap("SuspendTransformIrDiagnostics") { map ->
+        map.put(SuspendTransformIrDiagnostics.INFO, "{0}")
     }
 }
