@@ -47,7 +47,7 @@ internal fun SuspendTransformTransformer.postProcessGenerateOriginFunction(
 
         originFunctionIncludeAnnotations.forEach { include ->
             val classId = include.classInfo.toClassId()
-            val annotationClass = pluginContext.referenceClass(classId) ?: return@forEach
+            val annotationClass = pluginContext.finderForBuiltins().findClass(classId) ?: return@forEach
             if (!include.repeatable && hasAnnotation(classId.asSingleFqName())) {
                 return@forEach
             }

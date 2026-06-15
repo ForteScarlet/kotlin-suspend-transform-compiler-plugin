@@ -1,5 +1,6 @@
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations
 import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 
 plugins {
     kotlin("multiplatform")
@@ -8,7 +9,6 @@ plugins {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xjvm-default=all")
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
@@ -20,7 +20,11 @@ repositories {
 kotlin {
 
     jvmToolchain(11)
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
+        }
+    }
     js {
         nodejs()
 

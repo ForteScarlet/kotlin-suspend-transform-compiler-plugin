@@ -1,5 +1,6 @@
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfigurations
 import love.forte.plugin.suspendtrans.configuration.TransformReturnTypeGenericMode
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 
 plugins {
@@ -15,7 +16,7 @@ kotlin {
     compilerOptions {
         jvmTarget = JVM_11
         javaParameters = true
-        freeCompilerArgs.add("-Xjvm-default=all")
+        jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
     }
 }
 
