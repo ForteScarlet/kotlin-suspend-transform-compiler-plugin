@@ -191,6 +191,8 @@ transformReturnTypeGeneric = true
 
 #### 泛型实参空性
 
+<VersionBadge version="0.14.0" />
+
 当 `transformReturnTypeGeneric` 为 `true` 时，
 `transformReturnTypeGenericMode` 用来控制原返回类型复制到转换返回类型泛型实参时的空性。
 

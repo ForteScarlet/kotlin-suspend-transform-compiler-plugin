@@ -191,6 +191,8 @@ transformReturnTypeGeneric = true
 
 #### Generic Argument Nullability
 
+<VersionBadge version="0.14.0" />
+
 When `transformReturnTypeGeneric` is `true`, `transformReturnTypeGenericMode`
 controls the nullability of the original return type when it is copied into the
 transformed return type's generic argument.
