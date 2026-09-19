@@ -6,25 +6,18 @@ import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.backend.handlers.AsmLikeInstructionListingHandler
 import org.jetbrains.kotlin.test.backend.handlers.BytecodeListingHandler
-import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureJvmArtifactsHandlersStep
-import org.jetbrains.kotlin.test.configuration.commonConfigurationForJvmTest
+import org.jetbrains.kotlin.test.configuration.setupJvmPipelineSteps
 import org.jetbrains.kotlin.test.directives.AsmLikeInstructionListingDirectives.CHECK_ASM_LIKE_INSTRUCTIONS
 import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.FIR_PARSER
-import org.jetbrains.kotlin.test.frontend.fir.Fir2IrResultsConverter
-import org.jetbrains.kotlin.test.frontend.fir.FirFrontendFacade
 import org.jetbrains.kotlin.test.initIdeaConfiguration
 import org.jetbrains.kotlin.test.model.ArtifactKinds
 import org.jetbrains.kotlin.test.model.DependencyKind
-import org.jetbrains.kotlin.test.model.FrontendKind
-import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerTest
 import org.jetbrains.kotlin.test.services.EnvironmentBasedStandardLibrariesPathProvider
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
-import org.jetbrains.kotlin.test.services.configuration.CommonEnvironmentConfigurator
-import org.jetbrains.kotlin.test.services.configuration.JvmEnvironmentConfigurator
 import org.junit.jupiter.api.BeforeAll
 
 abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
@@ -37,46 +30,20 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
     }
 
     override fun configure(builder: TestConfigurationBuilder) {
-        val targetFrontend: FrontendKind<*> = FrontendKinds.FIR
+        // Kotlin 2.4.20 移除了 commonConfigurationForJvmTest；统一使用官方 K2 JVM 流水线。
+        builder.setupJvmPipelineSteps(FirParser.LightTree)
+
         builder.globalDefaults {
-            frontend = targetFrontend
             targetBackend = TargetBackend.JVM_IR
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = ArtifactKinds.Jvm
-            dependencyKind = DependencyKind.Source
+            dependencyKind = DependencyKind.Binary
         }
 
         builder.defaultDirectives {
             FIR_PARSER with FirParser.LightTree
             +CHECK_ASM_LIKE_INSTRUCTIONS
         }
-
-        when (targetFrontend) {
-            // FrontendKinds .ClassicFrontend -> {
-            //     builder.commonConfigurationForJvmTest(
-            //         FrontendKinds.ClassicFrontend,
-            //         ::ClassicFrontendFacade,
-            //         ::ClassicFrontend2IrConverter,
-            //         ::JvmIrBackendFacade
-            //     ) // { }
-            // }
-
-            FrontendKinds.FIR -> {
-                builder.commonConfigurationForJvmTest(
-                    FrontendKinds.FIR,
-                    ::FirFrontendFacade,
-                    ::Fir2IrResultsConverter,
-                    ::JvmIrBackendFacade
-                ) // { }
-            }
-        }
-
-//        commonConfigurationForTest(
-//            FrontendKinds.FIR,
-//            ::FirFrontendFacade,
-//            ::Fir2IrResultsConverter,
-//            ::JvmIrBackendFacade
-//        ) { }
 
         builder.configureHandlers()
         builder.configureFirHandlersStep {
@@ -92,8 +59,6 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
         }
 
         builder.useConfigurators(
-            ::CommonEnvironmentConfigurator,     // compiler flags
-            ::JvmEnvironmentConfigurator,        // jdk and kotlin runtime configuration (e.g. FULL_JDK)
             ::SuspendTransformerEnvironmentConfigurator,    // compiler plugin configuration
         )
     }

@@ -43,7 +43,9 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.toQualifiedAccess
+import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.coneTypeOrNull
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -60,9 +62,10 @@ internal fun SuspendTransformFirTransformer.buildSyntheticLambda(
     thisReceiverParameter: FirReceiverParameter?,
     thisValueParameters: List<FirValueParameter>,
     lambdaTarget: FirFunctionTarget,
+    copiedOriginReturnTypeRef: FirTypeRef,
 ): FirAnonymousFunction {
     return buildAnonymousFunction {
-        source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+        source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated.Default)
         resolvePhase = FirResolvePhase.BODY_RESOLVE
         // this.resolvePhase = FirResolvePhase.RAW_FIR
         isLambda = true
@@ -70,7 +73,7 @@ internal fun SuspendTransformFirTransformer.buildSyntheticLambda(
         // this.origin = FirDeclarationOrigin.Source
         // this.origin = FirDeclarationOrigin.Synthetic.FakeFunction
         origin = FirDeclarationOrigin.Plugin(SuspendTransformK2V3Key)
-        returnTypeRef = originFunSymbol.resolvedReturnTypeRef
+        returnTypeRef = copiedOriginReturnTypeRef
         hasExplicitParameterList = false
         // this.status = FirResolvedDeclarationStatusImpl.DEFAULT_STATUS_FOR_SUSPEND_FUNCTION_EXPRESSION
         status = status.copy(isSuspend = true)
@@ -85,6 +88,7 @@ internal fun SuspendTransformFirTransformer.buildSyntheticLambda(
                     thisContextParameters,
                     thisReceiverParameter,
                     thisValueParameters,
+                    copiedOriginReturnTypeRef,
                 )
             }
         )
@@ -92,7 +96,7 @@ internal fun SuspendTransformFirTransformer.buildSyntheticLambda(
 
         typeRef = buildResolvedTypeRef {
             coneType = ClassId.topLevel(FqName("kotlin.coroutines.SuspendFunction0"))
-                .createConeType(firSession, arrayOf(originFunSymbol.resolvedReturnType))
+                .createConeType(firSession, arrayOf(copiedOriginReturnTypeRef.coneType))
         }
     }
 }
@@ -108,9 +112,11 @@ private fun SuspendTransformFirTransformer.buildOriginFunctionCall(
     thisContextParameters: List<FirValueParameter>,
     thisReceiverParameter: FirReceiverParameter?,
     thisValueParameters: List<FirValueParameter>,
+    copiedOriginReturnTypeRef: FirTypeRef,
 ) = buildFunctionCall {
-    // Call original fun
-    coneTypeOrNull = originFunSymbol.resolvedReturnTypeRef.coneType
+    // The target is the original suspend function, but this expression is in the generated function scope.
+    // Its result type must therefore use the generated function's rebound type parameters.
+    coneTypeOrNull = copiedOriginReturnTypeRef.coneType
     source = null
     calleeReference = buildResolvedNamedReference {
         source = null

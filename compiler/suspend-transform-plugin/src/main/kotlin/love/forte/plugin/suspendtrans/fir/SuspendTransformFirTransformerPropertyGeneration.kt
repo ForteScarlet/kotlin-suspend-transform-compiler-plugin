@@ -119,7 +119,7 @@ private fun SuspendTransformFirTransformer.generateSyntheticProperty(
         symbol = pSymbol
         name = callableId.callableName
         isLocal = false
-        source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+        source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated.Default)
         resolvePhase = original.resolvePhase
         moduleData = original.moduleData
         origin = pKey.origin
@@ -197,7 +197,8 @@ private fun SuspendTransformFirTransformer.generateSyntheticProperty(
                 thisValueParameters,
                 funData.transformerFunctionSymbol,
                 newFunTarget,
-                funData.transformer
+                funData.transformer,
+                copiedReturnType,
             )
         }.also { getter ->
             newFunTarget.bind(getter)

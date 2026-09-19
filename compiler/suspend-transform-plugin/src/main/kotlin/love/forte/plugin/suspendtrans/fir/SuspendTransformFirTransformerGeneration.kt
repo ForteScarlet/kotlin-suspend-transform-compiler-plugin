@@ -94,7 +94,7 @@ private fun SuspendTransformFirTransformer.generateSyntheticFunction(
     val newFunTarget = FirFunctionTarget(null, isLambda = false)
     val newFun = buildNamedFunctionCopy(originFunc) {
         origin = key.origin
-        source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+        source = originFunc.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated.Default)
         name = callableId.callableName
         symbol = newFunSymbol
         status = originFunc.status.copy(
@@ -119,8 +119,12 @@ private fun SuspendTransformFirTransformer.generateSyntheticFunction(
         //     [IR VALIDATION] JvmIrValidationBeforeLoweringPhase: Duplicate IR node: TYPE_PARAMETER name:A index:0 variance: superTypes:[kotlin.Any?] reified:false of FUN GENERATED[...]
         copyParameters(firSession)
 
+        // copyParameters rebinds function-level type parameters to the generated function.
+        // Reuse this type in the body to avoid referencing the original suspend function scope.
+        val copiedOriginReturnTypeRef = returnTypeRef
+
         // resolve returnType (with wrapped) after copyParameters
-        returnTypeRef = resolveReturnType(funData.transformer, returnTypeRef)
+        returnTypeRef = resolveReturnType(funData.transformer, copiedOriginReturnTypeRef)
 
         val thisReceiverParameter = this.receiverParameter
         val thisContextParameters = this.contextParameters
@@ -139,7 +143,8 @@ private fun SuspendTransformFirTransformer.generateSyntheticFunction(
             thisValueParameters,
             funData.transformerFunctionSymbol,
             newFunTarget,
-            funData.transformer
+            funData.transformer,
+            copiedOriginReturnTypeRef,
         )
     }
 

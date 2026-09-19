@@ -22,7 +22,6 @@
 
 package love.forte.plugin.suspendtrans.ir
 
-import love.forte.plugin.suspendtrans.SuspendTransformUserDataKey
 import love.forte.plugin.suspendtrans.checkSame
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import love.forte.plugin.suspendtrans.fir.SuspendTransformBridgeFunctionKey
@@ -30,8 +29,6 @@ import love.forte.plugin.suspendtrans.fir.SuspendTransformGeneratedDeclarationKe
 import love.forte.plugin.suspendtrans.fir.SuspendTransformK2V3Key
 import love.forte.plugin.suspendtrans.fir.SuspendTransformPluginKey
 import love.forte.plugin.suspendtrans.utils.toCallableId
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -52,17 +49,11 @@ internal fun SuspendTransformTransformer.findTransformTargetFunction(transformer
  * Resolves bodies for plugin-generated IR declarations by locating their source suspend declaration
  * or bridge target and delegating to the shared body builder.
  */
-@OptIn(ObsoleteDescriptorBasedAPI::class)
-internal fun SuspendTransformTransformer.resolveFunctionBodyByDescriptor(
+internal fun SuspendTransformTransformer.resolveGeneratedFunctionBody(
     declaration: IrFunction,
-    descriptor: CallableDescriptor,
     property: IrProperty? = null
 ): IrFunction? {
-    // K2
     val pluginKey = resolveGeneratedDeclarationKey(declaration, property)
-
-    // K1 ?
-    val userData = descriptor.getUserData(SuspendTransformUserDataKey)
 
     return when {
         // K2 v3: body is already generated in FIR, so skip it here.
@@ -112,21 +103,6 @@ internal fun SuspendTransformTransformer.resolveFunctionBodyByDescriptor(
                         pluginKey.data.transformer.originFunctionIncludeAnnotations
                     )
                 }
-            }
-        }
-
-        userData != null -> {
-            resolveFunctionBody(
-                userData,
-                declaration,
-//                { f -> userData.originFunctionSymbol.isSame(f).also { println("IsSame: ${userData.originFunctionSymbol} -> $f") } },
-                { f -> f.descriptor == userData.originFunction },
-                findTransformTargetFunction(userData.transformer)
-            )?.also { generatedOriginFunction ->
-                postProcessGenerateOriginFunction(
-                    generatedOriginFunction,
-                    userData.transformer.originFunctionIncludeAnnotations
-                )
             }
         }
 

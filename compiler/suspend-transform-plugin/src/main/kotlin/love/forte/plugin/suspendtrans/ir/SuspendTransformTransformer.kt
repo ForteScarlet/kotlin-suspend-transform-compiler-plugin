@@ -26,7 +26,6 @@ import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguratio
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 
@@ -46,16 +45,14 @@ class SuspendTransformTransformer(
      */
     internal val reporter = pluginContext.diagnosticReporter
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        resolveFunctionBodyByDescriptor(declaration, declaration.descriptor)
+        resolveGeneratedFunctionBody(declaration)
         return super.visitFunctionNew(declaration)
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitPropertyNew(declaration: IrProperty): IrStatement {
         val getter = declaration.getter ?: return super.visitPropertyNew(declaration)
-        resolveFunctionBodyByDescriptor(getter, declaration.descriptor, declaration)
+        resolveGeneratedFunctionBody(getter, declaration)
         return super.visitPropertyNew(declaration)
     }
 }

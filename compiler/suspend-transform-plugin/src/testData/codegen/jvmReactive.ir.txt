@@ -47,13 +47,13 @@ FILE fqName:<root> fileName:/Main.kt
         Api4J
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun nullableBoundGenericValueReactive <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive): org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive & Any}> declared in <root>.JvmReactiveCodegen'
-          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValue & Any}> origin=null
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive & Any}> origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.nullableBoundGenericValue> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.nullableBoundGenericValue [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive'
-                    CALL 'public final fun nullableBoundGenericValue <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValue): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValue origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive'
+                    CALL 'public final fun nullableBoundGenericValue <T> (value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValue): T of <root>.JvmReactiveCodegen.nullableBoundGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
                       ARG value: GET_VAR 'value: T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive declared in <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive' type=T of <root>.JvmReactiveCodegen.nullableBoundGenericValueReactive origin=null
@@ -99,13 +99,13 @@ FILE fqName:<root> fileName:/Main.kt
         Api4J
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun whereGenericValueReactive <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValueReactive): org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValueReactive & Any}> declared in <root>.JvmReactiveCodegen'
-          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValue & Any}> origin=null
+          CALL 'public final fun $runInReactive$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInReactive$>, scope: kotlinx.coroutines.CoroutineScope?): org.reactivestreams.Publisher<{T of love.forte.plugin.suspendtrans.runtime.$runInReactive$ & Any}> declared in love.forte.plugin.suspendtrans.runtime' type=org.reactivestreams.Publisher<out {T of <root>.JvmReactiveCodegen.whereGenericValueReactive & Any}> origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.whereGenericValue> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.whereGenericValue [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.JvmReactiveCodegen.whereGenericValueReactive> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.JvmReactiveCodegen.whereGenericValueReactive [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen.whereGenericValueReactive'
-                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValue): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.whereGenericValue origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.JvmReactiveCodegen.whereGenericValueReactive declared in <root>.JvmReactiveCodegen.whereGenericValueReactive'
+                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.JvmReactiveCodegen.whereGenericValue): T of <root>.JvmReactiveCodegen.whereGenericValue declared in <root>.JvmReactiveCodegen' type=T of <root>.JvmReactiveCodegen.whereGenericValueReactive origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.JvmReactiveCodegen declared in <root>.JvmReactiveCodegen.whereGenericValueReactive' type=<root>.JvmReactiveCodegen origin=IMPLICIT_ARGUMENT
                       ARG value: GET_VAR 'value: T of <root>.JvmReactiveCodegen.whereGenericValueReactive declared in <root>.JvmReactiveCodegen.whereGenericValueReactive' type=T of <root>.JvmReactiveCodegen.whereGenericValueReactive origin=null

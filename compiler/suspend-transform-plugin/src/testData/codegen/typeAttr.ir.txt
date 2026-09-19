@@ -146,11 +146,11 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public open fun runAsync <R> (api: <root>.Api<R of <root>.Foo.runAsync>): java.util.concurrent.CompletableFuture declared in <root>.Foo'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.run [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.runAsync> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.runAsync [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.run declared in <root>.Foo.runAsync'
-                    CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.run origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.runAsync declared in <root>.Foo.runAsync'
+                    CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.runAsync origin=null
                       TYPE_ARG R: <none>
                       ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runAsync' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
                       ARG api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runAsync> declared in <root>.Foo.runAsync' type=<root>.Api<R of <root>.Foo.runAsync> origin=null
@@ -164,13 +164,13 @@ FILE fqName:<root> fileName:/Main.kt
         Api4J
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun runBlocking <R> (api: <root>.Api<R of <root>.Foo.runBlocking>): R of <root>.Foo.runBlocking declared in <root>.Foo'
-          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=R of <root>.Foo.run origin=null
+          CALL 'public final fun $runInBlocking$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$>): T of love.forte.plugin.suspendtrans.runtime.$runInBlocking$ declared in love.forte.plugin.suspendtrans.runtime' type=R of <root>.Foo.runBlocking origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.run> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.run [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<R of <root>.Foo.runBlocking> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:R of <root>.Foo.runBlocking [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.run declared in <root>.Foo.runBlocking'
-                    CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.run origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): R of <root>.Foo.runBlocking declared in <root>.Foo.runBlocking'
+                    CALL 'public abstract fun run <R> (api: <root>.Api<R of <root>.Foo.run>): R of <root>.Foo.run declared in <root>.Foo' type=R of <root>.Foo.runBlocking origin=null
                       TYPE_ARG R: <none>
                       ARG <this>: GET_VAR '<this>: <root>.Foo<T of <root>.Foo> declared in <root>.Foo.runBlocking' type=<root>.Foo<T of <root>.Foo> origin=IMPLICIT_ARGUMENT
                       ARG api: GET_VAR 'api: <root>.Api<R of <root>.Foo.runBlocking> declared in <root>.Foo.runBlocking' type=<root>.Api<R of <root>.Foo.runBlocking> origin=null

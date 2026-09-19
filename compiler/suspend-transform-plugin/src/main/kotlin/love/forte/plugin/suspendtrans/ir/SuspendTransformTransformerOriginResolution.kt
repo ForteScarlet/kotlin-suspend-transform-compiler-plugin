@@ -22,7 +22,6 @@
 
 package love.forte.plugin.suspendtrans.ir
 
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -32,7 +31,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
  *
  * @return the origin function when one was found and used.
  */
-@OptIn(ObsoleteDescriptorBasedAPI::class)
 internal inline fun SuspendTransformTransformer.resolveFunctionBody(
     sourceKey: Any?,
     function: IrFunction,

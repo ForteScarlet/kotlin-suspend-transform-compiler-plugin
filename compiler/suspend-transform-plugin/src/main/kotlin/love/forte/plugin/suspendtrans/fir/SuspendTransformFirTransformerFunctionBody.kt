@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneType
 
 /**
@@ -53,10 +54,11 @@ internal fun SuspendTransformFirTransformer.generateSyntheticFunctionBody(
     thisValueParameters: List<FirValueParameter>,
     bridgeFunSymbol: FirNamedFunctionSymbol,
     newFunTarget: FirFunctionTarget,
-    transformer: Transformer
+    transformer: Transformer,
+    copiedOriginReturnTypeRef: FirTypeRef,
 ): FirBlock = buildBlock {
     // Plugin-generated declarations still need a synthetic source element.
-    source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+    source = originFunSymbol.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated.Default)
 
     val lambdaTarget = FirFunctionTarget(null, isLambda = true)
     val lambda = buildSyntheticLambda(
@@ -67,10 +69,11 @@ internal fun SuspendTransformFirTransformer.generateSyntheticFunctionBody(
         thisReceiverParameter,
         thisValueParameters,
         lambdaTarget,
+        copiedOriginReturnTypeRef,
     )
     lambdaTarget.bind(lambda)
 
-    val returnType = resolveReturnType(transformer, originFunc.returnTypeRef)
+    val returnType = resolveReturnType(transformer, copiedOriginReturnTypeRef)
 
     statements.add(
         buildReturnExpression {

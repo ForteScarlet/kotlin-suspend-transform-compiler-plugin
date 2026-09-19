@@ -126,11 +126,11 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public final fun nonNullToNonNullWhereGenericValueNonNullAsync <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync'
-                    CALL 'public final fun nonNullToNonNullWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync'
+                    CALL 'public final fun nonNullToNonNullWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue): T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
                       ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync' type=T of <root>.NullmarkModeWhere.nonNullToNonNullWhereGenericValueNonNullAsync origin=null
@@ -146,11 +146,11 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public final fun nullableWhereGenericValueNonNullAsync <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nullableWhereGenericValue> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nullableWhereGenericValue [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync'
-                    CALL 'public final fun nullableWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValue): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValue origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync'
+                    CALL 'public final fun nullableWhereGenericValue <T> (value: T of <root>.NullmarkModeWhere.nullableWhereGenericValue): T of <root>.NullmarkModeWhere.nullableWhereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
                       ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync declared in <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync' type=T of <root>.NullmarkModeWhere.nullableWhereGenericValueNonNullAsync origin=null
@@ -166,11 +166,11 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public final fun whereGenericValueNullableAsync <T> (value: T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync): java.util.concurrent.CompletableFuture declared in <root>.NullmarkModeWhere'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.whereGenericValue> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.whereGenericValue [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync'
-                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.NullmarkModeWhere.whereGenericValue): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.whereGenericValue origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync'
+                    CALL 'public final fun whereGenericValue <T> (value: T of <root>.NullmarkModeWhere.whereGenericValue): T of <root>.NullmarkModeWhere.whereGenericValue declared in <root>.NullmarkModeWhere' type=T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.NullmarkModeWhere declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync' type=<root>.NullmarkModeWhere origin=IMPLICIT_ARGUMENT
                       ARG value: GET_VAR 'value: T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync declared in <root>.NullmarkModeWhere.whereGenericValueNullableAsync' type=T of <root>.NullmarkModeWhere.whereGenericValueNullableAsync origin=null

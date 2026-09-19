@@ -22,13 +22,6 @@
 
 package love.forte.plugin.suspendtrans.utils
 
-import love.forte.plugin.suspendtrans.configuration.Transformer
-import love.forte.plugin.suspendtrans.toJsPromiseAnnotationName
-import love.forte.plugin.suspendtrans.toJvmAsyncAnnotationName
-import love.forte.plugin.suspendtrans.toJvmBlockingAnnotationName
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getBooleanArgument
@@ -45,9 +38,6 @@ import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.irConstructorCall
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.annotations.argumentValue
-import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 
 
 fun IrBuilderWithScope.irAnnotationConstructor(
@@ -62,23 +52,6 @@ fun IrBuilderWithScope.irAnnotation(symbol: IrConstructorSymbol): IrAnnotation {
     return irAnnotation(symbol)
 }
 
-fun Iterable<AnnotationDescriptor>.filterNotCompileAnnotations(): List<AnnotationDescriptor> = filterNot {
-    val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
-//
-    annotationFqNameUnsafe == toJvmAsyncAnnotationName.toUnsafe()
-            || annotationFqNameUnsafe == toJvmBlockingAnnotationName.toUnsafe()
-            || annotationFqNameUnsafe == toJsPromiseAnnotationName.toUnsafe()
-}
-
-//fun Iterable<FirAnnotation>.filterNotCompileAnnotations(session: FirSession): List<FirAnnotation> = filterNot {
-//    val annotationFqName = it.fqName(session) ?: return@filterNot true
-//    val annotationFqNameUnsafe = it.annotationClass?.fqNameUnsafe ?: return@filterNot true
-
-//    annotationFqName == toJvmAsyncAnnotationName.toUnsafe()
-//            || annotationFqName == toJvmBlockingAnnotationName.toUnsafe()
-//            || annotationFqName == toJsPromiseAnnotationName.toUnsafe()
-//}
-
 data class TransformAnnotationData(
     val baseName: String?,
     val suffix: String?,
@@ -88,47 +61,6 @@ data class TransformAnnotationData(
     val markName: String?,
 ) {
     companion object {
-        fun of(
-            annotationDescriptor: AnnotationDescriptor,
-            annotationBaseNamePropertyName: String = "baseName",
-            annotationSuffixPropertyName: String = "suffix",
-            annotationAsPropertyPropertyName: String = "asProperty",
-            annotationMarkNamePropertyName: String? = null,
-            defaultBaseName: String,
-            defaultSuffix: String,
-            defaultAsProperty: Boolean,
-        ): TransformAnnotationData {
-            val baseName = annotationDescriptor.argumentValue(annotationBaseNamePropertyName)
-                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-                ?.takeIf { it.isNotEmpty() }
-
-            val suffix = annotationDescriptor.argumentValue(annotationSuffixPropertyName)
-                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-
-
-            val rawAsProperty = annotationDescriptor.argumentValue(annotationAsPropertyPropertyName)
-                ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.booleanOnly, null)
-
-            val functionName = "${baseName ?: defaultBaseName}${suffix ?: defaultSuffix}"
-
-            val markName = if (annotationMarkNamePropertyName != null) {
-                annotationDescriptor.argumentValue(annotationMarkNamePropertyName)
-                    ?.accept(AbstractNullableAnnotationArgumentVoidDataVisitor.stringOnly, null)
-                    ?.takeIf { it.isNotEmpty() }
-            } else {
-                null
-            }
-
-            return TransformAnnotationData(
-                baseName,
-                suffix,
-                rawAsProperty,
-                rawAsProperty ?: defaultAsProperty,
-                functionName,
-                markName
-            )
-        }
-
         fun of(
             session: FirSession,
             firAnnotation: FirAnnotation,
@@ -189,36 +121,5 @@ private fun FirAnnotation.getBooleanArgument0(name: Name): Boolean? {
     // If not found, try to use `findArgumentByName`
     val argByName = findArgumentByName(name, returnFirstWhenNotFound = false)
     return (argByName as? FirLiteralExpression)?.value as? Boolean
-}
-
-
-fun Transformer.resolveAnnotationData(
-    functionDescriptor: FunctionDescriptor,
-    containing: DeclarationDescriptor = functionDescriptor.containingDeclaration,
-    defaultBaseName: String,
-    annotationBaseNamePropertyName: String = this.markAnnotation.baseNameProperty,
-    annotationSuffixPropertyName: String = this.markAnnotation.suffixProperty,
-    annotationAsPropertyPropertyName: String = this.markAnnotation.asPropertyProperty,
-    annotationMarkNamePropertyName: String? = this.markAnnotation.markNameProperty?.propertyName
-): TransformAnnotationData? {
-    val markAnnotationClassId = markAnnotation.classInfo.toClassId()
-    val annotationFqn =
-        markAnnotationClassId.asSingleFqName() // .packageFqName.child(markAnnotationClassId.shortClassName)
-
-    val foundAnnotation = functionDescriptor.annotations.findAnnotation(annotationFqn)
-        ?: containing.annotations.findAnnotation(annotationFqn)
-
-    return foundAnnotation?.let {
-        TransformAnnotationData.of(
-            it,
-            annotationBaseNamePropertyName,
-            annotationSuffixPropertyName,
-            annotationAsPropertyPropertyName,
-            annotationMarkNamePropertyName,
-            defaultBaseName,
-            markAnnotation.defaultSuffix,
-            markAnnotation.defaultAsProperty,
-        )
-    }
 }
 
