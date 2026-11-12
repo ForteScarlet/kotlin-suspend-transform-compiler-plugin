@@ -139,6 +139,3 @@ tasks.withType<PublishToMavenRepository>().configureEach {
 
 inline val Project.sourceSets: SourceSetContainer
     get() = extensions.getByName("sourceSets") as SourceSetContainer
-
-internal val TaskContainer.dokkaHtml: TaskProvider<org.jetbrains.dokka.gradle.DokkaTask>
-    get() = named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml")

@@ -20,67 +20,39 @@
  * SOFTWARE.
  */
 
-import org.jetbrains.dokka.DokkaConfiguration
-import java.net.URL
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 plugins {
     id("org.jetbrains.dokka")
 }
 
-tasks.named("dokkaHtml").configure {
-    tasks.findByName("kaptKotlin")?.also { kaptKotlinTask ->
-        dependsOn(kaptKotlinTask)
-    }
-}
-tasks.named("dokkaHtmlPartial").configure {
-    tasks.findByName("kaptKotlin")?.also { kaptKotlinTask ->
-        dependsOn(kaptKotlinTask)
-    }
-}
-
-tasks.withType<org.jetbrains.dokka.gradle.DokkaTaskPartial>().configureEach {
+dokka {
+    moduleVersion.set(project.version.toString())
     dokkaSourceSets.configureEach {
-        version = project.version
-        documentedVisibilities.set(
-            listOf(
-                DokkaConfiguration.Visibility.PUBLIC,
-                DokkaConfiguration.Visibility.PROTECTED
-            )
-        )
+        documentedVisibilities.set(setOf(VisibilityModifier.Public, VisibilityModifier.Protected))
         jdkVersion.set(8)
         if (project.file("Module.md").exists()) {
-            includes.from("Module.md")
+            includes.from(project.file("Module.md"))
         } else if (project.file("README.md").exists()) {
-            includes.from("README.md")
+            includes.from(project.file("README.md"))
         }
 
-
-//        sourceLink {
-//            localDirectory.set(projectDir.resolve("src"))
-//            val relativeTo = projectDir.relativeTo(rootProject.projectDir)
-//            remoteUrl.set(URL("${IProject.HOMEPAGE}/tree/v3-dev/$relativeTo/src"))
-//            remoteLineSuffix.set("#L")
-//        }
-
         perPackageOption {
-            matchingRegex.set(".*internal.*") // will match all .internal packages and sub-packages
+            matchingRegex.set(".*internal.*")
             suppress.set(true)
         }
 
-        fun externalDocumentation(docUrl: URL, suffix: String = "package-list") {
-            externalDocumentationLink {
-                url.set(docUrl)
-                packageListUrl.set(URL(docUrl, "${docUrl.path}/$suffix"))
-            }
+        externalDocumentationLinks.register("kotlinx-coroutines") {
+            url("https://kotlinlang.org/api/kotlinx.coroutines/")
+            packageListUrl("https://kotlinlang.org/api/kotlinx.coroutines/package-list")
         }
-
-        // kotlin-coroutines doc
-        externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.coroutines"))
-
-        // kotlin-serialization doc
-        externalDocumentation(URL("https://kotlinlang.org/api/kotlinx.serialization"))
-
-        // SLF4J
-        externalDocumentation(URL("https://www.slf4j.org/apidocs"))
+        externalDocumentationLinks.register("kotlinx-serialization") {
+            url("https://kotlinlang.org/api/kotlinx.serialization/")
+            packageListUrl("https://kotlinlang.org/api/kotlinx.serialization/package-list")
+        }
+        externalDocumentationLinks.register("slf4j") {
+            url("https://www.slf4j.org/apidocs/")
+            packageListUrl("https://www.slf4j.org/apidocs/element-list")
+        }
     }
 }

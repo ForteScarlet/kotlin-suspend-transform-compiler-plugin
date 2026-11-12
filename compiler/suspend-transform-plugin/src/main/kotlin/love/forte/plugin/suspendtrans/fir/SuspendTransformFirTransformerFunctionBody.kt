@@ -24,7 +24,6 @@ package love.forte.plugin.suspendtrans.fir
 
 import love.forte.plugin.suspendtrans.configuration.Transformer
 import org.jetbrains.kotlin.KtFakeSourceElementKind
-import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.FirFunctionTarget
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirReceiverParameter

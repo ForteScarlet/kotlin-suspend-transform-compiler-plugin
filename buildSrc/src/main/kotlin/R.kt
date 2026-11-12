@@ -39,12 +39,12 @@ private val sonatypeUserInfo0 by lazy {
     userInfo
 }
 
-val sonatypeUsername: String? get() = sonatypeUserInfo0?.sonatypeUsername
-val sonatypePassword: String? get() = sonatypeUserInfo0?.sonatypePassword
+val sonatypeUsername0: String? get() = sonatypeUserInfo0?.sonatypeUsername
+val sonatypePassword0: String? get() = sonatypeUserInfo0?.sonatypePassword
 
 val ReleaseRepository by lazy {
-    Repositories.Central.Default.copy(SimpleCredentials(sonatypeUsername, sonatypePassword))
+    Repositories.Central.Default.copy(SimpleCredentials(sonatypeUsername0, sonatypePassword0))
 }
 val SnapshotRepository by lazy {
-    Repositories.Snapshot.Default.copy(SimpleCredentials(sonatypeUsername, sonatypePassword))
+    Repositories.Snapshot.Default.copy(SimpleCredentials(sonatypeUsername0, sonatypePassword0))
 }
