@@ -34,7 +34,7 @@ abstract class AbstractTestRunner : AbstractKotlinCompilerTest() {
         builder.setupJvmPipelineSteps(FirParser.LightTree)
 
         builder.globalDefaults {
-            targetBackend = TargetBackend.JVM_IR
+            targetBackend = TargetBackend.JVM
             targetPlatform = JvmPlatforms.defaultJvmPlatform
             artifactKind = ArtifactKinds.Jvm
             dependencyKind = DependencyKind.Binary

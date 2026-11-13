@@ -35,7 +35,7 @@ object IProject : ProjectDetail() {
     const val HOMEPAGE = "https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin"
 
     // Remember the libs.versions.toml!
-    val ktVersion = "2.4.20"
+    val ktVersion = "2.5.0-RC"
     val pluginVersion = "0.15.0"
 
     override val version: String = "$ktVersion-$pluginVersion"

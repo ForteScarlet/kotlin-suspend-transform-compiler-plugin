@@ -9,7 +9,7 @@ repositories {
 }
 
 val kotlinVersion: String = libs.versions.kotlin.get()
-val dokkaPluginVersion = "1.9.20"
+val dokkaPluginVersion = "2.3.0"
 val gradleCommon = "0.6.0"
 val nexusPublishPlugin = "2.0.0"
 val buildConfig = "5.3.5"
@@ -34,7 +34,11 @@ dependencies {
 
 //    api("com.github.jengelman.gradle.plugins:shadow:8.3.0")
     // https://gradleup.com/shadow/
-    api("com.gradleup.shadow:shadow-gradle-plugin:8.3.2")
+    api("com.gradleup.shadow:shadow-gradle-plugin:9.3.2")
+    // Shadow relocates Kotlin module metadata and must understand the compiler metadata version.
+    runtimeOnly("org.jetbrains.kotlin:kotlin-metadata-jvm:$kotlinVersion") {
+        isTransitive = false
+    }
 
     implementation("love.forte.gradle.common:gradle-common-core:$gradleCommon")
     implementation("love.forte.gradle.common:gradle-common-kotlin-multiplatform:$gradleCommon")

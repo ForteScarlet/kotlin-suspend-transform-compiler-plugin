@@ -109,14 +109,18 @@ private fun Project.compilerShadowJar(taskName: String, body: ShadowJar.() -> Un
         destinationDirectory.set(project.file(File(layout.buildDirectory.asFile.get(), "libs")))
 //        destinationDirectory.set(layout.buildDirectory.dir("libs"))
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        from(embeddedConfig)
+        // Shadow must unpack dependencies so compiler plugin services are visible at the JAR root.
+        configurations.set(listOf(embeddedConfig))
         from(javaPluginExtension.sourceSets.getByName("main").output)
         body()
     }
 }
 
 fun Project.createEmbedded() {
-    configurations.create("embedded")
+    configurations.create("embedded") {
+        // The host compiler supplies Kotlin classes; only shade the plugin and its own dependencies.
+        exclude(mapOf("group" to "org.jetbrains.kotlin"))
+    }
 }
 
 fun Project.embeddableCompiler(
