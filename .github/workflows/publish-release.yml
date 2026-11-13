@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  JAVA_VERSION: 11
+  JAVA_VERSION: 17
   JAVA_DISTRIBUTION: zulu
-  GRADLE_VERSION: 8.10.2
+  GRADLE_VERSION: 9.5.0
   IS_CI: true
   SIGNING_KEY_ID: ${{ secrets.GPG_KEY_ID }}
   GPG_KEY_CONTENTS: ${{ secrets.GPG_PRI_KEY }}
