@@ -30,7 +30,7 @@ fun systemProperty(propKey: String, envKey: String = propKey): String? {
     return System.getProperty(propKey, System.getenv(envKey))
 }
 
-infix fun <T> Property<T>.by(value: T) {
+infix fun <T : Any> Property<T>.by(value: T) {
     set(value)
 }
 

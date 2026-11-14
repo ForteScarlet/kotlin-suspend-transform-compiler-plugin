@@ -28,9 +28,9 @@ import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.KtSourcelessDiagnosticFactory
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.util.getSourceFile
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -48,7 +48,6 @@ internal fun IrFunction.reportLocation(): CompilerMessageSourceLocation? = runCa
  * Reports that resolving the origin function for a generated member produced an
  * unexpected number of matches in the current container.
  */
-@OptIn(ObsoleteDescriptorBasedAPI::class)
 internal fun SuspendTransformTransformer.reportOriginFunctionSearchMismatch(
     function: IrFunction,
     parent: IrDeclarationContainer,
@@ -62,10 +61,16 @@ internal fun SuspendTransformTransformer.reportOriginFunctionSearchMismatch(
             "in " +
             "${kotlin.runCatching { parent.kotlinFqName.asString() }.getOrElse { parent.toString() }}) 's " +
             "originFunctions.size should be 1, " +
-            "but $actualNum (findIn = ${(parent as? IrDeclaration)?.descriptor}, originFunctions = $originFunctions, sourceKey = $sourceKey)"
+            "but $actualNum (findIn = ${(parent as? IrDeclaration)?.renderForDiagnostic()}, " +
+            "originFunctions = $originFunctions, sourceKey = $sourceKey)"
 
     reportInfo(message, function.reportLocation())
 }
+
+private fun IrDeclaration.renderForDiagnostic(): String =
+    (this as? IrDeclarationParent)
+        ?.let { parent -> kotlin.runCatching { parent.kotlinFqName.asString() }.getOrNull() }
+        ?: toString()
 
 /**
  * Reports that a generated declaration body is being synthesized from a matched origin function.

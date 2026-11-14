@@ -17,9 +17,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: 11
+  JAVA_VERSION: 17
   JAVA_DISTRIBUTION: zulu
-  GRADLE_VERSION: 8.10.2
+  GRADLE_VERSION: 9.5.0
   IS_CI: true
   GRADLE_OPTS: "-Dfile.encoding=UTF-8"
 

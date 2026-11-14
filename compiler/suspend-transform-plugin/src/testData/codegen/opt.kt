@@ -1,6 +1,7 @@
 // FIR_DUMP
 // DUMP_IR
 // SOURCE
+// FULL_JDK
 // FILE: Main.kt [MainKt#main]
 
 import kotlinx.coroutines.suspendCancellableCoroutine

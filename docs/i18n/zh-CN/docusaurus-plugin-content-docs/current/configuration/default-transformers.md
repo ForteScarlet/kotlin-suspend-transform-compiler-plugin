@@ -6,6 +6,7 @@ sidebar_position: 2
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { VersionBadge } from '@site/src/components/Snippets';
 
 本指南介绍插件提供的默认转换器以及如何有效使用它们。
 
@@ -257,6 +258,8 @@ val fooAsync: CompletableFuture<out T>
 参考 [MarkName](../features/mark-name.md)。
 
 ### JVM Reactive 转换器
+
+<VersionBadge version="0.14.0" />
 
 JVM Reactive 转换器会生成 Reactive Streams `Publisher` 变体。
 

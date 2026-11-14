@@ -111,6 +111,9 @@ For more information on this topic, please refer to [Configuration - Include Dep
 
 K2 is supported since `v0.7.0`.
 
+K1 frontend support is deprecated and removed as of `v2.4.20-0.15.0`.
+This version and later releases require K2.
+
 ### IDE support in current development projects
 
 The IDE does **NOT** support highlighting for projects that currently use compiler plugins.

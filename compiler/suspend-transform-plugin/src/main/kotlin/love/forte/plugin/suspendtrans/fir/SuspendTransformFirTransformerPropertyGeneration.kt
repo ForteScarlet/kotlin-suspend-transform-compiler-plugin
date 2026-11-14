@@ -24,7 +24,6 @@ package love.forte.plugin.suspendtrans.fir
 
 import love.forte.plugin.suspendtrans.utils.includeAnnotations
 import org.jetbrains.kotlin.KtFakeSourceElementKind
-import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.FirFunctionTarget
 import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.copy
@@ -119,7 +118,7 @@ private fun SuspendTransformFirTransformer.generateSyntheticProperty(
         symbol = pSymbol
         name = callableId.callableName
         isLocal = false
-        source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+        source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated.Default)
         resolvePhase = original.resolvePhase
         moduleData = original.moduleData
         origin = pKey.origin
@@ -197,7 +196,8 @@ private fun SuspendTransformFirTransformer.generateSyntheticProperty(
                 thisValueParameters,
                 funData.transformerFunctionSymbol,
                 newFunTarget,
-                funData.transformer
+                funData.transformer,
+                copiedReturnType,
             )
         }.also { getter ->
             newFunTarget.bind(getter)

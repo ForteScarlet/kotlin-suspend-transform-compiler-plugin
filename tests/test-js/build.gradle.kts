@@ -18,7 +18,7 @@ kotlin {
         )
     }
 
-    js(IR) {
+    js {
         nodejs()
 
         useEsModules()

@@ -27,13 +27,17 @@ import love.forte.plugin.suspendtrans.configuration.InternalSuspendTransformConf
 import love.forte.plugin.suspendtrans.configuration.SuspendTransformConfiguration
 import love.forte.plugin.suspendtrans.fir.SuspendTransformFirExtensionRegistrar
 import love.forte.plugin.suspendtrans.ir.SuspendTransformIrGenerationExtension
-import love.forte.plugin.suspendtrans.symbol.SuspendTransformSyntheticResolveExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.cli.report
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap
+import org.jetbrains.kotlin.diagnostics.KtSourcelessDiagnosticFactory
+import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
-import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 
 /**
  * Registers every compiler extension entry point used by the suspend-transform plugin.
@@ -49,6 +53,11 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
         get() = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+        if (!configuration.isK2Compilation()) {
+            configuration.reportK1IsUnsupported()
+            return
+        }
+
         register(this, configuration)
     }
 
@@ -65,11 +74,11 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
         }
 
         /**
-         * Registers FIR, IR, and legacy synthetic resolve extensions for the given configuration.
+         * 为给定配置注册 K2/FIR 前端与 IR 后端扩展。
+         *
+         * 合成声明只能由 FIR 生成，避免重新引入依赖 Descriptor 的 K1 解析路径。
          */
         fun register(storage: ExtensionStorage, configuration: SuspendTransformConfiguration) {
-            val suspendTransformSyntheticResolveExtension =
-                SuspendTransformSyntheticResolveExtension(configuration)
             val suspendTransformFirExtensionRegistrar =
                 SuspendTransformFirExtensionRegistrar(configuration)
 
@@ -77,11 +86,43 @@ class SuspendTransformComponentRegistrar : CompilerPluginRegistrar() {
                 SuspendTransformIrGenerationExtension(configuration)
 
             with(storage) {
-                SyntheticResolveExtension.registerExtension(suspendTransformSyntheticResolveExtension)
                 FirExtensionRegistrarAdapter.registerExtension(suspendTransformFirExtensionRegistrar)
                 IrGenerationExtension.registerExtension(suspendTransformIrGenerationExtension)
             }
         }
+    }
+}
+
+/**
+ * 判断当前编译是否使用 K2/FIR 前端。
+ *
+ * 插件已经移除 K1 的 Descriptor 声明生成路径，因此不能在 K1 下继续注册仅有一半的扩展，
+ * 否则用户会得到“插件已加载但没有生成声明”的静默错误。
+ */
+private fun CompilerConfiguration.isK2Compilation(): Boolean =
+    get(CommonConfigurationKeys.USE_FIR, false)
+
+/**
+ * 向编译器消息通道报告明确的 K1 不兼容错误。
+ */
+private fun CompilerConfiguration.reportK1IsUnsupported() {
+    report(
+        SuspendTransformCompilerDiagnostics.K1_NOT_SUPPORTED,
+        "Suspend Transform compiler plugin requires the Kotlin K2 compiler. K1 is no longer supported.",
+    )
+}
+
+private object SuspendTransformCompilerDiagnostics {
+    val K1_NOT_SUPPORTED = KtSourcelessDiagnosticFactory(
+        "SUSPEND_TRANSFORM_K1_NOT_SUPPORTED",
+        Severity.ERROR,
+        SuspendTransformCompilerDiagnosticMessages,
+    )
+}
+
+private object SuspendTransformCompilerDiagnosticMessages : BaseDiagnosticRendererFactory() {
+    override val MAP by KtDiagnosticFactoryToRendererMap("SuspendTransformCompilerDiagnostics") { map ->
+        map.put(SuspendTransformCompilerDiagnostics.K1_NOT_SUPPORTED, "{0}")
     }
 }
 

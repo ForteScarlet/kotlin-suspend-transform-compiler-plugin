@@ -24,9 +24,10 @@
  * 为了让 gradle 插件可以在 buildSrc 之类的地方使用。
  */
 fun org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension.configGradleBuildSrcFriendly() {
-    coreLibrariesVersion = "2.0.0"
+    // Kotlin 2.5 requires language version 2.2 or newer; keep the minimum for Gradle consumers.
+    coreLibrariesVersion = "2.2.0"
     compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
     }
 }

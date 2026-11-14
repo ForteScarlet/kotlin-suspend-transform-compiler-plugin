@@ -20,13 +20,17 @@
  * SOFTWARE.
  */
 
+import com.vanniktech.maven.publish.GradlePublishPlugin
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import love.forte.gradle.common.core.property.ofIf
 
 plugins {
     signing
-    id("com.vanniktech.maven.publish")
-    id("org.jetbrains.dokka")
+    id("com.vanniktech.maven.publish.base")
+    id("suspend-transform.dokka-module")
 }
 
 val p = project
@@ -83,6 +87,30 @@ mavenPublishing {
         issueManagement {
             system.set("GitHub Issues")
             url.set("https://github.com/ForteScarlet/kotlin-suspend-transform-compiler-plugin/issues")
+        }
+    }
+}
+
+
+// Select publications after all platform plugins have been applied.
+// API documentation is generated separately from the Maven placeholder JARs.
+afterEvaluate {
+    mavenPublishing {
+        when {
+            plugins.hasPlugin("org.jetbrains.kotlin.multiplatform") ->
+                configure(KotlinMultiplatform(javadocJar = JavadocJar.Empty()))
+            plugins.hasPlugin("com.gradle.plugin-publish") -> {
+                configure(GradlePublishPlugin())
+                tasks.withType<Jar>().configureEach {
+                    if (name == "javadocJar") {
+                        // Plugin Publish owns this task and its publication attachment.
+                        exclude("**")
+                    }
+                }
+            }
+            plugins.hasPlugin("org.jetbrains.kotlin.jvm") ->
+                configure(KotlinJvm(javadocJar = JavadocJar.Empty()))
+            else -> error("Unsupported publication platform for ${project.path}")
         }
     }
 }

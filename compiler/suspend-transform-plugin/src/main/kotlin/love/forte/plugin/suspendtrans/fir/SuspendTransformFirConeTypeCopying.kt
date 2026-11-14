@@ -113,30 +113,14 @@ internal fun ConeKotlinType.copyWithTypeParameters(
                         // is ConeIntegerConstantOperatorType -> TODO()
                         // is ConeIntegerLiteralConstantType -> TODO()
                         is ConeIntersectionType -> {
-                            val upperBoundForApproximation = projection.upperBoundForApproximation
-                                ?.copyWithTypeParameters(parameters, session)
-//                            val upperBoundForApproximation =
-//                                projection.upperBoundForApproximation
-//                                    ?.let { findCopied(it) }
-//                                    ?.toConeType()
-
-                            var anyIntersectedTypes = false
-
-                            val intersectedTypes = projection.intersectedTypes.map { ktype ->
-                                findCopied(ktype)?.symbol?.toConeType()
-//                                ktype.copyWithTypeParameters(parameters, session)
-                                    ?.also { anyIntersectedTypes = true }
-                                    ?: ktype
+                            var changed = false
+                            val mapped = projection.mapTypes { type ->
+                                type.copyWithTypeParameters(parameters, session)
+                                    ?.also { changed = true }
+                                    ?: type
                             }
 
-                            if (upperBoundForApproximation != null || anyIntersectedTypes) {
-                                ConeIntersectionType(
-                                    intersectedTypes,
-                                    upperBoundForApproximation
-                                )
-                            } else {
-                                null
-                            }
+                            mapped.takeIf { changed }
                         }
                         // is ConeLookupTagBasedType -> TODO()
                         // is ConeStubTypeForTypeVariableInSubtyping -> TODO()

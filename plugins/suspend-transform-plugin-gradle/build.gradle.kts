@@ -79,7 +79,7 @@ if (isMainPublishable()) {
                 id = (rootProject.extra["kotlin_plugin_id"] as String)
                 displayName = "Kotlin suspend function transformer"
                 implementationClass = "love.forte.plugin.suspendtrans.gradle.SuspendTransformGradlePlugin"
-                tags = listOf("Kotlin", "Kotlinx Coroutines", "Kotlin Compiler Plugin")
+                tags = listOf("kotlin", "kotlinx-coroutines", "kotlin-compiler-plugin")
                 description = IProject.DESCRIPTION
             }
         }

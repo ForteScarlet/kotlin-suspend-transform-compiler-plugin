@@ -42,11 +42,11 @@ FILE fqName:<root> fileName:/Main.kt
         RETURN type=kotlin.Nothing from='public open fun executeAsync <T> (api: <root>.Api<T of <root>.ApiExecutable.executeAsync>): java.util.concurrent.CompletableFuture declared in <root>.ApiExecutable'
           CALL 'public final fun $runInAsync$ <T> (block: kotlin.coroutines.SuspendFunction0<T of love.forte.plugin.suspendtrans.runtime.$runInAsync$>, scope: kotlinx.coroutines.CoroutineScope?): java.util.concurrent.CompletableFuture declared in love.forte.plugin.suspendtrans.runtime' type=java.util.concurrent.CompletableFuture origin=null
             TYPE_ARG T: <none>
-            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>>> origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>> [suspend]
+            ARG block: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.executeAsync>>> origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.executeAsync>> [suspend]
                 BLOCK_BODY
-                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): <root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>> declared in <root>.ApiExecutable.executeAsync'
-                    CALL 'public abstract fun execute <T> (api: <root>.Api<T of <root>.ApiExecutable.execute>): <root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>> declared in <root>.ApiExecutable' type=<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>> origin=null
+                  RETURN type=kotlin.Nothing from='local final fun <anonymous> (): <root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.executeAsync>> declared in <root>.ApiExecutable.executeAsync'
+                    CALL 'public abstract fun execute <T> (api: <root>.Api<T of <root>.ApiExecutable.execute>): <root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.execute>> declared in <root>.ApiExecutable' type=<root>.ApiResult<<root>.Api<T of <root>.ApiExecutable.executeAsync>> origin=null
                       TYPE_ARG T: <none>
                       ARG <this>: GET_VAR '<this>: <root>.ApiExecutable declared in <root>.ApiExecutable.executeAsync' type=<root>.ApiExecutable origin=IMPLICIT_ARGUMENT
                       ARG api: GET_VAR 'api: <root>.Api<T of <root>.ApiExecutable.executeAsync> declared in <root>.ApiExecutable.executeAsync' type=<root>.Api<T of <root>.ApiExecutable.executeAsync> origin=null

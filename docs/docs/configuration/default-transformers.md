@@ -6,6 +6,7 @@ sidebar_position: 2
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { VersionBadge } from '@site/src/components/Snippets';
 
 This guide covers the default transformers provided by the plugin and how to use them effectively.
 
@@ -261,6 +262,8 @@ If `asProperty` is `true`, the function cannot have parameters.
 Refer to [Mark Name](../features/mark-name.md).
 
 ### JVM Reactive Transformer
+
+<VersionBadge version="0.14.0" />
 
 The JVM Reactive transformer generates Reactive Streams `Publisher` variants.
 

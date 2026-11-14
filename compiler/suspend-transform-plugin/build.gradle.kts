@@ -11,17 +11,14 @@ plugins {
 }
 
 dependencies {
-    compileOnly(kotlin("stdlib"))
     implementation(kotlin("compiler"))
     compileOnly(libs.kotlinx.coroutines.core)
     api(project(":compiler:suspend-transform-plugin-deprecated-configuration"))
     api(project(":compiler:suspend-transform-plugin-cli"))
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation(kotlin("stdlib"))
     testImplementation(kotlin("test-junit5"))
 
-    testImplementation(kotlin("compiler"))
     testImplementation(kotlin("reflect"))
     // see https://github.com/Icyrockton/xjson
     testImplementation(kotlin("compiler-internal-test-framework"))  // compiler plugin test generator / test utils

@@ -23,8 +23,6 @@
 package love.forte.plugin.suspendtrans
 
 import love.forte.plugin.suspendtrans.configuration.Transformer
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.toClassLikeSymbol
 import org.jetbrains.kotlin.fir.declarations.ExpectForActualMatchingData
@@ -44,125 +42,11 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.types.classFqName
-import org.jetbrains.kotlin.ir.util.*
-import org.jetbrains.kotlin.js.descriptorUtils.getKotlinTypeFqName
+import org.jetbrains.kotlin.ir.util.callableId
+import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-
-object SuspendTransformUserDataKey : CallableDescriptor.UserDataKey<SuspendTransformUserData>
-
-data class SuspendTransformUserData(
-    val originFunction: SimpleFunctionDescriptor,
-    val asProperty: Boolean,
-    val transformer: Transformer
-) {
-    val originFunctionSymbol = originFunction.toOriginFunctionSymbol()
-}
-
-fun SimpleFunctionDescriptor.toOriginFunctionSymbol(): OriginFunctionSymbol {
-    val fqName = fqNameSafe
-
-    val typeParameters = typeParameters.map {
-        OriginTypeParameter(
-            name = it.name,
-            varianceOrdinal = it.variance.ordinal,
-            isReified = it.isReified,
-            it.upperBounds.map { bound ->
-                kotlin.runCatching { bound.constructor.declarationDescriptor?.name }.getOrNull()
-            }
-        )
-    }
-
-    val valueParameters = valueParameters.map {
-        OriginValueParameter(
-            name = it.name,
-            typeFqName = kotlin.runCatching { it.type.getKotlinTypeFqName(false) }.getOrNull()
-        )
-    }
-
-
-    val returnType = kotlin.runCatching { returnType?.getKotlinTypeFqName(false) }.getOrNull()
-
-    return OriginFunctionSymbol(
-        name = fqName,
-        typeParameters = typeParameters,
-        valueParameters = valueParameters,
-        returnType = returnType
-    )
-}
-
-fun OriginFunctionSymbol.isSame(irFunction: IrFunction): Boolean {
-    // function name
-    if (!irFunction.hasEqualFqName(name)) return false
-
-    // return type
-    if (irFunction.returnType.classFqName?.asString() != returnType) return false
-
-    // typeParameters
-    val irFunctionTypeParameters = irFunction.typeParameters
-    if (irFunction.typeParameters.size != typeParameters.size) return false
-
-    for ((index, typeParameter) in irFunctionTypeParameters.withIndex()) {
-        val targetTypeParameter = typeParameters[index]
-        if (!(typeParameter isSameAs targetTypeParameter)) return false
-    }
-
-
-    // valueParameters
-    val irFunctionValueParameters = irFunction.valueParameters0()
-    if (irFunctionValueParameters.size != valueParameters.size) return false
-
-    for ((index, valueParameter) in irFunctionValueParameters.withIndex()) {
-        val targetValueParameter = valueParameters[index]
-        if (!(valueParameter isSameAs targetValueParameter)) return false
-    }
-
-    return true
-}
-
-private infix fun IrTypeParameter.isSameAs(typeParameter: OriginTypeParameter): Boolean {
-    if (name != typeParameter.name) return false
-    if (variance.ordinal != typeParameter.varianceOrdinal) return false
-    if (isReified != typeParameter.isReified) return false
-    val superTypes = superTypes
-    if (superTypes.size != typeParameter.upperBoundNames.size) return false
-
-    for ((index, superType) in superTypes.withIndex()) {
-        val typeBoundName = typeParameter.upperBoundNames[index]
-        if (superType.classFqName?.shortName() != typeBoundName) return false
-    }
-
-    return true
-}
-
-private infix fun IrValueParameter.isSameAs(valueParameter: OriginValueParameter): Boolean {
-    if (name != valueParameter.name) return false
-    return type.classFqName?.asString() == valueParameter.typeFqName
-}
-
-data class OriginFunctionSymbol(
-    val name: FqName,
-    val typeParameters: List<OriginTypeParameter>,
-    val valueParameters: List<OriginValueParameter>,
-    val returnType: String?,
-)
-
-data class OriginTypeParameter(
-    val name: Name,
-    val varianceOrdinal: Int,
-    val isReified: Boolean,
-    val upperBoundNames: List<Name?>
-)
-
-data class OriginValueParameter(
-    val name: Name,
-    val typeFqName: String?
-)
-
-////
 
 data class SuspendTransformUserDataFir(
     val originSymbol: OriginSymbol,
@@ -305,9 +189,9 @@ private fun FirValueParameter.toValueParameter(session: FirSession, index: Int):
 
 fun OriginSymbol.checkSame(markerId: String, declaration: IrFunction): Boolean {
     if (targetMarker != null) {
-        val anno = declaration.annotations.firstOrNull { it.symbol.owner.parentAsClass.classId == targetMarker }
+        val anno = declaration.annotations.firstOrNull { it.classSymbol.owner.classId == targetMarker }
         if (anno != null) {
-            val valueArgument = anno.getValueArgument(Name.identifier("value")) as? IrConst
+            val valueArgument = anno.argumentMapping[Name.identifier("value")] as? IrConst
             if (markerId == valueArgument?.value) {
                 return true
             }
